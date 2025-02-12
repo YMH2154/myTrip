@@ -1,0 +1,23 @@
+.footer {
+    background-color: #141414;
+    color: #6E6E6E;
+    padding: 15px 0;
+    font-size: 13px;
+    line-height: 1.6;
+    position: relative; /* 푸터를 문서 흐름에 맞추기 */
+    text-align: center;
+    width: 100%;
+    bottom: 0;
+}
+
+
+.content{
+    margin-bottom: 100px;
+    margin-top: 50px;
+    margin-left: 50px;
+    margin-right: 50px;
+}
+
+button:hover{
+    cursor: pointer;
+}

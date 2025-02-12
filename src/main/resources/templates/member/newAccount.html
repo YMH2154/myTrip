@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<th:block layout:fragment="css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --dark-bg: #2C3E50;
+            --light-text: #FFFFFF;
+        }
+
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url('/images/travel-member-bg.jpg') center/cover no-repeat fixed;
+            color: var(--dark-bg);
+            min-height: 100vh;
+        }
+
+        .signup-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .signup-title {
+            color: var(--dark-bg);
+            font-size: 2rem;
+            margin-bottom: 28px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: #64748B;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            background-color: #F5F7FA;
+            border: 1px solid #E4E7EB;
+            border-radius: 8px;
+            color: #2C3E50;
+            height: 50px;
+            padding: 16px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: #FFFFFF;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+
+        .verification-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-verify {
+            background-color: #F5F7FA;
+            color: var(--dark-bg);
+            border: 1px solid #E4E7EB;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-verify:hover:not(:disabled) {
+            background-color: #E4E7EB;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 16px 32px;
+            transition: all 0.3s ease;
+            width: auto;
+            min-width: 200px;
+        }
+
+        .btn-primary:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+        }
+
+        .fieldError {
+            color: #E53E3E;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .loading-spinner {
+            margin-left: 8px;
+        }
+
+        /* 입력 필드 아이콘 */
+        .form-group {
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748B;
+        }
+
+        /* 애니메이션 효과 */
+        .signup-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</th:block>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // EmailAuth 객체 정의
+            const EmailAuth = (function() {
+                function sendCode() {
+                    const email = $("#email").val();
+                    if(!email) {
+                        alert("이메일을 입력해주세요");
+                        return;
+                    }
+
+                    const $button = $("#sendCodeBtn");
+                    $button.prop('disabled', true);
+                    $button.find('.loading-spinner').show();
+
+                    ajaxRequest("/member/email/sendCode", "POST", { email: email },
+                        function(result) {
+                            alert("인증 코드를 보냈습니다");
+                            $button.prop('disabled', false);
+                            $button.find('.loading-spinner').hide();
+                        }
+                    );
+                }
+
+                function checkCode() {
+                    const inputCode = $("#confirmCode").val();
+                    if(!inputCode) {
+                        alert("인증 코드를 입력해주세요");
+                        return;
+                    }
+
+                    ajaxRequest("/member/email/inputCode", "POST", { inputCode: inputCode },
+                        function(result) {
+                            alert("인증이 완료되었습니다");
+                        }
+                    );
+                }
+
+                return {
+                    sendCode: sendCode,
+                    checkCode: checkCode
+                };
+            })();
+
+            // EmailAuth를 전역 객체로 설정
+            window.EmailAuth = EmailAuth;
+
+            // 초기화 코드
+            $('.loading-spinner').hide();
+            
+            const errorMessage = [[${errorMessage}]];
+            if(errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    </script>
+</th:block>
+<div layout:fragment="content">
+    <div class="signup-container">
+        <h2 class="signup-title">회원가입</h2>
+        <form action="/member/new" role="form" method="post" th:object="${memberFormDto}">
+            <div class="form-group">
+                <label th:for="name">이름</label>
+                <input type="text" th:field="*{name}" class="form-control" placeholder="이름을 입력해주세요"/>
+                <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="fieldError"></p>
+            </div>
+
+            <div class="form-group">
+                <label th:for="email">이메일</label>
+                <div class="verification-group">
+                    <input type="text" th:field="*{email}" id="email" class="form-control" placeholder="이메일을 입력해주세요"/>
+                    <button type="button" class="btn btn-verify" id="sendCodeBtn" onclick="EmailAuth.sendCode()">
+                        인증코드 받기
+                        <span class="loading-spinner spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="fieldError"></p>
+            </div>
+
+            <div class="form-group">
+                <label th:for="confirmCode">인증 코드</label>
+                <div class="verification-group">
+                    <input type="text" id="confirmCode" class="form-control" placeholder="인증코드를 입력해주세요" autocomplete="off"/>
+                    <button type="button" class="btn btn-verify" onclick="EmailAuth.checkCode()">확인</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label th:for="password">비밀번호</label>
+                <input type="password" th:field="*{password}" class="form-control" placeholder="비밀번호를 입력해주세요" autocomplete="off"/>
+                <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="fieldError">Incorrect date</p>
+            </div>
+
+            <div class="form-group">
+                <label th:for="checkPassword">비밀번호 확인</label>
+                <input type="password" th:field="*{checkPassword}" class="form-control" placeholder="비밀번호 확인을 입력해주세요" autocomplete="off"/>
+                <p th:if="${#fields.hasErrors('checkPassword')}" th:errors="*{checkPassword}" class="fieldError">Incorrect date</p>
+            </div>
+
+            <div class="form-group">
+                <label th:for="tel">연락처</label>
+                <input type="number" th:field="*{tel}" class="form-control" placeholder="연락처를 입력해주세요."/>
+                <p th:if="${#fields.hasErrors('tel')}" th:errors="*{tel}" class="fieldError">Incorrect date</p>
+            </div>
+            <div style="text-align: center">
+                <button type="submit" class="btn btn-primary">가입하기</button>
+            </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        </form>
+    </div>
+</div>
+</html>

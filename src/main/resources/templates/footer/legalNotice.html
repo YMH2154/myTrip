@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .legal-notice-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .legal-notice-container h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .legal-notice-container section {
+            margin-bottom: 40px;
+        }
+
+        .legal-notice-container h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #6a0dad;
+        }
+
+        .legal-notice-container p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .update-info {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="legal-notice-container">
+        <h1>법적 고지</h1>
+        
+        <section>
+            <h2>저작권</h2>
+            <p>myOtt 서비스에서 제공하는 콘텐츠의 저작권은 myOtt을 비롯한 여러 훌륭한 제작사 및 프로덕션 회사에서 보유하고 있습니다.</p>
+        </section>
+
+        <section>
+            <h2>상표</h2>
+            <p>myOtt 로고 및 myOtt 고유의 브랜드 요소들은 myOtt, Inc.의 상표입니다.</p>
+            <p>myOtt의 허가 없이는 myOtt 마크를 자사의 마크로 사용하거나 myOtt의 후원 또는 보증을 암시하는 방식으로 사용할 수 없습니다.</p>
+        </section>
+
+        <section>
+            <h2>특허</h2>
+            <p>myOtt 애플리케이션 및 서비스에는 특허가 적용됩니다.</p>
+        </section>
+
+        <section>
+            <h2>타사 고지 사항</h2>
+            <p>myOtt 애플리케이션 및 기타 myOtt 제품에는 오픈 소스 또는 무료 소프트웨어 라이선스에 따라 사용 가능한 소프트웨어('오픈 소스 소프트웨어')가 포함될 수 있습니다.</p>
+        </section>
+
+        <div class="update-info">
+            <p>마지막 업데이트: 2025년 2월 5일</p>
+        </div>
+    </div>
+</div>
+</html> 

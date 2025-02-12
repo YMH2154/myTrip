@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 전체 헤더 컨테이너 */
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 1px 0 0 #e9ecef;
+            padding: 0;
+            min-height: 80px;
+        }
+
+        /* 로고 */
+        .navbar-brand {
+            padding: 0;
+            margin-right: 40px;
+        }
+
+        .navbar-brand img {
+            height: 28px;
+            width: auto;
+        }
+
+        /* 검색 폼 */
+        .search-form {
+            position: relative;
+            width: 460px;
+        }
+
+        .search-form .form-control {
+            height: 44px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 0 20px;
+            font-size: 14px;
+            background-color: #f8f9fa;
+        }
+
+        .search-form .form-control:focus {
+            border-color: #4A90E2;
+            box-shadow: none;
+            background-color: #fff;
+        }
+
+        .search-form .btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            padding: 8px;
+        }
+
+        /* 네비게이션 메뉴 */
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: #333;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 16px;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            color: #4A90E2;
+        }
+
+        /* 드롭다운 메뉴 */
+        .dropdown-menu {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 8px 0;
+            margin-top: 8px;
+        }
+
+        .dropdown-item {
+            color: #333;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #4A90E2;
+        }
+
+        /* 로그인/회원가입 버튼 */
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-buttons .btn {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+
+        .btn-outline-primary {
+            border-color: #e9ecef;
+            color: #333;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            color: #4A90E2;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 991.98px) {
+            .navbar {
+                padding: 10px 15px;
+            }
+
+            .search-form {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .navbar-collapse {
+                background-color: #fff;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                margin-top: 10px;
+            }
+
+            .auth-buttons {
+                margin-top: 10px;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* 아이콘 스타일 */
+        .fa, .fas {
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
+        /* 알림 아이콘 뱃지 */
+        .notification-badge {
+            position: relative;
+        }
+
+        .notification-badge::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 6px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+<div th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <!-- 로고 -->
+        <a class="navbar-brand" href="/">
+            <img src="/images/travel-logo.png" alt="Travel Logo">
+        </a>
+
+        <!-- 토글 버튼 -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- 검색창 -->
+            <form class="form-inline my-2 my-lg-0 search-form mx-auto">
+                <div class="input-group w-100">
+                    <input class="form-control" type="search" placeholder="어디로 떠나시나요?" aria-label="Search">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- 카테고리 메뉴 -->
+            <ul class="navbar-nav w-100 justify-content-center">
+                <li class="nav-item dropdown mx-2">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                        국내여행
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="/products/domestic/seoul">서울</a>
+                        <a class="dropdown-item" href="/products/domestic/busan">부산</a>
+                        <a class="dropdown-item" href="/products/domestic/jeju">제주도</a>
+                        <a class="dropdown-item" href="/products/domestic/gangwon">강원도</a>
+                        <a class="dropdown-item" href="/products/domestic/gyeongju">경주</a>
+                        <a class="dropdown-item" href="/products/domestic/jeonju">전주</a>
+                        <a class="dropdown-item" href="/products/domestic/yeosu">여수</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown mx-2">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                        해외여행
+                    </a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">유럽</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="/products/overseas/europe/france">프랑스</a>
+                                <a class="dropdown-item" href="/products/overseas/europe/italy">이탈리아</a>
+                                <a class="dropdown-item" href="/products/overseas/europe/spain">스페인</a>
+                                <a class="dropdown-item" href="/products/overseas/europe/uk">영국</a>
+                            </div>
+                        </div>
+                        <div class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">아시아</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="/products/overseas/asia/japan">일본</a>
+                                <a class="dropdown-item" href="/products/overseas/asia/china">중국</a>
+                                <a class="dropdown-item" href="/products/overseas/asia/taiwan">대만</a>
+                                <a class="dropdown-item" href="/products/overseas/asia/vietnam">베트남</a>
+                                <a class="dropdown-item" href="/products/overseas/asia/thailand">태국</a>
+                            </div>
+                        </div>
+                        <div class="dropdown-submenu">
+                            <a class="dropdown-item dropdown-toggle" href="#">미주</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="/products/overseas/america/usa">미국</a>
+                                <a class="dropdown-item" href="/products/overseas/america/canada">캐나다</a>
+                                <a class="dropdown-item" href="/products/overseas/america/hawaii">하와이</a>
+                                <a class="dropdown-item" href="/products/overseas/america/guam">괌</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li class="nav-item dropdown mx-2">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                        테마여행
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="/products/theme/honeymoon">허니문</a>
+                        <a class="dropdown-item" href="/products/theme/golf">골프</a>
+                        <a class="dropdown-item" href="/products/theme/cruise">크루즈</a>
+                        <a class="dropdown-item" href="/products/theme/resort">리조트</a>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- 로그인/회원가입 메뉴 -->
+            <ul class="navbar-nav ml-auto">
+                <!-- 비로그인 상태 -->
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" href="/member/login">로그인</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" href="/member/new">회원가입</a>
+                </li>
+
+                <!-- 로그인 상태 -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <div class="user-profile">
+                            <img src="/images/default-profile.png" alt="Profile">
+                            <span sec:authentication="name">사용자</span>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="/member/mypage">마이페이지</a>
+                        <a class="dropdown-item" href="/orders">예약내역</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/member/logout">로그아웃</a>
+                    </div>
+                </li>
+
+                <!-- 관리자 전용 메뉴 -->
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" href="/admin">관리자</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 필요한 JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // 모바일에서 서브메뉴 토글
+        document.addEventListener('DOMContentLoaded', function() {
+            $('.dropdown-submenu a.dropdown-toggle').on('click', function(e) {
+                if (!$(this).next().hasClass('show')) {
+                    $(this).parents('.dropdown-menu').first().find('.show').removeClass('show');
+                }
+                $(this).next('.dropdown-menu').toggleClass('show');
+                e.stopPropagation();
+                e.preventDefault();
+            });
+        });
+    </script>
+</div>
+</body>
+</html>
