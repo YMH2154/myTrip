@@ -1,10 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>myTrip 여행 상품 관리 페이지</title>
 </head>
-<body>
 
-</body>
+<div layout:fragment="content" class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">여행 상품 관리</h1>
+        <a href="/admin/item/new" class="add-content-btn">
+            <i class="fas fa-plus"></i> 새 상품 추가
+        </a>
+    </div>
+
+    <div class="search-section">
+        <form th:action="@{'/admin/items/' + ${items.number}}" role="form" method="get" th:object="${itemSearchDto}">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <select th:field="*{searchDateType}" class="form-control">
+                        <option value="all">전체기간</option>
+                        <option value="1d">1일</option>
+                        <option value="1w">1주</option>
+                        <option value="1m">1개월</option>
+                        <option value="6m">6개월</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <select th:field="*{travelType}" class="form-control">
+                        <option value="">여행 타입</option>
+                        <option th:each="type : T{$(com.soloProject.myTrip.constant.TravelType).values()}"
+                                th:value="${type}"
+                                th:text="${type.description}">
+                        </option>
+                    </select>
+                    <select th:field="*{domesticCategory}" class="form-control">
+                        <option value="">국내여행 지역</option>
+                        <option th:each="category : T{$(com.soloProject.myTrip.constant.DomesticCategory).values()}"
+                                th:value="${category}"
+                                th:text="${category.description}">
+                        </option>
+                    </select>
+                    <select th:field="*{overseasCategory}" class="form-control">
+                        <option value="">해외여행 지역</option>
+                        <option th:each="category : T{$(com.soloProject.myTrip.constant.OverseasCategory).values()}"
+                                th:value="${category}"
+                                th:text="${category.region}">
+                        </option>
+                    </select>
+                    <select th:field="*{themeCategory}" class="form-control">
+                        <option value="">여행 테마</option>
+                        <option th:each="category : T{$(com.soloProject.myTrip.constant.ThemeCategory).values()}"
+                                th:value="${category}"
+                                th:text="${category.description}">
+                        </option>
+                    </select>
+                    <select th:field="*{searchBy}" class="form-control" style="width:auto;">
+                        <option value="itemName">상품명</option>
+                        <option value="createBy">등록자</option>
+                    </select>
+                    <div class="col-auto">
+                        <input th:field="*{searchQuery}" type="text" class="form-control" placeholder="검색어를 입력하세요">
+                    </div>
+                    <div class="col-auto">
+                        <button id="searchBtn" type="submit" class="add-content-btn">
+                            <i class="fas fa-search"></i> 검색
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="content-table">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>상품명</th>
+                <th>여행 타입</th>
+                <th>지역 / 테마</th>
+                <th>등록자</th>
+                <th>등록일</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${items.getTotalElements() == 0}">
+                <td colspan="7" class="no-results">
+                    검색 조건에 맞는 상품이 없습니다.
+                </td>
+            </tr>
+            <tr th:unless="${items.getTotalElements() == 0}"
+                th:each="item, status : ${items.getContent()}">
+                <td th:text="${item.id}"></td>
+                <td>
+                    <span th:text="${item.itemName}"></span>
+                </td>
+                <td>
+                    <span class="type-badge" th:text="${item.travelType.getDescription()}"></span>
+                </td>
+                <td th:if="${#strings.equals(item.travelType.getDescription(), 'DOMESTIC'}">
+                    <span class="category-badge" th:text="${item.domesticCategory.getDescription()}"></span>
+                </td>
+                <td th:if="${#strings.equals(item.travelType.getDescription(), 'OVERSEAS'}">
+                    <span class="category-badge" th:text="${item.overseasCategory.getRegion()}"></span>
+                </td>
+                <td th:if="${#strings.equals(item.travelType.getDescription(), 'THEME'}">
+                    <span class="category-badge" th:text="${item.themeCategory.getDescription()}"></span>
+                </td>
+                <td th:text="${item.createdBy}"></td>
+                <td th:text="${#temporals.format(item.regTime, 'yyyy-MM-dd HH:mm')}"></td>
+                <td>
+                    <div class="action-buttons">
+                        <a th:href="@{/admin/item/{id}/schedule/new(id=${item.id})}" class="action-btn">
+                            <img src="/images/schedule.png" alt="일정 관리" title="일정 관리">
+                        </a>
+                        <a th:href="@{'/admin/item/'+${item.id}}" class="action-btn">
+                            <img src="/images/modification.png" alt="수정" title="수정">
+                        </a>
+                        <button type="button" class="action-btn" th:onclick="'deleteItem('+${item.id}+')'">
+                            <img src="/images/delete.png" alt="삭제" title="삭제">
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:with="start=${(items.number/maxPage)*maxPage + 1},
+        end=(${(items.totalPages == 0) ? 1 : (start + (maxPage-1) < items.totalPages ? start + (maxPage-1) : items.totalPages)})">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${items.first}'disabled'">
+                <a th:onclick="javascript:page(' + ${items.number - 1} + ')'" aria-label="Previous"
+                   class="page-link">
+                    <img src="/images/left_btn.png" alt="이전">
+                </a>
+            </li>
+            <li class="page-item" th:each="page: ${#numbers.sequence(start,end)}"
+                th:classappend="${items.number eq page-1}?'active':''">
+                <a th:onclick="'javascript:page(' + ${page-1} +')'" th:inline="text" class="page-link">[[${page}]]</a>
+            </li>
+            <li class="page-item" th:classappend="${items.last}?'disabled'">
+                <a th:onclick="'javascript:page(' + ${item.number + 1} +')'" aria-label="Next" class="page-link">
+                    <img src="/images/right_btn.png" alt="다음">
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function(){
+            $("#searchBtn").on("click, function(e){
+                e.preventDefault();
+                page(0);
+            });
+        });
+
+        function page(page){
+
+            const searchDateType = $("#searchDateType").val();
+            const travelType = $("#travelType").val();
+            const domesticCategory = $("#domesticCategory").val();
+            const overseasCategory = $("#overseasCategory").val();
+            const themeCategory = $("#themeCategory").val();
+            const searchBy = $("#searchBy").val();
+            const searchQuery = $("#searchQuery").val();
+
+            location.href = "/admin/items/" + page
+                + "?searchDateType=" + searchDateType
+                + "&travelType=" + travelType
+                + "&domesticCategory=" + domesticCategory
+                + "&overseasCategory=" + overseasCategory
+                + "&themeCategory=" + themeCategory
+                + "&searchBy=" + searchBy
+                + "&searchQuery=" + searchQuery;
+        }
+
+        function deleteItem(itemId) {
+            if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+                return;
+            }
+
+            ajaxRequest(
+                "/admin/item/" + itemId,
+                "DELETE",
+                {},
+                function(result) {
+                    alert('상품이 성공적으로 삭제되었습니다.');
+                    location.href = "/admin/items";
+                }
+            );
+        }
+    </script>
+</th:block>
+
 </html>

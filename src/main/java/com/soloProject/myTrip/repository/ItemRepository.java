@@ -8,11 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long>, ItemRepositoryCustom {
-    List<Item> findByItemName(String itemName);
-
-    @Query("SELECT i FROM Item i WHERE i.currentParticipants < i.maxParticipants ORDER BY (i.maxParticipants - i.currentParticipants) ASC")
+    @Query("SELECT i FROM Item i WHERE i.currentParticipants < i.remainingSeats ORDER BY (i.remainingSeats - i.currentParticipants) ASC")
     List<Item> findTop8ByOrderByRemainingSeatsAsc(Pageable pageable);
 
-    @Query("SELECT i FROM Item i WHERE i.currentParticipants >= i.minParticipants ORDER BY i.startDate ASC")
-    List<Item> findTop8ByCurrentParticipantsGreaterThanEqualMinParticipants(Pageable pageable);
+    @Query("SELECT i FROM Item i WHERE i.currentParticipants >= i.minParticipants ORDER BY i.id DESC")
+    List<Item> findTop8ByParticipantsCondition(Pageable pageable);
 }

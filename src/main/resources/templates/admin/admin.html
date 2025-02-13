@@ -4,34 +4,24 @@
       layout:decorate="~{layouts/layout}">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>myTrip 관리자 페이지</title>
 </head>
-<body>
-  <a href="/admin/item/new">
+
+<div layout:fragment="content">
+  <a th:href="@{/admin/items}">
   <div>
-    상품 등록
-  </div>
-  </a>
-  <a href="/admin/item">
-  <div>
-    상품 조회 / 관리
-  </div>
-  </a>
-  <a href="/admin/banner/new">
-  <div>
-    배너 등록
-  </div>
-  </a>
-  <a href="/admin/banner">
-  <div>
-    배너 조회/관리
+    <span>상품 관리</span>
   </div>
   </a>
   <div>
-    결제 기록 조회 / 관리
+    <span>배너 관리</span>
   </div>
   <div>
-    통계 조회
+    <span>결제 기록 조회 / 관리</span>
   </div>
-</body>
+  <div>
+    <span>통계 조회</span>
+  </div>
+</div>
+
 </html>

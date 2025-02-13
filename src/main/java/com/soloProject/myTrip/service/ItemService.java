@@ -28,7 +28,6 @@ import java.util.UUID;
 @Service
 @Transactional
 @RequiredArgsConstructor
-@Primary
 public class ItemService {
 
     private final ItemRepository itemRepository;
@@ -126,7 +125,7 @@ public class ItemService {
     @Transactional(readOnly = true)
     public List<Item> getConfirmedItems() {
         PageRequest pageRequest = PageRequest.of(0, 8);
-        return itemRepository.findTop8ByCurrentParticipantsGreaterThanEqualMinParticipants(pageRequest);
+        return itemRepository.findTop8ByParticipantsCondition(pageRequest);
     }
 
     // 상세 페이지 조회
