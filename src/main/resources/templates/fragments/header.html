@@ -294,7 +294,7 @@
 
                 <!-- 관리자 전용 메뉴 -->
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" href="/admin">관리자</a>
+                    <a class="nav-link" th:href="@{/admin}">관리자</a>
                 </li>
             </ul>
         </div>

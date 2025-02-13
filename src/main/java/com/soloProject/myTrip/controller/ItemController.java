@@ -3,9 +3,12 @@ package com.soloProject.myTrip.controller;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
+import com.soloProject.myTrip.entity.Schedule;
 import com.soloProject.myTrip.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,60 +23,164 @@ public class ItemController {
 
     private final ItemService itemService;
 
-    //상품 등록(GET)
+    // 상품 등록(GET)
     @GetMapping("/admin/item/new")
-    public String itemNew(Model model){
+    public String itemNew(Model model) {
         model.addAttribute("itemFormDto", new ItemFormDto());
         return "item/itemForm";
     }
 
-    //상품 등록(POST)
+    // 상품 등록(POST)
     @PostMapping("/admin/item/new")
-    public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult, Model model) {
+    public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
+            @RequestParam List<MultipartFile> itemImageFile,
+            Model model) {
 
         if (bindingResult.hasErrors()) {
             return "item/itemForm";
         }
+        if (itemImageFile.getFirst().isEmpty()) {
+            model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
+            return "item/itemForm";
+        }
         try {
-            itemService.saveItem(itemFormDto);
+            itemService.saveItem(itemFormDto, itemImageFile);
+            return "item/itemMng";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
             return "item/itemForm";
         }
-
-        return "redirect:/";
     }
 
-    //상품 일정 등록(GET)
-    @GetMapping("/admin/{itemId}/schedule/new")
-    public String scheduleNew(Model model, @PathVariable("itemId") Long itemId){
-        model.addAttribute("scheduleDto", new ScheduleDto(itemId));
-        return "item/itemScheduleForm";
-    }
-
-    //상품 일정 등록(POST)
-    @PostMapping("/admin/item/schedule/new")
-    public String scheduleNew(@Valid ScheduleDto scheduleDto, BindingResult bindingResult,
-                              @RequestParam List<MultipartFile> imageFile,
-                              @RequestParam List<String> description,
-                              Model model){
-        if(bindingResult.hasErrors()){
-            return "item/itemScheduleForm"
+    // 상품 수정(GET)
+    @GetMapping("/admin/item/{itemId}")
+    public String itemEdit(Model model, @PathVariable("itemId") Long itemId) {
+        try {
+            ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
+            model.addAttribute("itemFormDto", itemFormDto);
+            return "item/itemForm";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "item/itemMng";
         }
     }
 
-    //상품 상세(GET)
+    // 상품 수정(PATCH)
+    @PatchMapping("/admin/item/{itemId}")
+    public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
+            @RequestParam("itemImageFile") List<MultipartFile> itemImageFile,
+            Model model) {
+        if (bindingResult.hasErrors()) { // 유효성 체크
+            return "item/itemForm";
+        }
+        if (itemImageFile.isEmpty() && itemFormDto.getId() == null) {
+            model.addAttribute("errorMessage", "썸네일을 등록해주세요");
+            return "item/itemForm";
+        }
+        try {
+            itemService.updateItem(itemFormDto, itemImageFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "상품 업로드 중 에러가 발생하였습니다.");
+            return "item/itemForm";
+        }
+        return "item/itemMng";
+    }
+
+    // 상품 상세(GET)
     @GetMapping("/item/{itemId}")
-    public String itemDtl(@PathVariable("itemId") Long itemId, Model model){
-        try{
+    public String itemDtl(@PathVariable("itemId") Long itemId, Model model) {
+        try {
             ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
             model.addAttribute("itemFormDto", itemFormDto);
             return "item/itemDtl";
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/";
         }
     }
+
+    // 여행 상품 삭제(ajax)
+    @DeleteMapping("/admin/item/{itemId}")
+    @ResponseBody
+    public ResponseEntity<String> deleteItem(@PathVariable("itemId") Long itemId) {
+        try {
+            itemService.deleteItem(itemId);
+            return new ResponseEntity<>("Success", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 여행 상품 이미지 삭제(ajax)
+    @DeleteMapping("/admin/item/{itemId}/image/{index}")
+    @ResponseBody
+    public ResponseEntity<String> deleteItemImage(@PathVariable("itemId") Long itemId,
+                                                  @PathVariable("index") int index) {
+        try {
+            itemService.deleteItemImage(itemId, index);
+            return new ResponseEntity<>("Success", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 여행 일정 등록/수정 페이지(GET)
+    @GetMapping("/admin/item/{itemId}/schedule/new")
+    public String scheduleNew(Model model, @PathVariable("itemId") Long itemId) {
+        Item item = itemService.getItem(itemId);
+        List<Schedule> schedules = itemService.getSchedulesByItemId(itemId);
+
+        model.addAttribute("scheduleDto", new ScheduleDto(itemId));
+        model.addAttribute("duration", item.getDuration());
+        model.addAttribute("schedules", schedules);
+        return "item/itemScheduleForm";
+    }
+
+    // 여행 일정 등록(POST)
+    @PostMapping("/admin/item/{itemId}/schedule/new")
+    public String scheduleNew(@PathVariable("itemId") Long itemId,
+            @RequestParam("day") int day,
+            @RequestParam List<String> activities,
+            @RequestParam List<MultipartFile> imageFiles,
+            @RequestParam List<String> descriptions,
+            Model model) {
+        try {
+            itemService.saveSchedule(itemId, day, activities, imageFiles, descriptions);
+            return "redirect:/admin/items"; // 성공 시 상품 목록으로 이동
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "일정 등록 중 에러가 발생했습니다.");
+            return "item/itemScheduleForm";
+        }
+    }
+
+    // 여행 일정 수정(PUT)
+    @PutMapping("/admin/item/schedule/{scheduleId}")
+    @ResponseBody
+    public ResponseEntity<String> updateSchedule(@PathVariable("scheduleId") Long scheduleId,
+                                                 @RequestParam("day") int day,
+                                                 @RequestParam("activity") String activity,
+                                                 @RequestParam("description") String description,
+                                                 @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+        try {
+            itemService.updateSchedule(scheduleId, day, activity, description, imageFile);
+            return new ResponseEntity<>("Success", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 여행 일정 삭제(ajax)
+    @DeleteMapping("/admin/item/schedule/{scheduleId}")
+    @ResponseBody
+    public ResponseEntity<String> deleteSchedule(@PathVariable("scheduleId") Long scheduleId) {
+        try {
+            itemService.deleteSchedule(scheduleId);
+            return new ResponseEntity<>("Success", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
 
 }

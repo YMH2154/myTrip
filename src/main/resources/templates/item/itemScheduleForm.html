@@ -4,50 +4,174 @@
       layout:decorate="~{layouts/layout}">
 
 <div layout:fragment="content">
-  <div class="form-group" id="imageContainer">
-    <div class="image-item">
-      <div class="form-group">
-        <label>상품 이미지</label>
-        <input type="file" class="form-control" name="itemImageFile">
-        <div class="form-group mt-2">
-          <label>이미지 설명</label>
-          <textarea class="form-control" name="imageDescriptions" rows="3" placeholder="이미지에 대한 설명을 입력해주세요"></textarea>
+    <div class="container">
+        <!-- 기존 일정 목록 표시 -->
+        <div th:if="${not #lists.isEmpty(schedules)}" class="mb-4">
+            <h3>등록된 일정</h3>
+            <div th:each="schedule : ${schedules}" class="schedule-item border p-3 mb-3">
+                <div class="form-group">
+                    <label>일차</label>
+                    <select class="form-control day-input" required>
+                        <option value="">선택해주세요</option>
+                        <option th:each="day : ${#numbers.sequence(1, duration)}" 
+                                th:value="${day}"
+                                th:text="${day} + '일차'"
+                                th:selected="${day == schedule.day}">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group mt-2">
+                    <label>관광지명</label>
+                    <input type="text" class="form-control activity-input" th:value="${schedule.activity}">
+                </div>
+                <div class="form-group mt-2">
+                    <label>현재 이미지</label>
+                    <img th:src="${schedule.imageUrl}" class="img-fluid mb-2" style="max-width: 200px;">
+                    <input type="file" class="form-control image-input">
+                </div>
+                <div class="form-group mt-2">
+                    <label>관광지 설명</label>
+                    <textarea class="form-control description-input" rows="3" th:text="${schedule.description}"></textarea>
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-primary" th:onclick="updateSchedule([[${schedule.id}]], this)">수정</button>
+                    <button type="button" class="btn btn-danger" th:onclick="deleteSchedule([[${schedule.id}]], this)">삭제</button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<div class="form-group">
-  <button type="button" class="btn btn-outline-secondary" onclick="addImageField()">이미지 추가</button>
+        <!-- 새로운 일정 추가 폼 -->
+        <form action="" th:action="@{'/admin/item/' + ${scheduleDto.itemId} + '/schedule/new'}" 
+              role="form" method="post" enctype="multipart/form-data">
+            
+            <div class="form-group mb-3">
+                <label for="day">일차 선택</label>
+                <select class="form-control" id="day" name="day" required>
+                    <option value="">선택해주세요</option>
+                    <option th:each="day : ${#numbers.sequence(1, duration)}" 
+                            th:value="${day}" 
+                            th:text="${day} + '일차'">
+                    </option>
+                </select>
+            </div>
+
+            <div id="scheduleContainer">
+                <div class="schedule-item border p-3 mb-3">
+                    <div class="form-group">
+                        <label>관광지명</label>
+                        <input type="text" class="form-control" name="activities" required>
+                    </div>
+                    
+                    <div class="form-group mt-2">
+                        <label>관광지 이미지</label>
+                        <input type="file" class="form-control" name="imageFiles" required>
+                    </div>
+                    
+                    <div class="form-group mt-2">
+                        <label>관광지 설명</label>
+                        <textarea class="form-control" name="descriptions" rows="3" required></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="button" class="btn btn-outline-secondary" onclick="addScheduleField()">관광지 추가</button>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-primary">저장</button>
+                <button type="button" class="btn btn-secondary" onclick="history.back();">취소</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <th:block layout:fragment="script">
-  <script th:inline="javascript">
-  function addImageField() {
+    <script src="/js/ajaxUtil.js"></script>
+    <script th:inline="javascript">
+        function addScheduleField() {
+            const container = document.getElementById('scheduleContainer');
+            const scheduleItems = container.getElementsByClassName('schedule-item');
+            
+            const newItem = document.createElement('div');
+            newItem.className = 'schedule-item border p-3 mb-3';
+            newItem.innerHTML = `
+                <div class="form-group">
+                    <label>관광지명</label>
+                    <input type="text" class="form-control" name="activities" required>
+                </div>
+                
+                <div class="form-group mt-2">
+                    <label>관광지 이미지</label>
+                    <input type="file" class="form-control" name="imageFiles" required>
+                </div>
+                
+                <div class="form-group mt-2">
+                    <label>관광지 설명</label>
+                    <textarea class="form-control" name="descriptions" rows="3" required></textarea>
+                </div>
+                
+                <button type="button" class="btn btn-outline-danger mt-2" onclick="removeScheduleField(this)">삭제</button>
+            `;
+            container.appendChild(newItem);
+        }
 
-    const container = document.getElementById('imageContainer');
-    const newItem = document.createElement('div');
+        function removeScheduleField(button) {
+            const scheduleItem = button.closest('.schedule-item');
+            scheduleItem.remove();
+        }
 
-    newItem.className = 'image-item mt-3';
-    newItem.innerHTML = `
-    <div class="form-group">
-      <label>상품 이미지</label>
-      <input type="file" class="form-control" name="imageFile">
-      <div class="form-group mt-2">
-        <label>이미지 설명</label>
-        <textarea class="form-control" name="description" rows="3" placeholder="이미지에 대한 설명을 입력해주세요"></textarea>
-      </div>
-      <button type="button" class="btn btn-outline-danger mt-2" onclick="removeImageField(this)">삭제</button>
-    </div>
-    `;
-    container.appendChild(newItem);
-  }
+        // 일정 수정 함수
+        function updateSchedule(scheduleId, button) {
+            const scheduleItem = button.closest('.schedule-item');
+            const formData = new FormData();
+            
+            formData.append('day', scheduleItem.querySelector('.day-input').value);
+            formData.append('activity', scheduleItem.querySelector('.activity-input').value);
+            formData.append('description', scheduleItem.querySelector('.description-input').value);
+            
+            const imageFile = scheduleItem.querySelector('.image-input').files[0];
+            if (imageFile) {
+                formData.append('imageFile', imageFile);
+            }
 
-  function removeImageField(button) {
-    const imageItem = button.closest('.image-item');
-    imageItem.remove();
-  }
-  </script>
+            $.ajax({
+                url: `/admin/schedule/${scheduleId}`,
+                type: 'PUT',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function(xhr) {
+                    const token = $("meta[name='_csrf']").attr("content");
+                    const header = $("meta[name='_csrf_header']").attr("content");
+                    xhr.setRequestHeader(header, token);
+                },
+                success: function(result) {
+                    alert('일정이 성공적으로 수정되었습니다.');
+                    location.reload();
+                },
+                error: function(jqXHR) {
+                    alert('일정 수정 중 오류가 발생했습니다.');
+                }
+            });
+        }
+
+        // 일정 삭제 함수
+        function deleteSchedule(scheduleId, button) {
+            if (!confirm('정말로 이 일정을 삭제하시겠습니까?')) {
+                return;
+            }
+
+            ajaxRequest(
+                `/admin/schedule/${scheduleId}`,
+                'DELETE',
+                {},
+                function(result) {
+                    alert('일정이 성공적으로 삭제되었습니다.');
+                    button.closest('.schedule-item').remove();
+                }
+            );
+        }
+    </script>
 </th:block>
 </html>
