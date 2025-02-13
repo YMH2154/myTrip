@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<div layout:fragment="content">
+  <div class="form-group" id="imageContainer">
+    <div class="image-item">
+      <div class="form-group">
+        <label>상품 이미지</label>
+        <input type="file" class="form-control" name="itemImageFile">
+        <div class="form-group mt-2">
+          <label>이미지 설명</label>
+          <textarea class="form-control" name="imageDescriptions" rows="3" placeholder="이미지에 대한 설명을 입력해주세요"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-group">
+  <button type="button" class="btn btn-outline-secondary" onclick="addImageField()">이미지 추가</button>
+</div>
+
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+  function addImageField() {
+
+    const container = document.getElementById('imageContainer');
+    const newItem = document.createElement('div');
+
+    newItem.className = 'image-item mt-3';
+    newItem.innerHTML = `
+    <div class="form-group">
+      <label>상품 이미지</label>
+      <input type="file" class="form-control" name="imageFile">
+      <div class="form-group mt-2">
+        <label>이미지 설명</label>
+        <textarea class="form-control" name="description" rows="3" placeholder="이미지에 대한 설명을 입력해주세요"></textarea>
+      </div>
+      <button type="button" class="btn btn-outline-danger mt-2" onclick="removeImageField(this)">삭제</button>
+    </div>
+    `;
+    container.appendChild(newItem);
+  }
+
+  function removeImageField(button) {
+    const imageItem = button.closest('.image-item');
+    imageItem.remove();
+  }
+  </script>
+</th:block>
+</html>

@@ -55,7 +55,7 @@ public class ItemFormDto {
     private OverseasCategory overseasCategory;
     private ThemeCategory themeCategory;
 
-    private List<ItemImageDto> itemImageDtos = new ArrayList<>();
+    private List<TouristAttractionDto> touristAttractionDtos = new ArrayList<>();
 
     private List<Long> itemImageIds = new ArrayList<>();
 
@@ -64,7 +64,7 @@ public class ItemFormDto {
     // Item 엔티티로 변환하는 메소드
     public Item createItem() {
         Item item = modelMapper.map(this, Item.class);
-        item.
+        item.setCurrentParticipants(0);
         return item;
     }
 

@@ -1,6 +1,8 @@
 package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.dto.ItemFormDto;
+import com.soloProject.myTrip.dto.ScheduleDto;
+import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,22 +26,16 @@ public class ItemController {
         model.addAttribute("itemFormDto", new ItemFormDto());
         return "item/itemForm";
     }
+
     //상품 등록(POST)
     @PostMapping("/admin/item/new")
-    public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
-                          @RequestParam("itemImageFile") List<MultipartFile> itemImageFiles,
-                          @RequestParam("imageDescriptions") List<String> imageDescriptions,
-                          Model model) {
+    public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult, Model model) {
 
         if (bindingResult.hasErrors()) {
             return "item/itemForm";
         }
-        if (itemImageFiles.get(0).isEmpty()) {
-            model.addAttribute("errorMessage", "첫번째 상품 이미지는 필수 입력 값입니다.");
-            return "item/itemForm";
-        }
         try {
-            itemService.saveItem(itemFormDto, itemImageFiles, imageDescriptions);
+            itemService.saveItem(itemFormDto);
         } catch (Exception e) {
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
             return "item/itemForm";
@@ -47,11 +43,31 @@ public class ItemController {
 
         return "redirect:/";
     }
+
+    //상품 일정 등록(GET)
+    @GetMapping("/admin/{itemId}/schedule/new")
+    public String scheduleNew(Model model, @PathVariable("itemId") Long itemId){
+        model.addAttribute("scheduleDto", new ScheduleDto(itemId));
+        return "item/itemScheduleForm";
+    }
+
+    //상품 일정 등록(POST)
+    @PostMapping("/admin/item/schedule/new")
+    public String scheduleNew(@Valid ScheduleDto scheduleDto, BindingResult bindingResult,
+                              @RequestParam List<MultipartFile> imageFile,
+                              @RequestParam List<String> description,
+                              Model model){
+        if(bindingResult.hasErrors()){
+            return "item/itemScheduleForm"
+        }
+    }
+
     //상품 상세(GET)
     @GetMapping("/item/{itemId}")
-    public String itemDtl(@PathVariable("itemId") Long itemId){
+    public String itemDtl(@PathVariable("itemId") Long itemId, Model model){
         try{
             ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
+            model.addAttribute("itemFormDto", itemFormDto);
             return "item/itemDtl";
         }
         catch (Exception e){

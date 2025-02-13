@@ -1,22 +1,23 @@
 package com.soloProject.myTrip.service;
 
 import com.soloProject.myTrip.dto.ItemFormDto;
+import com.soloProject.myTrip.dto.ScheduleDto;
+import com.soloProject.myTrip.dto.TouristAttractionDto;
 import com.soloProject.myTrip.entity.Item;
-import com.soloProject.myTrip.entity.ItemImage;
+import com.soloProject.myTrip.entity.TouristAttraction;
 import com.soloProject.myTrip.repository.ItemImageRepository;
 import com.soloProject.myTrip.repository.ItemRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,36 +29,46 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final ItemImageRepository itemImageRepository;
 
-    @Value("${itemImageLocation}")
-    private String itemImageLocation;
+    @Value("${imageLocation}")
+    private String imageLocation;
 
-    public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImageFiles, List<String> imageDescriptions)
+    // 상품 등록
+    public void saveItem(ItemFormDto itemFormDto)
             throws Exception {
-        // 상품 등록
+
         Item item = itemFormDto.createItem();
         itemRepository.save(item);
+    }
 
+    // 상품 조회
+    public Item getItem(Long itemId){
+        return itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
+    }
+
+    // 일정 등록
+    public void saveSchedule(ScheduleDto scheduleDto, List<MultipartFile> imageFiles){
         // 이미지 등록
-        for (int i = 0; i < itemImageFiles.size(); i++) {
-            ItemImage itemImage = new ItemImage();
-            itemImage.setItem(item);
+        for (int i = 0; i < imageFiles.size(); i++) {
+            TouristAttraction touristAttraction = new TouristAttraction();
+            touristAttraction.setItem(item);
 
             // 이미지 파일이 존재하고 설명이 있는 경우에만 저장
-            if (!itemImageFiles.get(i).isEmpty() && i < imageDescriptions.size()) {
-                String originalFileName = itemImageFiles.get(i).getOriginalFilename();
-                String imageName = uploadFile(itemImageLocation, originalFileName, itemImageFiles.get(i).getBytes());
-                String imageUrl = "/itemImage/" + imageName;
+            if (!imageFiles.get(i).isEmpty() && i < descriptions.size()) {
+                String originalFileName = imageFiles.get(i).getOriginalFilename();
+                String imageName = uploadFile(imageLocation, originalFileName, imageFiles.get(i).getBytes());
+                String imageUrl = "/image/" + imageName;
 
-                itemImage.setImageUrl(imageUrl);
+                touristAttraction.setImageUrl(imageUrl);
                 // 이미지 설명이 있는 경우에만 설정
                 if (imageDescriptions.get(i) != null && !imageDescriptions.get(i).trim().isEmpty()) {
-                    itemImage.setImageDescription(imageDescriptions.get(i));
+                    touristAttraction.setImageDescription(imageDescriptions.get(i));
                 }
-                itemImageRepository.save(itemImage);
+                imageRepository.save(touristAttraction);
             }
         }
         return item.getId();
     }
+
 
     //파일 업로드
     private String uploadFile(String uploadPath, String originalFileName, byte[] fileData) throws Exception {
@@ -86,7 +97,14 @@ public class ItemService {
     //상세 페이지 조회
     public ItemFormDto getItemDtl(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
-        List<ItemImage> itemImages = itemImageRepository.findByItemIdOrderByIdAsc(itemId);
-        ItemFormDto itemFormDto =
+        ItemFormDto itemFormDto = ItemFormDto.of(item);
+        List<TouristAttraction> touristAttractions = itemImageRepository.findByItemIdOrderByIdAsc(itemId);
+        List<TouristAttractionDto> touristAttractionDtos = new ArrayList<>();
+        for(TouristAttraction touristAttraction : touristAttractions){
+            touristAttractionDtos.add(TouristAttractionDto.of(touristAttraction));
+        }
+        itemFormDto.setTouristAttractionDtos(touristAttractionDtos);
+
+        return itemFormDto;
     }
 }

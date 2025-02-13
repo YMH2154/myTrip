@@ -100,23 +100,6 @@
                 </select>
             </div>
 
-            <div class="form-group" id="imageContainer">
-                <div class="image-item">
-                    <div class="form-group">
-                        <label>상품 이미지</label>
-                        <input type="file" class="form-control" name="itemImageFile">
-                        <div class="form-group mt-2">
-                            <label>이미지 설명</label>
-                            <textarea class="form-control" name="imageDescriptions" rows="3" placeholder="이미지에 대한 설명을 입력해주세요"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <button type="button" class="btn btn-outline-secondary" onclick="addImageField()">이미지 추가</button>
-            </div>
-
             <div style="text-align: center">
                 <button type="submit" class="btn btn-primary">저장</button>
                 <button type="button" class="btn btn-secondary" onclick="history.back();">취소</button>
@@ -126,52 +109,32 @@
     </div>
 </div>
 
-<script th:inline="javascript">
-document.getElementById('travelType').addEventListener('change', function() {
-    const domesticDiv = document.getElementById('domesticDiv');
-    const overseasDiv = document.getElementById('overseasDiv');
-    const themeDiv = document.getElementById('themeDiv');
-    
-    // 모든 카테고리 div 숨기기
-    domesticDiv.style.display = 'none';
-    overseasDiv.style.display = 'none';
-    themeDiv.style.display = 'none';
-    
-    // 선택된 여행 타입에 따라 해당 카테고리 div 보이기
-    switch(this.value) {
-        case 'DOMESTIC':
-            domesticDiv.style.display = 'block';
-            break;
-        case 'OVERSEAS':
-            overseasDiv.style.display = 'block';
-            break;
-        case 'THEME':
-            themeDiv.style.display = 'block';
-            break;
-    }
-});
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        document.getElementById('travelType').addEventListener('change', function() {
+            const domesticDiv = document.getElementById('domesticDiv');
+            const overseasDiv = document.getElementById('overseasDiv');
+            const themeDiv = document.getElementById('themeDiv');
 
-function addImageField() {
-    const container = document.getElementById('imageContainer');
-    const newItem = document.createElement('div');
-    newItem.className = 'image-item mt-3';
-    newItem.innerHTML = `
-        <div class="form-group">
-            <label>상품 이미지</label>
-            <input type="file" class="form-control" name="itemImageFile">
-            <div class="form-group mt-2">
-                <label>이미지 설명</label>
-                <textarea class="form-control" name="imageDescriptions" rows="3" placeholder="이미지에 대한 설명을 입력해주세요"></textarea>
-            </div>
-            <button type="button" class="btn btn-outline-danger mt-2" onclick="removeImageField(this)">삭제</button>
-        </div>
-    `;
-    container.appendChild(newItem);
-}
+            // 모든 카테고리 div 숨기기
+            domesticDiv.style.display = 'none';
+            overseasDiv.style.display = 'none';
+            themeDiv.style.display = 'none';
 
-function removeImageField(button) {
-    const imageItem = button.closest('.image-item');
-    imageItem.remove();
-}
-</script>
+            // 선택된 여행 타입에 따라 해당 카테고리 div 보이기
+            switch(this.value) {
+                case 'DOMESTIC':
+                    domesticDiv.style.display = 'block';
+                    break;
+                case 'OVERSEAS':
+                    overseasDiv.style.display = 'block';
+                    break;
+                case 'THEME':
+                    themeDiv.style.display = 'block';
+                    break;
+            }
+        });
+    </script>
+</th:block>
+
 </html> 
