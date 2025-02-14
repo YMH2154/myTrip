@@ -12,7 +12,8 @@ public enum ThemeCategory {
     this.description = description;
   }
 
-  public String getDescription() {
+  public String getDescription(){
     return description;
   }
+
 }

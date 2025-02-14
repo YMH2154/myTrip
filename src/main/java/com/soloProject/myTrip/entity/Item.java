@@ -48,11 +48,6 @@ public class Item extends BaseEntity{
     @Column(nullable = false)
     private int duration;
 
-    @ElementCollection
-    @CollectionTable(name = "item_available_dates", joinColumns = @JoinColumn(name = "item_id"))
-    @Column(name = "available_date")
-    private List<String> availableDates; // 예약 가능 날짜
-
     @Column(nullable = false)
     private int price;
 

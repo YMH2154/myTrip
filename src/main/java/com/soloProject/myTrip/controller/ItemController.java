@@ -39,14 +39,21 @@ public class ItemController {
         if (bindingResult.hasErrors()) {
             return "item/itemForm";
         }
+        if (!itemFormDto.isValidCategory()){
+            model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
+        }
         if (itemImageFile.getFirst().isEmpty()) {
             model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
             return "item/itemForm";
         }
+        if (itemFormDto.getMinParticipants() > itemFormDto.getRemainingSeats()){
+            model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
+        }
         try {
             itemService.saveItem(itemFormDto, itemImageFile);
-            return "item/itemMng";
+            return "redirect:/admin/items";
         } catch (Exception e) {
+            e.printStackTrace();
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
             return "item/itemForm";
         }
@@ -65,8 +72,8 @@ public class ItemController {
         }
     }
 
-    // 상품 수정(PATCH)
-    @PatchMapping("/admin/item/{itemId}")
+    // 상품 수정(POST)
+    @PostMapping("/admin/item/{itemId}")
     public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
             @RequestParam("itemImageFile") List<MultipartFile> itemImageFile,
             Model model) {
@@ -74,17 +81,17 @@ public class ItemController {
             return "item/itemForm";
         }
         if (itemImageFile.isEmpty() && itemFormDto.getId() == null) {
-            model.addAttribute("errorMessage", "썸네일을 등록해주세요");
+            model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
             return "item/itemForm";
         }
         try {
             itemService.updateItem(itemFormDto, itemImageFile);
+            return "redirect:/admin/items";
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "상품 업로드 중 에러가 발생하였습니다.");
             return "item/itemForm";
         }
-        return "item/itemMng";
     }
 
     // 상품 상세(GET)

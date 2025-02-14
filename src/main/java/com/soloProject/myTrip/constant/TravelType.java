@@ -11,7 +11,7 @@ public enum TravelType {
     this.description = description;
   }
 
-  public String getDescription() {
+  public String getDescription(){
     return description;
   }
 }

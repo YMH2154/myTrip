@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.constant;
 
+
 public enum DomesticCategory {
   SEOUL("서울"),
   BUSAN("부산"),
@@ -15,7 +16,7 @@ public enum DomesticCategory {
     this.description = description;
   }
 
-  public String getDescription() {
+  public String getDescription(){
     return description;
   }
 }

@@ -3,6 +3,7 @@ package com.soloProject.myTrip.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 public class EmailService {
 
     private final JavaMailSender javaMailSender;
+    // 인증 코드 검증
+    @Getter
     private String authCode; // 인증 코드
 
     // 인증 코드 생성
@@ -88,8 +91,4 @@ public class EmailService {
         }
     }
 
-    // 인증 코드 검증
-    public boolean verifyEmailCode(String inputCode) {
-        return authCode != null && authCode.equals(inputCode);
-    }
 }

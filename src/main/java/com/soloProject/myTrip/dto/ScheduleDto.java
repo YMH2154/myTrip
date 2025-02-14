@@ -12,10 +12,10 @@ import java.util.List;
 public class ScheduleDto {
     private Long id;
     private Long itemId;
-    private int day;
-    private String activity;
-    private String imageUrl;
-    private String description;
+    private Integer day;
+    private List<String> activity;
+    private List<String> imageUrl;
+    private List<String> description;
 
     public static ModelMapper modelMapper = new ModelMapper();
 

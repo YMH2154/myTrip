@@ -85,7 +85,7 @@ public class MemberController {
     @ResponseBody
     public ResponseEntity<String> checkCode(@RequestBody Map<String, String> request) {
         String inputCode = request.get("inputCode");
-        if (emailService.verifyEmailCode(inputCode)){
+        if (emailService.getAuthCode().equals(inputCode)){
             confirmCheck = true;
             return new ResponseEntity<>("인증이 완료되었습니다", HttpStatus.OK);
         }

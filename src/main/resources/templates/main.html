@@ -94,14 +94,14 @@
     <div class="swiper deadline-swiper">
         <div class="swiper-wrapper">
             <div class="swiper-slide" th:each="item : ${deadlineItems}">
-                <a th:if="${item != null}" th:href="@{'/item/'+${item.id}">
+                <h5 th:text="${item.itemImageUrls.getFirst()}"></h5>
+                <a th:if="${item != null}" th:href="@{'/item/' + ${item.id}}">
                     <div class="item-card">
-                        <img th:src="${item.itemImageList[0].imageUrl}" class="item-image" alt="상품 이미지">
+                        <img th:src="${item.itemImageUrls.getFirst()}" class="item-image" alt="상품 이미지">
                         <div class="item-info">
-                            <span class="deadline-badge">잔여 [[${item.remainingSeats}]]석</span>
+                            <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
                             <h3 th:text="${item.itemName}">상품명</h3>
                             <p th:text="${item.destination}">목적지</p>
-                            <p th:text="${#temporals.format(item.startDate, 'yyyy-MM-dd')} + ' 출발'">출발일</p>
                             <p class="price" th:text="${#numbers.formatInteger(item.price, 3, 'COMMA') + '원'}">가격</p>
                         </div>
                     </div>
@@ -118,15 +118,14 @@
     <div class="swiper confirmed-swiper">
         <div class="swiper-wrapper">
             <div class="swiper-slide" th:each="item : ${confirmedItems}">
-                <a th:if="${item != null}" th:href="@{'/item/'+${item.id}">
+                <a th:if="${item != null}" th:href="@{'/item/' + ${item.id}}">
                     <div class="item-card">
-                        <img th:src="${item.itemImageList[0].imageUrl}" class="item-image" alt="상품 이미지">
+                        <img th:src="${item.itemImageUrls.getFirst()}" class="item-image" alt="상품 이미지">
                         <div class="item-info">
                             <span class="confirmed-badge">출발 확정</span>
-                            <span class="deadline-badge">잔여 [[${item.remainingSeats}]]석</span>
+                            <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
                             <h3 th:text="${item.itemName}">상품명</h3>
                             <p th:text="${item.destination}">목적지</p>
-                            <p th:text="${#temporals.format(item.startDate, 'yyyy-MM-dd')} + ' 출발'">출발일</p>
                             <p class="price" th:text="${#numbers.formatInteger(item.price, 3, 'COMMA') + '원'}">가격</p>
                         </div>
                     </div>

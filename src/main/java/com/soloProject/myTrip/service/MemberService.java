@@ -37,6 +37,7 @@ public class MemberService implements UserDetailsService {
         Member member = Member.createMember(memberFormDto, passwordEncoder);
         member.setRole(Role.ADMIN); //Role 기본설정 (관리자)
         member.setLoginCount(0); //로그인 카운트 0
+        member.setProvider("local"); //로컬 가입자
         memberRepository.save(member);
     }
 

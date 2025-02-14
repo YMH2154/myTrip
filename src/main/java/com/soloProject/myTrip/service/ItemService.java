@@ -51,7 +51,6 @@ public class ItemService {
     }
 
     // 여행 상품 업데이트
-    @Transactional
     public void updateItem(ItemFormDto itemFormDto, List<MultipartFile> itemImageFiles) throws Exception {
         // 상품 찾기
         Item item = itemRepository.findById(itemFormDto.getId())
@@ -128,19 +127,22 @@ public class ItemService {
         return itemRepository.findTop8ByParticipantsCondition(pageRequest);
     }
 
-    // 상세 페이지 조회
+    // 상품 조회
     @Transactional(readOnly = true)
     public ItemFormDto getItemDtl(Long itemId) {
         Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
-        ItemFormDto itemFormDto = ItemFormDto.of(item);
+        return ItemFormDto.of(item);
+    }
+
+    // 여행 일정 조회
+    @Transactional(readOnly = true)
+    public List<ScheduleDto> getScheduleDtl(Long itemId){
         List<Schedule> schedules = scheduleRepository.findByItemId(itemId);
         List<ScheduleDto> scheduleDtoList = new ArrayList<>();
         for (Schedule schedule : schedules) {
             scheduleDtoList.add(ScheduleDto.of(schedule));
         }
-        itemFormDto.setScheduleDtos(scheduleDtoList);
-
-        return itemFormDto;
+        return scheduleDtoList;
     }
 
     // 여행 일정 수정

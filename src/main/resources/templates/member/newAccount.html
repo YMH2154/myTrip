@@ -144,64 +144,7 @@
         }
     </style>
 </th:block>
-<th:block layout:fragment="script">
-    <script th:inline="javascript">
-        $(document).ready(function() {
-            // EmailAuth 객체 정의
-            const EmailAuth = (function() {
-                function sendCode() {
-                    const email = $("#email").val();
-                    if(!email) {
-                        alert("이메일을 입력해주세요");
-                        return;
-                    }
 
-                    const $button = $("#sendCodeBtn");
-                    $button.prop('disabled', true);
-                    $button.find('.loading-spinner').show();
-
-                    ajaxRequest("/member/email/sendCode", "POST", { email: email },
-                        function(result) {
-                            alert("인증 코드를 보냈습니다");
-                            $button.prop('disabled', false);
-                            $button.find('.loading-spinner').hide();
-                        }
-                    );
-                }
-
-                function checkCode() {
-                    const inputCode = $("#confirmCode").val();
-                    if(!inputCode) {
-                        alert("인증 코드를 입력해주세요");
-                        return;
-                    }
-
-                    ajaxRequest("/member/email/inputCode", "POST", { inputCode: inputCode },
-                        function(result) {
-                            alert("인증이 완료되었습니다");
-                        }
-                    );
-                }
-
-                return {
-                    sendCode: sendCode,
-                    checkCode: checkCode
-                };
-            })();
-
-            // EmailAuth를 전역 객체로 설정
-            window.EmailAuth = EmailAuth;
-
-            // 초기화 코드
-            $('.loading-spinner').hide();
-            
-            const errorMessage = [[${errorMessage}]];
-            if(errorMessage) {
-                alert(errorMessage);
-            }
-        });
-    </script>
-</th:block>
 <div layout:fragment="content">
     <div class="signup-container">
         <h2 class="signup-title">회원가입</h2>
@@ -227,9 +170,10 @@
             <div class="form-group">
                 <label th:for="confirmCode">인증 코드</label>
                 <div class="verification-group">
-                    <input type="text" id="confirmCode" class="form-control" placeholder="인증코드를 입력해주세요" autocomplete="off"/>
+                    <input type="text" th:field=*{inputCode} id="inputCode" class="form-control" placeholder="인증코드를 입력해주세요" autocomplete="off"/>
                     <button type="button" class="btn btn-verify" onclick="EmailAuth.checkCode()">확인</button>
                 </div>
+                <p th:if="${#fields.hasErrors('inputCode')}" th:errors="*{inputCode}" class="fieldEror"></p>
             </div>
 
             <div class="form-group">
@@ -256,4 +200,61 @@
         </form>
     </div>
 </div>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            const EmailAuth = (function() {
+                function sendCode() {
+                    const email = $("#email").val();
+                    if(!email) {
+                        alert("이메일을 입력해주세요");
+                        return;
+                    }
+
+                    const $button = $("#sendCodeBtn");
+                    $button.prop('disabled', true);
+                    $button.find('.loading-spinner').show();
+
+                    ajaxRequest("/member/email/sendCode", "POST", { email: email },
+                        function(result) {
+                            alert("인증 코드를 보냈습니다");
+                            $button.prop('disabled', false);
+                            $button.find('.loading-spinner').hide();
+                        }
+                    );
+                }
+
+                function checkCode() {
+                    const inputCode = $("#inputCode").val();
+                    if(!inputCode) {
+                        alert("인증 코드를 입력해주세요");
+                        return;
+                    }
+
+                    ajaxRequest("/member/email/inputCode", "POST", { inputCode: inputCode },
+                        function(result) {
+                            alert("인증이 완료되었습니다");
+                        }
+                    );
+                }
+
+                return {
+                    sendCode: sendCode,
+                    checkCode: checkCode
+                };
+            })();
+
+            // EmailAuth를 전역 객체로 설정
+            window.EmailAuth = EmailAuth;
+
+            // 초기화 코드
+            $('.loading-spinner').hide();
+
+            const errorMessage = [[${errorMessage}]];
+            if(errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    </script>
+</th:block>
 </html>

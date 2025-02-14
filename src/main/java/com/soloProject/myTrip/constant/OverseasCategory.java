@@ -1,5 +1,9 @@
 package com.soloProject.myTrip.constant;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public enum OverseasCategory {
   // 유럽
   FRANCE("프랑스", "유럽"),
@@ -34,5 +38,11 @@ public enum OverseasCategory {
 
   public String getRegion() {
     return region;
+  }
+
+  public static Set<String> getUniqueRegions() {
+    return Arrays.stream(OverseasCategory.values())
+        .map(OverseasCategory::getRegion)
+        .collect(Collectors.toSet());
   }
 }

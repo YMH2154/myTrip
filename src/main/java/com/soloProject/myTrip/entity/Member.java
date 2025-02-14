@@ -36,7 +36,6 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-
     private Integer loginCount;
 
     private String provider;

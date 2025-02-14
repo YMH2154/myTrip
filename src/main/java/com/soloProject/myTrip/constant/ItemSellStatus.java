@@ -1,5 +1,8 @@
 package com.soloProject.myTrip.constant;
 
+import lombok.Getter;
+
+@Getter
 public enum ItemSellStatus {
     SELL("모집중"),
     CONFIRMED("출발 확정"),
@@ -11,7 +14,4 @@ public enum ItemSellStatus {
         this.description = description;
     }
 
-    public String getDescription(){
-        return description;
-    }
 }
