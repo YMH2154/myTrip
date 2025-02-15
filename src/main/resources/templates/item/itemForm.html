@@ -38,6 +38,7 @@
             <div class="form-group" id="domesticDiv" style="display: none;">
                 <label th:for="domesticCategory">국내여행 지역</label>
                 <select th:field="*{domesticCategory}" class="form-control" id="domesticSel">
+                    <option value="">선택해주세요</option>
                     <option th:each="category : ${T(com.soloProject.myTrip.constant.DomesticCategory).values()}"
                             th:value="${category}"
                             th:text="${category.description}">
@@ -48,6 +49,7 @@
             <div class="form-group" id="overseasDiv" style="display: none;">
                 <label th:for="overseasCategory">해외여행 지역</label>
                 <select th:field="*{overseasCategory}" class="form-control" id="overseasSel">
+                    <option value="">선택해주세요</option>
                     <optgroup th:each="region : ${T(com.soloProject.myTrip.constant.OverseasCategory).getUniqueRegions()}"
                               th:label="${region}">
                         <option th:each="category : ${T(com.soloProject.myTrip.constant.OverseasCategory).values()}"
@@ -62,6 +64,7 @@
             <div class="form-group" id="themeDiv" style="display: none;">
                 <label th:for="themeCategory">테마여행 종류</label>
                 <select th:field="*{themeCategory}" class="form-control" id="themeSel">
+                    <option value="">선택해주세요</option>
                     <option th:each="category : ${T(com.soloProject.myTrip.constant.ThemeCategory).values()}"
                             th:value="${category}"
                             th:text="${category.description}">

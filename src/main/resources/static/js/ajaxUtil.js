@@ -16,7 +16,7 @@
                 callback(result);
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                alert("오류가 발생했습니다: " + errorThrown);
+                alert(jqXHR.responseText);
             }
         });
     };

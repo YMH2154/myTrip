@@ -50,7 +50,7 @@ public class EmailService {
     // 메일 양식 작성
     public MimeMessage createEmailForm(String email) throws MessagingException, UnsupportedEncodingException {
         createCode();
-        String setFrom = "your-email@gmail.com"; // 보내는 이메일 주소
+        String setFrom = "myTrip@gmail.com"; // 보내는 이메일 주소
         String title = "MyTrip 회원가입 인증 번호"; // 메일 제목
 
         MimeMessage message = javaMailSender.createMimeMessage();

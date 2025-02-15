@@ -32,7 +32,7 @@ public class MemberController {
 
     // 회원가입(POST)
     @PostMapping("/new")
-    public String newMember(@Valid MemberFormDto memberFormDto, BindingResult bindingResult, Model model) {
+    public String newMember(@Valid MemberFormDto memberFormDto, BindingResult bindingResult,  Model model) {
         if (bindingResult.hasErrors()) {
             return "member/newAccount";
         }
@@ -42,6 +42,10 @@ public class MemberController {
         }
         if (!memberFormDto.getPassword().equals(memberFormDto.getCheckPassword())) {
             model.addAttribute("errorMessage", "비밀번호 확인이 일치하지 않습니다");
+            return "member/newAccount";
+        }
+        if (!memberFormDto.getInputCode().equals(emailService.getAuthCode())){
+            model.addAttribute("errorMessage", "인증 코드가 일치하지 않습니다.");
             return "member/newAccount";
         }
         try {
@@ -85,11 +89,10 @@ public class MemberController {
     @ResponseBody
     public ResponseEntity<String> checkCode(@RequestBody Map<String, String> request) {
         String inputCode = request.get("inputCode");
-        if (emailService.getAuthCode().equals(inputCode)){
+        if (emailService.getAuthCode().equals(inputCode)) {
             confirmCheck = true;
             return new ResponseEntity<>("인증이 완료되었습니다", HttpStatus.OK);
         }
         return new ResponseEntity<>("인증코드가 일치하지 않습니다", HttpStatus.BAD_REQUEST);
     }
-
 }
