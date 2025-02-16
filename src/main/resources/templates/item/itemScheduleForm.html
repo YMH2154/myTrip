@@ -9,63 +9,61 @@
             <!-- 각 일차별 일정 -->
             <div th:each="day : ${#numbers.sequence(1, item.duration)}" class="mb-5">
                 <h3 th:text="${day + '일차'}" class="mb-3 text-primary"></h3>
-                
+
                 <!-- 해당 일차의 일정 컨테이너 -->
                 <div th:id="'scheduleContainer-' + ${day}" class="schedule-container">
                     <!-- 기존 일정이 있는 경우 표시 -->
-                    <div th:each="schedule, scheduleStat : ${scheduleList}" 
-                         th:if="${schedule.day == day}" class="schedule-item border p-3 mb-3">
-                        <input type="hidden" name="scheduleIds" th:value="${schedule.id}">
+                    <div th:each="scheduleDto : ${scheduleDtoList}"
+                         th:if="${scheduleDto.day == day}" class="schedule-item border p-3 mb-3">
+                        <input type="hidden" id="scheduleDtoId" name="scheduleDtoId" th:value="${scheduleDto.id}">
 
-                        <div th:each="activity, activityStat : ${schedule.activity}" class="mb-3">
-                            <div class="form-group">
-                                <label>관광지명</label>
-                                <input type="text" class="form-control" name="activities"
-                                       th:value="${activity}" required>
-                                <input type="hidden" name="days" th:value="${day}">
-                            </div>
-
-                            <div class="form-group mt-2">
-                                <label>관광지 이미지</label>
-                                <input type="file" class="form-control" name="imageFiles">
-                                <input type="hidden" name="existingImageUrls"
-                                       th:value="${schedule.imageUrl[activityStat.index]}">
-                                <img th:if="${schedule.imageUrl[activityStat.index]}" 
-                                     th:src="${schedule.imageUrl[activityStat.index]}"
-                                     class="mt-2" style="max-width: 200px;">
-                            </div>
-
-                            <div class="form-group mt-2">
-                                <label>관광지 설명</label>
-                                <textarea class="form-control" name="descriptions"
-                                        rows="3" required 
-                                        th:text="${schedule.description[activityStat.index]}"></textarea>
-                            </div>
-
-                            <button type="button" class="btn btn-outline-danger mt-2" 
-                                    onclick="removeScheduleField(this)">삭제</button>
+                        <div class="form-group">
+                            <label>관광지명</label>
+                            <input type="text" class="form-control" name="activity"
+                                   th:value="${scheduleDto.activity}" required>
+                            <input type="hidden" name="days" th:value="${day}">
                         </div>
+
+                        <div class="form-group mt-2">
+                            <label>관광지 이미지</label>
+                            <input type="file" class="form-control" name="imageFile">
+                            <input type="hidden" name="existingImageUrls"
+                                   th:value="${scheduleDto.imageUrl}">
+                            <img th:if="${scheduleDto.imageUrl}"
+                                 th:src="${scheduleDto.imageUrl}"
+                                 class="mt-2" style="max-width: 200px;">
+                        </div>
+
+                        <div class="form-group mt-2">
+                            <label>관광지 설명</label>
+                            <textarea class="form-control" name="description"
+                                    rows="3" required
+                                    th:text="${scheduleDto.description}"></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-danger mt-2"
+                                th:onclick="'removeSchedule(this,'+${scheduleDto.id}+')'">삭제</button>
                     </div>
                 </div>
 
                 <!-- 일정 추가 버튼 -->
                 <div class="form-group mt-3">
-                    <button type="button" class="btn btn-outline-secondary" 
+                    <button type="button" class="btn btn-outline-secondary"
                             th:onclick="'addScheduleField(' + ${day} + ')'">일정 추가</button>
                 </div>
             </div>
 
             <div style="text-align: center" class="mt-4">
-                <button th:if="${scheduleList.isEmpty()}"
+                <button th:if="${scheduleDtoList.isEmpty()}"
                         th:action="@{'/admin/item/'+${item.id} +'/schedule/new'}"
                         type="submit"
                         class="btn btn-primary">등록</button>
-                <button th:unless="${scheduleList.isEmpty()}"
+                <button th:unless="${scheduleDtoList.isEmpty()}"
                         th:action="@{'/admin/item/'+${item.id} +'/schedule'}"
                         type="submit"
                         class="btn btn-primary">수정</button>
                 <button type="button" class="btn btn-secondary"
-                        onclick="goBack();">취소</button>
+                        onclick="history.back();">취소</button>
             </div>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         </form>
@@ -88,27 +86,42 @@
                 newItem.innerHTML = `
                     <div class="form-group">
                         <label>관광지명</label>
-                        <input type="text" class="form-control" name="activities" required>
+                        <input type="text" class="form-control" name="activity" required>
                         <input type="hidden" name="days" value="${day}">
                     </div>
 
                     <div class="form-group mt-2">
                         <label>관광지 이미지</label>
-                        <input type="file" class="form-control" name="imageFiles" required>
+                        <input type="file" class="form-control" name="imageFile" required>
                     </div>
 
                     <div class="form-group mt-2">
                         <label>관광지 설명</label>
-                        <textarea class="form-control" name="descriptions" rows="3" required></textarea>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
                     </div>
 
                     <button type="button" class="btn btn-outline-danger mt-2"
-                            onclick="removeScheduleField(this)">삭제</button>
+                            onclick="removeSchedule(this)">삭제</button>
                 `;
                 container.appendChild(newItem);
             }
 
-            function removeScheduleField(button) {
+            function removeSchedule(button,scheduleId) {
+                const scheduleItem = button.closest('.schedule-item');
+                scheduleItem.remove();
+
+                if(scheduleId){
+                    ajaxRequest(`/admin/item/schedule/${scheduleId}`,
+                                 "DELETE",
+                                 null,
+                                 function(result){
+                                    console.log('삭제 완료');
+                                 }
+                    );
+                }
+            }
+
+            function removeSchedule(button){
                 const scheduleItem = button.closest('.schedule-item');
                 scheduleItem.remove();
             }

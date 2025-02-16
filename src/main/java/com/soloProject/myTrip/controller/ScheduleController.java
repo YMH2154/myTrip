@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.controller;
 
+import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.Schedule;
 import com.soloProject.myTrip.service.ItemService;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -25,12 +27,12 @@ public class ScheduleController {
     private final ScheduleService scheduleService;
 
     // 여행 일정 등록페이지(GET)
-    @GetMapping("/admin/item/{itemId}/schedule/new")
+    @GetMapping("/admin/item/{itemId}/schedule")
     public String newSchedule(Model model, @PathVariable("itemId") Long itemId) {
         Item item = itemService.getItem(itemId);
-        List<Schedule> scheduleList = scheduleService.getScheduleDtl(itemId);
+        List<ScheduleDto> scheduleDtoList = scheduleService.getScheduleDtl(itemId);
         model.addAttribute("item", item);
-        model.addAttribute("scheduleList", scheduleList);
+        model.addAttribute("scheduleDtoList", scheduleDtoList);
         return "item/itemScheduleForm";
     }
 
@@ -38,9 +40,9 @@ public class ScheduleController {
     @PostMapping("/admin/item/{itemId}/schedule/new")
     public String newSchedule(@PathVariable("itemId") Long itemId,
             @RequestParam("days") List<Integer> days,
-            @RequestParam("activities") List<String> activities,
-            @RequestParam("imageFiles") List<MultipartFile> imageFiles,
-            @RequestParam("descriptions") List<String> descriptions,
+            @RequestParam("activity") List<String> activity,
+            @RequestParam("imageFile") List<MultipartFile> imageFile,
+            @RequestParam("description") List<String> description,
             Model model) {
 
         try {
@@ -62,15 +64,15 @@ public class ScheduleController {
 
                 // 각 일차 별 인덱스의 값으로 해당 일차의 일정 List를 저장
                 List<String> dayActivities = indices.stream()
-                        .map(activities::get)
+                        .map(activity::get)
                         .toList();
 
                 List<MultipartFile> dayImageFiles = indices.stream()
-                        .map(imageFiles::get)
+                        .map(imageFile::get)
                         .toList();
 
                 List<String> dayDescriptions = indices.stream()
-                        .map(descriptions::get)
+                        .map(description::get)
                         .toList();
 
                 scheduleService.saveSchedule(itemId, day, dayActivities, dayImageFiles, dayDescriptions);
@@ -83,41 +85,35 @@ public class ScheduleController {
         }
     }
 
-    // 여행 일정 수정(GET)
-    @GetMapping("/admin/item/{itemId}/schedule")
-    public String updateSchedule(Model model, @PathVariable("itemId") Long itemId) {
-        Item item = itemService.getItem(itemId);
-        List<Schedule> scheduleList = scheduleService.getScheduleDtl(itemId);
-        model.addAttribute("item", item);
-        model.addAttribute("scheduleList", scheduleList);
-        return "item/itemScheduleForm";
-    }
-
     // 여행 일정 수정(POST)
     @PostMapping("/admin/item/{itemId}/schedule")
     public String updateSchedule(@PathVariable("itemId") Long itemId,
-            @RequestParam(value = "scheduleIds", required = false) List<Long> scheduleIds,
-            @RequestParam("days") List<Integer> days,
-            @RequestParam("activities") List<String> activities,
-            @RequestParam("imageFiles") List<MultipartFile> imageFiles,
+            @RequestParam(value = "days", required = false) List<Integer> days,
+            @RequestParam(value = "activities", required = false) List<String> activities,
+            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
             @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
-            @RequestParam("descriptions") List<String> descriptions,
+            @RequestParam(value = "descriptions", required = false) List<String> descriptions,
             Model model) {
-
         try {
-            Map<Integer, List<Integer>> dayIndices = new HashMap<>();
-
-            // 각 일차별 데이터 인덱스 그룹화
-            for (int i = 0; i < days.size(); i++) {
-                int day = days.get(i);
-                dayIndices.computeIfAbsent(day, k -> new ArrayList<>()).add(i);
+            // 모든 일정이 삭제된 경우
+            if (days == null || days.isEmpty()) {
+                // 기존 일정 모두 삭제
+                scheduleService.deleteAllSchedulesByItemId(itemId);
+                return "redirect:/admin/items";
             }
 
-            // 각 일차별로 데이터 수정
+            // 기존 로직
+            Map<Integer, List<Integer>> dayIndices = new HashMap<>();
+            for (int i = 0; i < days.size(); i++) {
+                dayIndices.computeIfAbsent(days.get(i), k -> new ArrayList<>()).add(i);
+            }
+
+            // 각 일차별로 데이터 처리
             for (Map.Entry<Integer, List<Integer>> entry : dayIndices.entrySet()) {
                 int day = entry.getKey();
                 List<Integer> indices = entry.getValue();
 
+                // 해당 일차의 데이터만 추출
                 List<String> dayActivities = indices.stream()
                         .map(activities::get)
                         .toList();
@@ -127,6 +123,7 @@ public class ScheduleController {
                         .toList();
 
                 List<String> dayExistingImageUrls = existingImageUrls != null ? indices.stream()
+                        .filter(i -> i < existingImageUrls.size())
                         .map(existingImageUrls::get)
                         .toList() : new ArrayList<>();
 
@@ -141,7 +138,7 @@ public class ScheduleController {
             return "redirect:/admin/items";
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("errorMessage", "에러 발생 콘솔 확인");
+            model.addAttribute("errorMessage", "일정 수정 중 에러가 발생했습니다: " + e.getMessage());
             return "item/itemScheduleForm";
         }
     }

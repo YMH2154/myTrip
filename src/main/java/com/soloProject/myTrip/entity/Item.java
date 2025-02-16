@@ -19,7 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class Item extends BaseEntity{
+public class Item extends BaseEntity {
 
     @Id
     @Column(name = "item_id")
@@ -85,7 +85,7 @@ public class Item extends BaseEntity{
         return currentParticipants >= minParticipants;
     }
 
-    public void updateItem(ItemFormDto itemFormDto){
+    public void updateItem(ItemFormDto itemFormDto) {
         this.setItemName(itemFormDto.getItemName());
         this.setTravelType(itemFormDto.getTravelType());
         this.setDomesticCategory(itemFormDto.getDomesticCategory());

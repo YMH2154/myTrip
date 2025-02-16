@@ -151,7 +151,7 @@
                         type="submit" 
                         class="btn btn-primary">수정</button>
                 <button type="button" class="btn btn-secondary" 
-                        onclick="goBack();">취소</button>
+                        onclick=history.back()>취소</button>
             </div>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         </form>
@@ -291,10 +291,6 @@
             for (let i = 0; i < labels.length; i++) {
                 labels[i].textContent = `${i + 1}번째 상품 이미지`;
             }
-        }
-
-        function goBack() {
-            history.back();
         }
     </script>
 </th:block>

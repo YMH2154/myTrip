@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     List<Schedule> findByItemId(Long itemId);
 
-    Optional<Schedule> findByItemIdAndDay(Long itemId, int day);
+    List<Schedule> findByItemIdAndDay(Long itemId, int day);
 }

@@ -2,6 +2,7 @@ package com.soloProject.myTrip.dto;
 
 import com.soloProject.myTrip.entity.Schedule;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
@@ -9,13 +10,14 @@ import java.util.List;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class ScheduleDto {
     private Long id;
     private Long itemId;
     private Integer day;
-    private List<String> activity;
-    private List<String> imageUrl;
-    private List<String> description;
+    private String activity;
+    private String imageUrl;
+    private String description;
 
     public static ModelMapper modelMapper = new ModelMapper();
 

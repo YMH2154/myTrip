@@ -13,4 +13,5 @@ public interface ItemRepository extends JpaRepository<Item, Long>, ItemRepositor
 
     @Query("SELECT i FROM Item i WHERE i.currentParticipants >= i.minParticipants ORDER BY i.id DESC")
     List<Item> findTop8ByParticipantsCondition(Pageable pageable);
+
 }

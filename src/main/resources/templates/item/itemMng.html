@@ -376,7 +376,7 @@ select.form-control:focus, input.form-control:focus {
                 <td th:text="${#temporals.format(item.regTime, 'yyyy-MM-dd HH:mm')}"></td>
                 <td>
                     <div class="action-buttons">
-                        <a th:href="@{/admin/item/{id}/schedule/new(id=${item.id})}" class="action-btn">
+                        <a th:href="@{/admin/item/{id}/schedule(id=${item.id})}" class="action-btn">
                             <img src="/images/schedule.png" alt="일정 관리" title="일정 관리">
                         </a>
                         <a th:href="@{'/admin/item/'+${item.id}}" class="action-btn">

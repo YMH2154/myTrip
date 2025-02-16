@@ -16,92 +16,102 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.thymeleaf.util.StringUtils;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class ItemRepositoryCustomImpl implements ItemRepositoryCustom{
+@Repository
+public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
 
-    private JPAQueryFactory queryFactory;
-    
+    private final JPAQueryFactory queryFactory;
+    private final QItem item = QItem.item; // QItem 인스턴스를 클래스 레벨에서 선언
+
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ItemRepositoryCustomImpl(EntityManager entityManager){
+    public ItemRepositoryCustomImpl(EntityManager entityManager) {
         this.queryFactory = new JPAQueryFactory(entityManager);
     }
 
-    private BooleanExpression searchTravelTypeEq(TravelType travelType){
+    private BooleanExpression searchTravelTypeEq(TravelType travelType) {
         return travelType == null
                 ? null
                 : QItem.item.travelType.eq(travelType);
     }
 
-    private BooleanExpression searchOverseasCategory(OverseasCategory overseasCategory){
+    private BooleanExpression searchOverseasCategory(OverseasCategory overseasCategory) {
         return overseasCategory == null
                 ? null
                 : QItem.item.overseasCategory.eq(overseasCategory);
     }
 
-    private BooleanExpression searchDomesticCategory(DomesticCategory domesticCategory){
+    private BooleanExpression searchDomesticCategory(DomesticCategory domesticCategory) {
         return domesticCategory == null
                 ? null
                 : QItem.item.domesticCategory.eq(domesticCategory);
     }
 
-    private BooleanExpression searchThemeCategory(ThemeCategory themeCategory){
+    private BooleanExpression searchThemeCategory(ThemeCategory themeCategory) {
         return themeCategory == null
                 ? null
                 : QItem.item.themeCategory.eq(themeCategory);
     }
 
-    private BooleanExpression regDtsAfter(String searchDateType){
+    private BooleanExpression regDtsAfter(String searchDateType) {
         LocalDateTime dateTime = LocalDateTime.now();
 
-        if(StringUtils.equals("all",searchDateType) || searchDateType == null){
+        if (StringUtils.equals("all", searchDateType) || searchDateType == null) {
             return null;
-        }
-        else if(StringUtils.equals("1d",searchDateType)){
+        } else if (StringUtils.equals("1d", searchDateType)) {
             dateTime = dateTime.minusDays(1);
-        }
-        else if(StringUtils.equals("1W",searchDateType)){
+        } else if (StringUtils.equals("1W", searchDateType)) {
             dateTime = dateTime.minusWeeks(1);
-        }
-        else if(StringUtils.equals("1m",searchDateType)){
+        } else if (StringUtils.equals("1m", searchDateType)) {
             dateTime = dateTime.minusMonths(1);
-        }
-        else if(StringUtils.equals("6m",searchDateType)){
+        } else if (StringUtils.equals("6m", searchDateType)) {
             dateTime = dateTime.minusMonths(6);
         }
         return QItem.item.regTime.after(dateTime);
     }
 
-    private BooleanExpression searchByLike(String searchBy, String searchQuery){
-        if(StringUtils.equals("itemName", searchBy)){
-            return QItem.item.itemName.like("%"+searchQuery+"%");
-        }
-        else if(StringUtils.equals("createdBy",searchBy)){
-            return QItem.item.createdBy.like("%"+searchQuery+"%");
-        }
-        else {
+    private BooleanExpression searchByLike(String searchBy, String searchQuery) {
+        if (StringUtils.equals("itemName", searchBy)) {
+            return QItem.item.itemName.like("%" + searchQuery + "%");
+        } else if (StringUtils.equals("createdBy", searchBy)) {
+            return QItem.item.createdBy.like("%" + searchQuery + "%");
+        } else {
             return null;
         }
     }
 
     @Override
     public Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable) {
-        QueryResults<Item> results =queryFactory.selectFrom(QItem.item)
-                .where(regDtsAfter(itemSearchDto.getSearchDateType())
-                        ,searchTravelTypeEq(itemSearchDto.getTravelType())
-                        ,searchOverseasCategory(itemSearchDto.getOverseasCategory())
-                        ,searchDomesticCategory(itemSearchDto.getDomesticCategory())
-                        ,searchThemeCategory(itemSearchDto.getThemeCategory())
-                        ,searchByLike(itemSearchDto.getSearchBy(), itemSearchDto.getSearchQuery()))
-                .orderBy(QItem.item.id.desc())
-                .offset(pageable.getOffset()).limit(pageable.getPageSize()).fetchResults();
+        List<Item> content = queryFactory
+                .selectFrom(item) // 클래스 레벨에서 선언한 QItem 사용
+                .where(
+                        regDtsAfter(itemSearchDto.getSearchDateType()),
+                        searchTravelTypeEq(itemSearchDto.getTravelType()),
+                        searchOverseasCategory(itemSearchDto.getOverseasCategory()),
+                        searchDomesticCategory(itemSearchDto.getDomesticCategory()),
+                        searchThemeCategory(itemSearchDto.getThemeCategory()),
+                        searchByLike(itemSearchDto.getSearchBy(), itemSearchDto.getSearchQuery()))
+                .orderBy(item.id.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-        List<Item> content = results.getResults();
-        long total = results.getTotal();
+        long total = queryFactory
+                .selectFrom(item)
+                .where(
+                        regDtsAfter(itemSearchDto.getSearchDateType()),
+                        searchTravelTypeEq(itemSearchDto.getTravelType()),
+                        searchOverseasCategory(itemSearchDto.getOverseasCategory()),
+                        searchDomesticCategory(itemSearchDto.getDomesticCategory()),
+                        searchThemeCategory(itemSearchDto.getThemeCategory()),
+                        searchByLike(itemSearchDto.getSearchBy(), itemSearchDto.getSearchQuery()))
+                .fetchCount();
+
         return new PageImpl<>(content, pageable, total);
     }
 }
