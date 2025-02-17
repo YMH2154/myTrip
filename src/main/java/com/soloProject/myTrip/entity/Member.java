@@ -1,6 +1,7 @@
 package com.soloProject.myTrip.entity;
 
 
+import com.soloProject.myTrip.constant.AirportCode;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
 import jakarta.persistence.*;

@@ -1,10 +1,6 @@
 package com.soloProject.myTrip.entity;
 
-import com.soloProject.myTrip.constant.ItemSellStatus;
-import com.soloProject.myTrip.constant.TravelType;
-import com.soloProject.myTrip.constant.DomesticCategory;
-import com.soloProject.myTrip.constant.OverseasCategory;
-import com.soloProject.myTrip.constant.ThemeCategory;
+import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import groovy.transform.ToString;
 import jakarta.persistence.*;
@@ -42,14 +38,21 @@ public class Item extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ThemeCategory themeCategory;
 
-    @Column(nullable = false)
-    private String destination; // 여행 목적지
+    @Enumerated(EnumType.STRING)
+    @Column(length = 3, nullable = false)
+    private AirportCode origin; // 출발 공항
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 3, nullable = false)
+    private AirportCode destination; // 도착 공항
 
     @Column(nullable = false)
     private int duration;
 
     @Column(nullable = false)
     private int price;
+
+    private int totalPrice;
 
     @Lob
     @Column(nullable = false)
@@ -75,6 +78,12 @@ public class Item extends BaseEntity {
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Schedule> schedules;
 
+    @Column(nullable = false)
+    private LocalDate departureDate; // 출발일
+
+    @Column(nullable = false)
+    private LocalDate returnDate; // 도착일
+
     // 잔여 좌석 수 계산 메소드
     public int getRemainingSeats() {
         return remainingSeats - currentParticipants;
@@ -97,5 +106,7 @@ public class Item extends BaseEntity {
         this.setItemDetail(itemFormDto.getItemDetail());
         this.setRemainingSeats(itemFormDto.getRemainingSeats());
         this.setMinParticipants(itemFormDto.getMinParticipants());
+        this.setDepartureDate(itemFormDto.getDepartureDate());
+        this.setReturnDate(itemFormDto.getReturnDate());
     }
 }

@@ -89,10 +89,10 @@ public class ScheduleController {
     @PostMapping("/admin/item/{itemId}/schedule")
     public String updateSchedule(@PathVariable("itemId") Long itemId,
             @RequestParam(value = "days", required = false) List<Integer> days,
-            @RequestParam(value = "activities", required = false) List<String> activities,
-            @RequestParam(value = "imageFiles", required = false) List<MultipartFile> imageFiles,
-            @RequestParam(value = "existingImageUrls", required = false) List<String> existingImageUrls,
-            @RequestParam(value = "descriptions", required = false) List<String> descriptions,
+            @RequestParam(value = "activity", required = false) List<String> activities,
+            @RequestParam(value = "imageFile", required = false) List<MultipartFile> imageFiles,
+            @RequestParam(value = "existingImageUrl", required = false) List<String> existingImageUrls,
+            @RequestParam(value = "description", required = false) List<String> descriptions,
             Model model) {
         try {
             // 모든 일정이 삭제된 경우

@@ -8,6 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>여행사 메인</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 
 <th:block layout:fragment="css">
@@ -77,6 +79,16 @@
             font-weight: bold;
             color: #2f3542;
         }
+        
+        .day-price {
+            display: block;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .flatpickr-day:hover .day-price {
+            color: #fff;
+        }
     </style>
 </th:block>
 
@@ -102,7 +114,12 @@
                             <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
                             <h3 th:text="${item.itemName}">상품명</h3>
                             <p th:text="${item.destination}">목적지</p>
-                            <p class="price" th:text="${#numbers.formatInteger(item.price, 3, 'COMMA') + '원'}">가격</p>
+                            <p class="price">
+                                <span th:text="${#numbers.formatInteger(item.totalPrice, 3, 'COMMA') + '원'}">가격</span>
+                                <small>(항공권 포함)</small>
+                            </p>
+                            <input type="text" class="datepicker" th:data-item-id="${item.id}" 
+                                   th:data-base-price="${item.price}" style="display: none;">
                         </div>
                     </div>
                 </a>
@@ -189,6 +206,50 @@
                     slidesPerView: 4
                 }
             }
+        });
+
+        // 서버에서 전달받은 가격 정보
+        const itemPrices = /*[[${itemPrices}]]*/ {};
+        
+        document.querySelectorAll('.item-card').forEach(card => {
+            const datepicker = card.querySelector('.datepicker');
+            const priceElement = card.querySelector('.price span');
+            const itemId = datepicker.dataset.itemId;
+            
+            card.addEventListener('click', function(e) {
+                if (e.target.classList.contains('datepicker')) return;
+                
+                const fp = flatpickr(datepicker, {
+                    dateFormat: "Y-m-d",
+                    minDate: "today",
+                    inline: true,
+                    onChange: function(selectedDates, dateStr) {
+                        const selectedPrice = itemPrices[itemId][dateStr];
+                        if (selectedPrice) {
+                            if (confirm(`선택하신 날짜의 총 가격은 ${selectedPrice.toLocaleString()}원 입니다.\n상세 페이지로 이동하시겠습니까?`)) {
+                                window.location.href = `/item/${itemId}?date=${dateStr}`;
+                            }
+                        } else {
+                            alert('선택하신 날짜의 가격 정보가 없습니다.');
+                        }
+                    },
+                    onDayCreate: function(dObj, dStr, fp, dayElem) {
+                        const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+                        const price = itemPrices[itemId][dateStr];
+                        if (price) {
+                            dayElem.innerHTML += `<span class="day-price">${price.toLocaleString()}원</span>`;
+                        }
+                    }
+                });
+
+                if (datepicker.style.display === 'none') {
+                    datepicker.style.display = 'block';
+                    fp.open();
+                } else {
+                    datepicker.style.display = 'none';
+                    fp.close();
+                }
+            });
         });
     </script>
 </th:block>

@@ -1,11 +1,7 @@
 package com.soloProject.myTrip.dto;
 
-import com.soloProject.myTrip.constant.ItemSellStatus;
+import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.entity.Item;
-import com.soloProject.myTrip.constant.TravelType;
-import com.soloProject.myTrip.constant.DomesticCategory;
-import com.soloProject.myTrip.constant.OverseasCategory;
-import com.soloProject.myTrip.constant.ThemeCategory;
 import com.soloProject.myTrip.entity.Schedule;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -33,9 +29,8 @@ public class ItemFormDto {
     private DomesticCategory domesticCategory;
     private OverseasCategory overseasCategory;
     private ThemeCategory themeCategory;
-
-    @NotEmpty(message = "여행 목적지는 필수 입력 값입니다.")
-    private String destination;
+    private AirportCode origin;
+    private AirportCode destination;
 
     @NotNull(message = "여행 기간은 필수 입력 값입니다.")
     private Integer duration;
@@ -58,12 +53,19 @@ public class ItemFormDto {
 
     private List<ScheduleDto> scheduleDtos;
 
+    @NotNull(message = "출발일은 필수 입력 값입니다.")
+    private LocalDate departureDate;
+
+    @NotNull(message = "도착일은 필수 입력 값입니다.")
+    private LocalDate returnDate;
+
     public static ModelMapper modelMapper = new ModelMapper();
 
-    public boolean isValidCategory(){
-        if(travelType == null) return false;
+    public boolean isValidCategory() {
+        if (travelType == null)
+            return false;
 
-        switch (travelType){
+        switch (travelType) {
             case DOMESTIC -> {
                 return domesticCategory != null;
             }
@@ -83,11 +85,13 @@ public class ItemFormDto {
     public Item createItem() {
         Item item = modelMapper.map(this, Item.class);
         item.setCurrentParticipants(0);
+        item.setDepartureDate(this.departureDate);
+        item.setReturnDate(this.returnDate);
         return item;
     }
 
     // Dto로 변환하는 메소드
-    public static ItemFormDto of(Item item){
+    public static ItemFormDto of(Item item) {
         return modelMapper.map(item, ItemFormDto.class);
     }
 }

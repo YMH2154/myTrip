@@ -8,12 +8,127 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
 </head>
 <th:block layout:fragment="css">
-    /* 에러 메시지 스타일링 */
-    .fieldError {
-    color: #8a2be2;
-    font-size: 14px;
-    margin-top: 5px;
-    }
+    <style>
+        .container {
+            max-width: 900px;
+            padding: 30px;
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin: 40px auto;
+        }
+
+        .h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: bold;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            color: #34495e;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52,152,219,0.25);
+        }
+
+        .fieldError {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #95a5a6;
+            border: none;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+
+        .image-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .image-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-outline-danger {
+            color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .btn-outline-secondary {
+            color: #7f8c8d;
+            border-color: #7f8c8d;
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        /* flatpickr 커스텀 스타일 */
+        .flatpickr-calendar {
+            border-radius: 8px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        }
+
+        .flatpickr-day.selected {
+            background: #3498db;
+            border-color: #3498db;
+        }
+
+        .flatpickr-day.selected:hover {
+            background: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .flatpickr-day.inRange {
+            background: #e8f4f9;
+            border-color: #e8f4f9;
+        }
+    </style>
 </th:block>
 <div layout:fragment="content">
     <div class="container">
@@ -71,19 +186,39 @@
                     </option>
                 </select>
             </div>
+
+            <div class="form-group" id="airportCode">
+                <label th:for="origin">출발 공항</label>
+                <select th:field="*{origin}" class="form-control">
+                    <option value="">선택해주세요</option>
+                    <option th:each="code : ${T(com.soloProject.myTrip.constant.AirportCode).values()}"
+                            th:value="${code}"
+                            th:text="${code.name}">
+                    </option>
+                </select>
+            </div>
+
             <div class="form-group">
-                <label th:for="destination">여행 목적지</label>
-                <input type="text" th:field="*{destination}" class="form-control" placeholder="여행 목적지를 입력해주세요">
-                <p th:if="${#fields.hasErrors('destination')}" th:errors="*{destination}" class="fieldError">Incorrect data</p>
+                <label th:for="destination">도착 공항</label>
+                <select th:field="*{destination}" class="form-control">
+                    <option value="">선택해주세요</option>
+                    <option th:each="code : ${T(com.soloProject.myTrip.constant.AirportCode).values()}"
+                            th:value="${code}"
+                            th:text="${code.name}">
+                    </option>
+                </select>
             </div>
             <div class="form-group">
-                <label th:for="duration">여행 기간 (일)</label>
-                <input type="number" th:field="*{duration}" class="form-control" placeholder="여행 기간을 일 단위로 입력해주세요">
-                <p th:if="${#fields.hasErrors('duration')}" th:errors="*{duration}" class="fieldError">Incorrect data</p>
+                <label th:for="travelDates">여행 기간</label>
+                <input type="text" id="travelDates" class="form-control" placeholder="여행 기간을 선택해주세요" readonly>
+                <input type="hidden" th:field="*{departureDate}" id="departureDate">
+                <input type="hidden" th:field="*{returnDate}" id="returnDate">
+                <p th:if="${#fields.hasErrors('departureDate')}" th:errors="*{departureDate}" class="fieldError">Incorrect data</p>
+                <p th:if="${#fields.hasErrors('returnDate')}" th:errors="*{returnDate}" class="fieldError">Incorrect data</p>
             </div>
             <div class="form-group">
-                <label th:for="price">가격</label>
-                <input type="number" th:field="*{price}" class="form-control" placeholder="가격을 입력해주세요">
+                <label th:for="price">가격(항공권 가격 제외)</label>
+                <input type="number" th:field="*{price}" class="form-control" placeholder="항공권을 제외한 가격을 입력해주세요">
                 <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError">Incorrect data</p>
             </div>
             <div class="form-group">
@@ -292,6 +427,44 @@
                 labels[i].textContent = `${i + 1}번째 상품 이미지`;
             }
         }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const durationInput = document.getElementById('duration');
+        const travelDatesInput = document.getElementById('travelDates');
+        const departureDateInput = document.getElementById('departureDate');
+        const returnDateInput = document.getElementById('returnDate');
+
+        const fp = flatpickr(travelDatesInput, {
+            mode: "range",
+            minDate: "today",
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    const startDate = selectedDates[0];
+                    const endDate = selectedDates[1];
+                    
+                    // 날짜 차이 계산 (일 수)
+                    const diffTime = Math.abs(endDate - startDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    // duration 필드 업데이트
+                    durationInput.value = diffDays;
+                    
+                    // hidden 필드 업데이트
+                    departureDateInput.value = flatpickr.formatDate(startDate, "Y-m-d");
+                    returnDateInput.value = flatpickr.formatDate(endDate, "Y-m-d");
+                }
+            }
+        });
+
+        // duration 입력 필드 비활성화 (날짜 선택으로만 설정 가능)
+        durationInput.readOnly = true;
+    });
     </script>
 </th:block>
 

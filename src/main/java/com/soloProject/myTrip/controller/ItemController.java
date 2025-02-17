@@ -5,6 +5,7 @@ import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.Schedule;
 import com.soloProject.myTrip.service.ItemService;
+import com.soloProject.myTrip.service.ScheduleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.util.List;
 public class ItemController {
 
     private final ItemService itemService;
+    private final ScheduleService scheduleService;
 
     // 상품 등록(GET)
     @GetMapping("/admin/item/new")
@@ -99,7 +101,9 @@ public class ItemController {
     public String itemDtl(@PathVariable("itemId") Long itemId, Model model) {
         try {
             ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
+            List<ScheduleDto> scheduleList = scheduleService.getScheduleDtl(itemId);
             model.addAttribute("itemFormDto", itemFormDto);
+            model.addAttribute("scheduleList", scheduleList);
             return "item/itemDtl";
         } catch (Exception e) {
             e.printStackTrace();
