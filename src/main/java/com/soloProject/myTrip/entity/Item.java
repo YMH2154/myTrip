@@ -47,22 +47,13 @@ public class Item extends BaseEntity {
     private AirportCode destination; // 도착 공항
 
     @Column(nullable = false)
-    private int duration;
-
-    @Column(nullable = false)
     private int price;
 
-    private int totalPrice;
-
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String itemDetail;
 
-    @Enumerated(EnumType.STRING)
-    private ItemSellStatus itemSellStatus;
-
     @Column(nullable = false)
-    private int remainingSeats; // 최대 참가자 수
+    private int maxParticipants; // 최대 참가자 수
 
     @Column(nullable = false)
     private int minParticipants; // 최소 출발 인원
@@ -78,15 +69,17 @@ public class Item extends BaseEntity {
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Schedule> schedules;
 
-    @Column(nullable = false)
-    private LocalDate departureDate; // 출발일
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemReservation> itemReservations;
 
     @Column(nullable = false)
-    private LocalDate returnDate; // 도착일
+    private int duration;
+
+    private int lowestPrice;
 
     // 잔여 좌석 수 계산 메소드
     public int getRemainingSeats() {
-        return remainingSeats - currentParticipants;
+        return maxParticipants - currentParticipants;
     }
 
     // 출발 확정 여부 확인 메소드
@@ -101,12 +94,14 @@ public class Item extends BaseEntity {
         this.setOverseasCategory(itemFormDto.getOverseasCategory());
         this.setThemeCategory(itemFormDto.getThemeCategory());
         this.setDestination(itemFormDto.getDestination());
-        this.setDuration(itemFormDto.getDuration());
         this.setPrice(itemFormDto.getPrice());
         this.setItemDetail(itemFormDto.getItemDetail());
-        this.setRemainingSeats(itemFormDto.getRemainingSeats());
+        this.setMaxParticipants(itemFormDto.getMaxParticipants());
         this.setMinParticipants(itemFormDto.getMinParticipants());
-        this.setDepartureDate(itemFormDto.getDepartureDate());
-        this.setReturnDate(itemFormDto.getReturnDate());
+        this.setDuration(itemFormDto.getDuration());
+    }
+
+    public void updateLowestPrice(int newLowestPrice) {
+        this.lowestPrice = newLowestPrice;
     }
 }

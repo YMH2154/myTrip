@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.service;
 
+import com.soloProject.myTrip.constant.ItemSellStatus;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ItemSearchDto;
 import com.soloProject.myTrip.entity.Item;
@@ -8,6 +9,7 @@ import com.soloProject.myTrip.repository.ItemRepository;
 import com.soloProject.myTrip.repository.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,15 +20,18 @@ import org.thymeleaf.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class ItemService {
 
     private final ItemRepository itemRepository;
     private final ScheduleRepository scheduleRepository;
     private final FileService fileService;
+    private final ItemReservationService itemReservationService;
 
     @Value("${itemImageLocation}")
     private String itemImageLocation;
@@ -35,14 +40,22 @@ public class ItemService {
     private String activityImageLocation;
 
     // 여행 상품 등록
-    public void saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImages) throws Exception {
+    public Item saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImages) throws Exception {
+        // 기존 상품 저장 로직
         Item item = itemFormDto.createItem();
+        Item savedItem = itemRepository.save(item);
+
+        // 상품 이미지 저장 로직
         List<String> itemImageUrlList = new ArrayList<>();
         for (MultipartFile itemImage : itemImages) {
             itemImageUrlList.add(saveItemImageFile(itemImage));
         }
         item.setItemImageUrls(itemImageUrlList);
-        itemRepository.save(item);
+        
+        // 15일치 예약 엔티티 초기화
+        itemReservationService.initializeReservations(savedItem);
+        
+        return savedItem;
     }
 
     // 여행 상품 업데이트
@@ -166,6 +179,11 @@ public class ItemService {
     private void deleteItemImageFile(String fileUrl) throws Exception {
         String savedFileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
         fileService.deleteFile(itemImageLocation + "/" + savedFileName);
+    }
+
+    // 활성화된 모든 상품 조회
+    public List<Item> findAllItems() {
+        return itemRepository.findAll();
     }
 
 }

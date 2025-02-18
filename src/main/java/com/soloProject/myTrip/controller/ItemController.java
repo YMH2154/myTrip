@@ -3,9 +3,11 @@ package com.soloProject.myTrip.controller;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
-import com.soloProject.myTrip.entity.Schedule;
+import com.soloProject.myTrip.entity.ItemReservation;
+import com.soloProject.myTrip.service.ItemReservationService;
 import com.soloProject.myTrip.service.ItemService;
 import com.soloProject.myTrip.service.ScheduleService;
+import com.soloProject.myTrip.service.FlightSearchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Controller
 @RequiredArgsConstructor
@@ -24,6 +31,9 @@ public class ItemController {
 
     private final ItemService itemService;
     private final ScheduleService scheduleService;
+    private final FlightSearchService flightSearchService;
+    private final ItemReservationService itemReservationService;
+    private static final Logger log = LoggerFactory.getLogger(ItemController.class);
 
     // 상품 등록(GET)
     @GetMapping("/admin/item/new")
@@ -41,14 +51,14 @@ public class ItemController {
         if (bindingResult.hasErrors()) {
             return "item/itemForm";
         }
-        if (!itemFormDto.isValidCategory()){
+        if (!itemFormDto.isValidCategory()) {
             model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
         }
         if (itemImageFile.getFirst().isEmpty()) {
             model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
             return "item/itemForm";
         }
-        if (itemFormDto.getMinParticipants() > itemFormDto.getRemainingSeats()){
+        if (itemFormDto.getMinParticipants() > itemFormDto.getMaxParticipants()) {
             model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
         }
         try {
@@ -96,21 +106,6 @@ public class ItemController {
         }
     }
 
-    // 상품 상세(GET)
-    @GetMapping("/item/{itemId}")
-    public String itemDtl(@PathVariable("itemId") Long itemId, Model model) {
-        try {
-            ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
-            List<ScheduleDto> scheduleList = scheduleService.getScheduleDtl(itemId);
-            model.addAttribute("itemFormDto", itemFormDto);
-            model.addAttribute("scheduleList", scheduleList);
-            return "item/itemDtl";
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "redirect:/";
-        }
-    }
-
     // 여행 상품 삭제(ajax)
     @DeleteMapping("/admin/item/{itemId}")
     @ResponseBody
@@ -127,12 +122,78 @@ public class ItemController {
     @DeleteMapping("/admin/item/{itemId}/image/{index}")
     @ResponseBody
     public ResponseEntity<String> deleteItemImage(@PathVariable("itemId") Long itemId,
-                                                  @PathVariable("index") int index) {
+            @PathVariable("index") int index) {
         try {
             itemService.deleteItemImage(itemId, index);
             return new ResponseEntity<>("Success", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // 여행 상품 날짜 선택 화면(달력)
+    @GetMapping("/item/{itemId}/calendar")
+    public String itemCalendar(@PathVariable("itemId") Long itemId, Model model) {
+        try {
+            Item item = itemService.getItem(itemId);
+            List<ItemReservation> reservations = itemReservationService.getReservationsForItem(itemId);
+
+            // 날짜별 잔여좌석 맵 생성
+            Map<String, Integer> remainingSeats = new HashMap<>();
+
+            // 날짜별 가격 맵 생성
+            Map<String, Integer> prices = new HashMap<>();
+            int minPrice = Integer.MAX_VALUE;
+            int maxPrice = 0;
+
+            for (ItemReservation reservation : reservations) {
+
+                int remainingSeat = reservation.getRemainingSeats();
+                remainingSeats.put(reservation.getReservationDate().toString(), remainingSeat);
+
+                int totalPrice = reservation.getTotalPrice();
+                prices.put(reservation.getReservationDate().toString(), totalPrice);
+
+                // 최소/최대 가격 업데이트
+                if (totalPrice < minPrice)
+                    minPrice = totalPrice;
+                if (totalPrice > maxPrice)
+                    maxPrice = totalPrice;
+            }
+
+            model.addAttribute("item", item);
+            model.addAttribute("prices", prices);
+            model.addAttribute("minPrice", minPrice != Integer.MAX_VALUE ? minPrice : 0);
+            model.addAttribute("maxPrice", maxPrice);
+            model.addAttribute("remainingSeats", remainingSeats);
+
+            return "item/itemCalendar";
+        } catch (Exception e) {
+            log.error("Failed to load calendar view: {}", e.getMessage());
+            return "main";
+        }
+    }
+
+    // 상세 페이지
+    @GetMapping("/item/{itemId}/detail")
+    public String itemDetail(@PathVariable("itemId") Long itemId,
+            @RequestParam("reservationDate") String reservationDate,
+            Model model) {
+        try {
+            Item item = itemService.getItem(itemId);
+            ItemReservation reservation = itemReservationService.getItemReservation(
+                    itemId, LocalDate.parse(reservationDate));
+            List<ScheduleDto> schedules = scheduleService.getScheduleDtl(itemId);
+
+            model.addAttribute("item", item);
+            model.addAttribute("reservation", reservation);
+            model.addAttribute("schedules", schedules);
+            model.addAttribute("reservationDate", reservationDate);
+
+            return "item/itemDtl";
+        } catch (Exception e) {
+            log.error("Failed to load item detail: {}", e.getMessage());
+            return "redirect:/";
         }
     }
 

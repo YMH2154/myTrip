@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<div layout:fragment="content">
+    <div class="container my-5">
+        <!-- 상품 기본 정보 -->
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <!-- 이미지 슬라이더 -->
+                <div id="itemImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="imageUrl, status : ${item.itemImageUrls}" 
+                             th:class="${status.first} ? 'carousel-item active' : 'carousel-item'">
+                            <img th:src="${imageUrl}" class="d-block w-100" alt="상품 이미지">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2 th:text="${item.itemName}" class="mb-4">상품명</h2>
+                <div class="info-box p-4 bg-light rounded">
+                    <p><strong>여행 타입:</strong> <span th:text="${item.travelType}">여행타입</span></p>
+                    <p><strong>출발지:</strong> <span th:text="${item.origin}">출발지</span></p>
+                    <p><strong>도착지:</strong> <span th:text="${item.destination}">도착지</span></p>
+                    <p><strong>여행 기간:</strong> <span th:text="${item.duration + '일'}">기간</span></p>
+                    <p><strong>출발일:</strong> <span th:text="${reservationDate}">출발일</span></p>
+                    <p><strong>총 금액:</strong> <span th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}">가격</span></p>
+                    <p><strong>잔여 좌석:</strong> <span th:text="${reservation.remainingSeats + '석'}">잔여석</span></p>
+                </div>
+                <form th:action="@{/reservations/new}" method="get" class="mt-4">
+                    <input type="hidden" name="itemId" th:value="${item.id}">
+                    <input type="hidden" name="reservationDate" th:value="${reservationDate}">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">예약하기</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 상품 상세 설명 -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="mb-4">상품 설명</h3>
+                <div class="description-box p-4 bg-light rounded">
+                    <p th:text="${item.itemDetail}">상품 상세 설명</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 일정표 -->
+        <div class="row">
+            <div class="col-12">
+                <h3 class="mb-4">일정표</h3>
+                <div class="schedule-timeline">
+                    <div th:each="schedule : ${schedules}" class="schedule-item mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${schedule.day + '일차'}">일차</h5>
+                                <div class="row">
+                                    <div class="col-md-4" th:if="${schedule.imageUrl}">
+                                        <img th:src="${schedule.imageUrl}" class="img-fluid rounded" alt="일정 이미지">
+                                    </div>
+                                    <div th:class="${schedule.imageUrl} ? 'col-md-8' : 'col-md-12'">
+                                        <h6 th:text="${schedule.activity}">활동명</h6>
+                                        <p th:text="${schedule.description}">활동 설명</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

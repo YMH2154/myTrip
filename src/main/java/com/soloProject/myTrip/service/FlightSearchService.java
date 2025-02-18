@@ -5,6 +5,7 @@ import com.amadeus.Params;
 import com.amadeus.exceptions.ResponseException;
 import com.amadeus.resources.FlightOfferSearch;
 import com.soloProject.myTrip.dto.FlightOfferDto;
+import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.exception.FlightSearchException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -67,6 +70,7 @@ public class FlightSearchService {
         }
     }
 
+    // 항공권 최저가 조회
     public BigDecimal getLowestFlightPrice(String origin, String destination, LocalDate departureDate,
             LocalDate returnDate) {
         String cacheKey = generateLowestPriceCacheKey(origin, destination, departureDate, returnDate);
@@ -117,5 +121,33 @@ public class FlightSearchService {
                 .origin(offer.getItineraries()[0].getSegments()[0].getDeparture().getIataCode())
                 .destination(offer.getItineraries()[0].getSegments()[0].getArrival().getIataCode())
                 .build();
+    }
+
+    public Map<String, Integer> calculateItemPrices(Item item) {
+        Map<String, Integer> datePrices = new HashMap<>();
+        LocalDate startDate = LocalDate.now().plusDays(1);
+        LocalDate endDate = startDate.plusDays(14);
+
+        String destinationCode = item.getDestination().name();
+
+        for (LocalDate departureDate = startDate; !departureDate.isAfter(endDate); departureDate = departureDate
+                .plusDays(1)) {
+            try {
+                LocalDate returnDate = departureDate.plusDays(item.getDuration() - 1);
+
+                BigDecimal flightPrice = getLowestFlightPrice(
+                        item.getOrigin().name(),
+                        destinationCode,
+                        departureDate,
+                        returnDate);
+
+                datePrices.put(departureDate.toString(),
+                        item.getPrice() + flightPrice.intValue());
+            } catch (Exception e) {
+                log.error("가격 계산 실패 - 상품: {}, 날짜: {}", item.getId(), departureDate, e);
+                datePrices.put(departureDate.toString(), item.getPrice());
+            }
+        }
+        return datePrices;
     }
 }

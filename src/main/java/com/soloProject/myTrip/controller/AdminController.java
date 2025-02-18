@@ -20,13 +20,8 @@ public class AdminController{
 
     private final ItemService itemService;
 
-    @GetMapping("/admin")
-    public String adminPage(){
-        return "admin/admin";
-    }
-
     //상품 관리 페이지
-    @GetMapping({"/admin/items", "/admin/items/{page}"})
+    @GetMapping({"/admin", "/admin/items", "/admin/items/{page}"})
     public String itemMngPage(@PathVariable("page")Optional<Integer> page, ItemSearchDto itemSearchDto, Model model){
         Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 5);
         Page<Item> items = itemService.getAdminItemPage(itemSearchDto, pageable);

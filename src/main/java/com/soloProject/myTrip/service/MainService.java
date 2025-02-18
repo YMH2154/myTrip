@@ -17,9 +17,8 @@ public class MainService {
     private final ItemRepository itemRepository;
 
     @Transactional(readOnly = true)
-    public List<Item> getDeadlineItems() {
-        PageRequest pageRequest = PageRequest.of(0, 8);
-        return itemRepository.findTop8ByOrderByRemainingSeatsAsc(pageRequest);
+    public List<Item> getRecommendedItems() {
+        return itemRepository.findRandomItems(8);
     }
 
     @Transactional(readOnly = true)

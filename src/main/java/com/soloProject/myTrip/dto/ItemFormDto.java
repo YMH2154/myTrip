@@ -32,9 +32,6 @@ public class ItemFormDto {
     private AirportCode origin;
     private AirportCode destination;
 
-    @NotNull(message = "여행 기간은 필수 입력 값입니다.")
-    private Integer duration;
-
     @NotNull(message = "가격은 필수 입력 값입니다.")
     private Integer price;
 
@@ -44,7 +41,7 @@ public class ItemFormDto {
     private ItemSellStatus itemSellStatus;
 
     @NotNull(message = "잔여 좌석(최대 인원)은 필수 입력 값입니다.")
-    private Integer remainingSeats;
+    private Integer maxParticipants;
 
     @NotNull(message = "최소 출발 인원은 필수 입력 값입니다.")
     private Integer minParticipants;
@@ -53,11 +50,8 @@ public class ItemFormDto {
 
     private List<ScheduleDto> scheduleDtos;
 
-    @NotNull(message = "출발일은 필수 입력 값입니다.")
-    private LocalDate departureDate;
-
-    @NotNull(message = "도착일은 필수 입력 값입니다.")
-    private LocalDate returnDate;
+    @NotNull(message = "여행 기간은 필수 입력 값입니다.")
+    private Integer duration;
 
     public static ModelMapper modelMapper = new ModelMapper();
 
@@ -85,8 +79,6 @@ public class ItemFormDto {
     public Item createItem() {
         Item item = modelMapper.map(this, Item.class);
         item.setCurrentParticipants(0);
-        item.setDepartureDate(this.departureDate);
-        item.setReturnDate(this.returnDate);
         return item;
     }
 

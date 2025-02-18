@@ -208,48 +208,17 @@
                         국내여행
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/products/domestic/seoul">서울</a>
-                        <a class="dropdown-item" href="/products/domestic/busan">부산</a>
-                        <a class="dropdown-item" href="/products/domestic/jeju">제주도</a>
-                        <a class="dropdown-item" href="/products/domestic/gangwon">강원도</a>
-                        <a class="dropdown-item" href="/products/domestic/gyeongju">경주</a>
-                        <a class="dropdown-item" href="/products/domestic/jeonju">전주</a>
-                        <a class="dropdown-item" href="/products/domestic/yeosu">여수</a>
+                        <a th:each="category : ${T(com.soloProject.myTrip.constant.DomesticCategory).values()}"
+                        th:href="@{'/products/domestic/'+ ${category.link}}"
+                        th:text="${category.description}"></a>
                     </div>
                 </li>
-                <li class="nav-item dropdown mx-2">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                        해외여행
-                    </a>
+                <li class="nav-item dropdown mx-2" th:each="region : ${T(com.soloProject.myTrip.constant.OverseasCategory).getUniqueRegions()}">
                     <div class="dropdown-menu">
-                        <div class="dropdown-submenu">
-                            <a class="dropdown-item dropdown-toggle" href="#">유럽</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="/products/overseas/europe/france">프랑스</a>
-                                <a class="dropdown-item" href="/products/overseas/europe/italy">이탈리아</a>
-                                <a class="dropdown-item" href="/products/overseas/europe/spain">스페인</a>
-                                <a class="dropdown-item" href="/products/overseas/europe/uk">영국</a>
-                            </div>
-                        </div>
-                        <div class="dropdown-submenu">
-                            <a class="dropdown-item dropdown-toggle" href="#">아시아</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="/products/overseas/asia/japan">일본</a>
-                                <a class="dropdown-item" href="/products/overseas/asia/china">중국</a>
-                                <a class="dropdown-item" href="/products/overseas/asia/taiwan">대만</a>
-                                <a class="dropdown-item" href="/products/overseas/asia/vietnam">베트남</a>
-                                <a class="dropdown-item" href="/products/overseas/asia/thailand">태국</a>
-                            </div>
-                        </div>
-                        <div class="dropdown-submenu">
-                            <a class="dropdown-item dropdown-toggle" href="#">미주</a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="/products/overseas/america/usa">미국</a>
-                                <a class="dropdown-item" href="/products/overseas/america/canada">캐나다</a>
-                                <a class="dropdown-item" href="/products/overseas/america/hawaii">하와이</a>
-                                <a class="dropdown-item" href="/products/overseas/america/guam">괌</a>
-                            </div>
-                        </div>
+                        <a th:each="category : ${T(com.soloProject.myTrip.constant.OverseasCategory).values()}"
+                           th:if="${category.region == region}"
+                           th:href="@{'/products/overseas/'+${region} +'/'+${category.link}}"
+                           th:text="${category.description}"></a>
                     </div>
                 </li>
                 <li class="nav-item dropdown mx-2">
@@ -257,10 +226,9 @@
                         테마여행
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/products/theme/honeymoon">허니문</a>
-                        <a class="dropdown-item" href="/products/theme/golf">골프</a>
-                        <a class="dropdown-item" href="/products/theme/cruise">크루즈</a>
-                        <a class="dropdown-item" href="/products/theme/resort">리조트</a>
+                        <a th:each="category : ${T(com.soloProject.myTrip.constant.ThemeCategory).values()}"
+                           th:href="@{'/products/theme/' +${category.link}}"
+                           th:text="${category.description}"></a>
                     </div>
                 </li>
             </ul>
