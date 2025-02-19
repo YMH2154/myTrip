@@ -28,16 +28,26 @@ public class ItemReservation {
 
     private int totalPrice;
 
+    private String carrierCode;
+
+    private String carrierName;
+
+    private int flightPrice;
+
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
 
     @Builder
-    public ItemReservation(Item item, LocalDate reservationDate, int totalPrice) {
+    public ItemReservation(Item item, LocalDate reservationDate, int totalPrice,
+            String carrierCode, String carrierName, int flightPrice) {
         this.item = item;
         this.reservationDate = reservationDate;
         this.itemSellStatus = ItemSellStatus.SELL;
         this.remainingSeats = item.getRemainingSeats();
         this.totalPrice = totalPrice;
+        this.carrierCode = carrierCode;
+        this.carrierName = carrierName;
+        this.flightPrice = flightPrice;
     }
 
     public void updateTotalPrice(int totalPrice) {

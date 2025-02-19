@@ -1,13 +1,13 @@
 package com.soloProject.myTrip.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "schedule")
 @Getter
 @Setter
+@Builder
 public class Schedule {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

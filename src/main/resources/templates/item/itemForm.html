@@ -209,8 +209,12 @@
                 </select>
             </div>
             <div class="form-group">
-                <label th:for="duration">여행 기간 (ex.1박 2일 => 2)</label>
-                <input type="number" th:field="*{duration}" class="form-control" placeholder="여행 기간을 입력해주세요">
+                <label>여행 기간</label>
+                <input type="number" th:field="*{night}" class="form-control" required>
+                <p>박</p>
+                <input type="number" th:field="*{duration}" class="form-control" required>
+                <p>일</p>
+                <p th:if="${#fields.hasErrors('night')}" th:errors="*{night}" class="fieldError">Incorrect data</p>
                 <p th:if="${#fields.hasErrors('duration')}" th:errors="*{duration}" class="fieldError">Incorrect data</p>
             </div>
             <div class="form-group">
@@ -234,6 +238,84 @@
                 <label th:for="minParticipants">최소 출발 인원</label>
                 <input type="number" th:field="*{minParticipants}" class="form-control" placeholder="최소 출발 인원을 입력해주세요">
                 <p th:if="${#fields.hasErrors('minParticipants')}" th:errors="*{minParticipants}" class="fieldError">Incorrect data</p>
+            </div>
+
+            <!-- minParticipants 입력 필드 다음에 추가 -->
+            <div class="form-group">
+                <label>부가항목</label>
+                <div class="border p-3 rounded">
+                    <!-- 인솔자 -->
+                    <div class="mb-3">
+                        <label>인솔자</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasLeader}" value="true" class="form-check-input">
+                                <label class="form-check-label">동행</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasLeader}" value="false" class="form-check-input">
+                                <label class="form-check-label">없음(자유여행)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 가이드 경비 -->
+                    <div class="mb-3">
+                        <label>가이드 경비</label>
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasGuideFee}" value="true" class="form-check-input" onchange="toggleGuideFee(this)">
+                                <label class="form-check-label">있음</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasGuideFee}" value="false" class="form-check-input" onchange="toggleGuideFee(this)">
+                                <label class="form-check-label">없음</label>
+                            </div>
+                            <div id="guideFeeInput" style="display: none;">
+                                <input type="number" th:field="*{guideFee}" class="form-control" placeholder="가이드 경비">
+                                <select th:field="*{guideFeeUnit}" class="form-control mt-2">
+                                    <option value="KRW">원(₩)</option>
+                                    <option value="USD">달러($)</option>
+                                    <option value="EUR">유로(€)</option>
+                                    <option value="JPY">엔(¥)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 쇼핑 -->
+                    <div class="mb-3">
+                        <label>쇼핑</label>
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasShopping}" value="true" class="form-check-input" onchange="toggleShopping(this)">
+                                <label class="form-check-label">있음</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasShopping}" value="false" class="form-check-input" onchange="toggleShopping(this)">
+                                <label class="form-check-label">없음</label>
+                            </div>
+                            <div id="shoppingCountInput" style="display: none;">
+                                <input type="number" th:field="*{shoppingCount}" class="form-control" placeholder="쇼핑 횟수">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 여행자 보험 -->
+                    <div class="mb-3">
+                        <label>여행자 보험</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasInsurance}" value="true" class="form-check-input">
+                                <label class="form-check-label">있음</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" th:field="*{hasInsurance}" value="false" class="form-check-input">
+                                <label class="form-check-label">없음</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- 이미지 수정/등록 영역 -->
@@ -424,6 +506,32 @@
                 labels[i].textContent = `${i + 1}번째 상품 이미지`;
             }
         }
+
+        function toggleGuideFee(radio) {
+            const feeInput = document.getElementById('guideFeeInput');
+            feeInput.style.display = radio.value === 'true' ? 'block' : 'none';
+            if (radio.value === 'false') {
+                feeInput.querySelector('input[type="number"]').value = '';
+                feeInput.querySelector('select').value = 'KRW';
+            }
+        }
+
+        function toggleShopping(radio) {
+            const countInput = document.getElementById('shoppingCountInput');
+            countInput.style.display = radio.value === 'true' ? 'block' : 'none';
+            if (radio.value === 'false') {
+                countInput.querySelector('input[type="number"]').value = '';
+            }
+        }
+
+        // 페이지 로드 시 초기 상태 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            const hasGuideFee = document.querySelector('input[name="hasGuideFee"]:checked');
+            const hasShopping = document.querySelector('input[name="hasShopping"]:checked');
+            
+            if (hasGuideFee) toggleGuideFee(hasGuideFee);
+            if (hasShopping) toggleShopping(hasShopping);
+        });
     </script>
 </th:block>
 

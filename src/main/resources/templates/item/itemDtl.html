@@ -3,6 +3,84 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout}">
 
+<th:block layout:fragment="css">
+    <style>
+        .travel-info-container {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+        }
+
+        .travel-info {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 120px;
+        }
+
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .icon-circle img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .notice-box {
+            border: 1px solid #dee2e6;
+        }
+
+        .notice-box h5 {
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+
+        .notice-box ul {
+            padding-left: 20px;
+        }
+
+        .notice-box li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .table {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+    </style>
+</th:block>
+
 <div layout:fragment="content">
     <div class="container my-5">
         <!-- 상품 기본 정보 -->
@@ -24,6 +102,58 @@
                     </button>
                 </div>
             </div>
+            <div class="travel-info-container my-4">
+                <hr class="my-4">
+                <div class="travel-info d-flex justify-content-around text-center">
+                    <div class="info-item">
+                        <div class="icon-circle">
+                            <img src="/images/duration.png" alt="여행기간">
+                        </div>
+                        <p class="info-label">여행기간</p>
+                        <p class="info-value" th:text="${night} + '박 ' +${duration} + '일'"></p>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon-circle">
+                            <img src="/images/airline.png" alt="항공사">
+                        </div>
+                        <p class="info-label">항공사</p>
+                        <p class="info-value" th:text="${reservation.carrierName}"></p>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon-circle">
+                            <img src="/images/leader.png" alt="인솔자">
+                        </div>
+                        <p class="info-label">인솔자</p>
+                        <p class="info-value" th:if="${item.hasLeader == true}">있음</p>
+                        <p class="info-value" th:if="${item.hasLeader == false}">없음</p>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon-circle">
+                            <img src="/images/expense.png" alt="가이드 경비">
+                        </div>
+                        <p class="info-label">가이드 경비</p>
+                        <p class="info-value" th:if="${item.hasGuideFee == true}" th:text="${item.guideFee} + ${item.guideFeeUnit}"></p>
+                        <p class="info-value" th:if="${item.hasGuideFee == false}">없음</p>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon-circle">
+                            <img src="/images/shopping.png" alt="쇼핑">
+                        </div>
+                        <p class="info-label">쇼핑</p>
+                        <p class="info-value" th:if="${item.hasShopping == true}" th:text="${item.shoppingCount} + ' 회'"></p>
+                        <p class="info-value" th:if="${item.hasShopping == false}">없음</p>
+                    </div>
+                    <div class="info-item">
+                        <div class="icon-circle">
+                            <img src="/images/insurance.png" alt="여행자 보험">
+                        </div>
+                        <p class="info-label">여행자 보험</p>
+                        <p class="info-value" th:if="${item.hasInsurance == true}">있음</p>
+                        <p class="info-value" th:if="${item.hasInsurance == false}">없음</p>
+                    </div>
+                </div>
+                <hr class="my-4">
+            </div>
             <div class="col-md-6">
                 <h2 th:text="${item.itemName}" class="mb-4">상품명</h2>
                 <div class="info-box p-4 bg-light rounded">
@@ -43,12 +173,68 @@
             </div>
         </div>
 
+        <!-- 가격 정보 테이블 -->
+        <div class="price-info mb-5">
+            <h3 class="mb-4">가격 정보</h3>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>구분</th>
+                        <th>성인</th>
+                        <th>아동</th>
+                        <th>유아</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>총 상품가</td>
+                        <td th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></td>
+                        <td th:text="${#numbers.formatInteger(reservation.totalPrice * 0.8, 3, 'COMMA') + '원'}"></td>
+                        <td th:text="${#numbers.formatInteger(reservation.totalPrice * 0.3, 3, 'COMMA') + '원'}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <!-- 상품 상세 설명 -->
         <div class="row mb-5">
             <div class="col-12">
                 <h3 class="mb-4">상품 설명</h3>
                 <div class="description-box p-4 bg-light rounded">
                     <p th:text="${item.itemDetail}">상품 상세 설명</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 참고/주의사항 -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="mb-4">참고/주의사항</h3>
+                <div class="notice-box p-4 bg-light rounded">
+                    <h5>필수 안내사항</h5>
+                    <ul class="mb-4">
+                        <li>여권은 출발일 기준 6개월 이상 유효기간이 남아있어야 합니다.</li>
+                        <li>항공 일정은 항공사 사정에 따라 변경될 수 있습니다.</li>
+                        <li>현지 사정에 따라 관광일정이 변경될 수 있습니다.</li>
+                    </ul>
+
+                    <h5>포함사항</h5>
+                    <ul class="mb-4">
+                        <li>항공권 및 왕복 공항세</li>
+                        <li>호텔 숙박비(2인 1실 기준)</li>
+                        <li th:if="${item.hasInsurance == true}">여행자 보험</li>
+                        <li th:if="${item.hasGuideFee == false}">전문 가이드 비용</li>
+                    </ul>
+
+                    <h5>불포함사항</h5>
+                    <ul class="mb-4">
+                        <li th:if="${item.hasInsurance == false}">여행자 보험</li>
+                        <li th:if="${item.hasGuideFee == true}">전문 가이드 비용</li>
+                        <li>개인경비 및 식사비용</li>
+                        <li>선택관광 비용</li>
+                        <li>가이드/기사 팁</li>
+                        <li>1인실 사용 시 추가요금</li>
+                    </ul>
                 </div>
             </div>
         </div>

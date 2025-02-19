@@ -111,6 +111,9 @@ public class FlightSearchService {
     }
 
     private FlightOfferDto convertDto(FlightOfferSearch offer) {
+        String carrierCode = offer.getItineraries()[0].getSegments()[0].getCarrierCode();
+        String carrierName = getCarrierName(carrierCode);
+
         return FlightOfferDto.builder()
                 .departureDate(offer.getItineraries()[0].getSegments()[0].getDeparture().getAt())
                 .returnDate(offer.getItineraries().length > 1
@@ -120,34 +123,18 @@ public class FlightSearchService {
                 .currency(offer.getPrice().getCurrency())
                 .origin(offer.getItineraries()[0].getSegments()[0].getDeparture().getIataCode())
                 .destination(offer.getItineraries()[0].getSegments()[0].getArrival().getIataCode())
+                .carrierCode(carrierCode)
+                .carrierName(carrierName)
                 .build();
     }
 
-    public Map<String, Integer> calculateItemPrices(Item item) {
-        Map<String, Integer> datePrices = new HashMap<>();
-        LocalDate startDate = LocalDate.now().plusDays(1);
-        LocalDate endDate = startDate.plusDays(14);
-
-        String destinationCode = item.getDestination().name();
-
-        for (LocalDate departureDate = startDate; !departureDate.isAfter(endDate); departureDate = departureDate
-                .plusDays(1)) {
-            try {
-                LocalDate returnDate = departureDate.plusDays(item.getDuration() - 1);
-
-                BigDecimal flightPrice = getLowestFlightPrice(
-                        item.getOrigin().name(),
-                        destinationCode,
-                        departureDate,
-                        returnDate);
-
-                datePrices.put(departureDate.toString(),
-                        item.getPrice() + flightPrice.intValue());
-            } catch (Exception e) {
-                log.error("가격 계산 실패 - 상품: {}, 날짜: {}", item.getId(), departureDate, e);
-                datePrices.put(departureDate.toString(), item.getPrice());
-            }
+    private String getCarrierName(String carrierCode) {
+        try {
+            Params params = Params.with("carrierName",carrierCode);
+            return Arrays.toString(amadeus.referenceData.airlines.get(params));
+        } catch (ResponseException e) {
+            log.error("항공사 정보 조회 실패: {}", e.getMessage());
+            return carrierCode;
         }
-        return datePrices;
     }
 }

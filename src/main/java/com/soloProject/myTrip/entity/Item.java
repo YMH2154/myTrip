@@ -4,6 +4,7 @@ import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import groovy.transform.ToString;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -73,9 +74,22 @@ public class Item extends BaseEntity {
     private List<ItemReservation> itemReservations;
 
     @Column(nullable = false)
+    private int night;
+    @Column(nullable = false)
     private int duration;
 
     private int lowestPrice;
+
+    private boolean hasLeader; // 인솔자 유무
+    private boolean hasGuideFee; // 가이드 경비 유무
+    private Integer guideFee; // 가이드 경비 금액
+
+    @Enumerated(EnumType.STRING)
+    private CurrencyUnit guideFeeUnit; // 가이드 경비 통화 단위
+
+    private boolean hasShopping; // 쇼핑 유무
+    private Integer shoppingCount; // 쇼핑 횟수
+    private boolean hasInsurance; // 여행자 보험 유무
 
     // 잔여 좌석 수 계산 메소드
     public int getRemainingSeats() {
@@ -99,6 +113,13 @@ public class Item extends BaseEntity {
         this.setMaxParticipants(itemFormDto.getMaxParticipants());
         this.setMinParticipants(itemFormDto.getMinParticipants());
         this.setDuration(itemFormDto.getDuration());
+        this.hasLeader = itemFormDto.isHasLeader();
+        this.hasGuideFee = itemFormDto.isHasGuideFee();
+        this.guideFee = itemFormDto.getGuideFee();
+        this.guideFeeUnit = itemFormDto.getGuideFeeUnit();
+        this.hasShopping = itemFormDto.isHasShopping();
+        this.shoppingCount = itemFormDto.getShoppingCount();
+        this.hasInsurance = itemFormDto.isHasInsurance();
     }
 
     public void updateLowestPrice(int newLowestPrice) {

@@ -16,6 +16,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@ToString
 public class ItemFormDto {
 
     private Long id;
@@ -50,9 +51,17 @@ public class ItemFormDto {
 
     private List<ScheduleDto> scheduleDtos;
 
-    @NotNull(message = "여행 기간은 필수 입력 값입니다.")
+    private Integer night;
     private Integer duration;
 
+    private boolean hasLeader;        // 인솔자 유무
+    private boolean hasGuideFee;      // 가이드 경비 유무
+    private Integer guideFee;         // 가이드 경비 금액
+    private CurrencyUnit guideFeeUnit; // 가이드 경비 통화 단위
+    private boolean hasShopping;      // 쇼핑 유무
+    private Integer shoppingCount;    // 쇼핑 횟수
+    private boolean hasInsurance;     // 여행자 보험 유무
+    
     public static ModelMapper modelMapper = new ModelMapper();
 
     public boolean isValidCategory() {

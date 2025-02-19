@@ -3,6 +3,7 @@ package com.soloProject.myTrip.service;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.repository.ItemReservationRepository;
+import com.soloProject.myTrip.dto.FlightOfferDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.math.BigDecimal;
+import java.util.Comparator;
 
 @Service
 @Transactional
@@ -36,22 +38,43 @@ public class ItemReservationService {
 
   // 새로운 날짜의 예약 엔티티 생성
   public void createReservationForDate(Item item, LocalDate date) {
-    // 항공권 가격 조회
-    BigDecimal flightPrice = flightSearchService.getLowestFlightPrice(
-        item.getOrigin().name(),
-        item.getDestination().name(),
-        date,
-        date.plusDays(item.getDuration() - 1));
+    try {
+      // 항공권 정보 조회
+      List<FlightOfferDto> flightOffers = flightSearchService.searchFlights(
+          item.getOrigin().name(),
+          item.getDestination().name(),
+          date,
+          date.plusDays(item.getDuration() - 1));
 
-    int totalPrice = item.getPrice() + flightPrice.intValue();
+      // 최저가 항공권 선택
+      FlightOfferDto lowestPriceOffer = flightOffers.stream()
+          .min(Comparator.comparing(FlightOfferDto::getPrice))
+          .orElseThrow(() -> new RuntimeException("항공권 정보를 찾을 수 없습니다."));
 
-    ItemReservation reservation = ItemReservation.builder()
-        .item(item)
-        .reservationDate(date)
-        .totalPrice(totalPrice)
-        .build();
+      int flightPrice = lowestPriceOffer.getPrice().intValue();
+      int totalPrice = item.getPrice() + flightPrice;
 
-    itemReservationRepository.save(reservation);
+      ItemReservation reservation = ItemReservation.builder()
+          .item(item)
+          .reservationDate(date)
+          .totalPrice(totalPrice)
+          .carrierCode(lowestPriceOffer.getCarrierCode())
+          .carrierName(lowestPriceOffer.getCarrierName())
+          .flightPrice(flightPrice)
+          .build();
+
+      itemReservationRepository.save(reservation);
+    } catch (Exception e) {
+      log.error("예약 생성 실패 - 상품: {}, 날짜: {}", item.getId(), date, e);
+      // 항공권 정보 조회 실패 시 상품 가격만으로 예약 생성
+      ItemReservation reservation = ItemReservation.builder()
+          .item(item)
+          .reservationDate(date)
+          .totalPrice(item.getPrice())
+          .build();
+
+      itemReservationRepository.save(reservation);
+    }
   }
 
   // 특정 날짜의 예약 엔티티 삭제
@@ -59,7 +82,7 @@ public class ItemReservationService {
     itemReservationRepository.deleteByItemAndReservationDate(item, date);
   }
 
-  // 초기 15일치 예약 엔티티 생성
+  // 다음날부터 7일치 예약 엔티티 생성
   public void initializeReservations(Item item) {
     LocalDate startDate = LocalDate.now().plusDays(1);
     LocalDate endDate = startDate.plusDays(6);
