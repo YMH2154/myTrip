@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.controller;
 
+import com.soloProject.myTrip.constant.ItemSellStatus;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
@@ -140,32 +141,62 @@ public class ItemController {
 
             // 날짜별 잔여좌석 맵 생성
             Map<String, Integer> remainingSeats = new HashMap<>();
-
+            
             // 날짜별 가격 맵 생성
             Map<String, Integer> prices = new HashMap<>();
             int minPrice = Integer.MAX_VALUE;
             int maxPrice = 0;
 
+            // 출발 항공편 정보 맵 생성
+            Map<String, Map<String, String>> departureFlights = new HashMap<>();
+            
+            // 귀국 항공편 정보 맵 생성
+            Map<String, Map<String, String>> returnFlights = new HashMap<>();
+            
+            // 상태 정보 맵 생성
+            Map<String, ItemSellStatus> itemSellStatusMap = new HashMap<>();
+
             for (ItemReservation reservation : reservations) {
-
-                int remainingSeat = reservation.getRemainingSeats();
-                remainingSeats.put(reservation.getReservationDate().toString(), remainingSeat);
-
+                // 출발일자 추출 (시간 제외)
+                String departureDate = reservation.getDepartureDateTime().split("T")[0];
+                
+                // 잔여좌석
+                remainingSeats.put(departureDate, reservation.getRemainingSeats());
+                
+                // 가격
                 int totalPrice = reservation.getTotalPrice();
-                prices.put(reservation.getReservationDate().toString(), totalPrice);
-
+                prices.put(departureDate, totalPrice);
+                
                 // 최소/최대 가격 업데이트
-                if (totalPrice < minPrice)
-                    minPrice = totalPrice;
-                if (totalPrice > maxPrice)
-                    maxPrice = totalPrice;
+                if (totalPrice < minPrice) minPrice = totalPrice;
+                if (totalPrice > maxPrice) maxPrice = totalPrice;
+                
+                // 출발 항공편 정보
+                Map<String, String> departureFlightInfo = new HashMap<>();
+                departureFlightInfo.put("carrierName", reservation.getDepartureCarrierName());
+                departureFlightInfo.put("flightNumber", reservation.getDepartureFlightNumber());
+                departureFlightInfo.put("dateTime", reservation.getDepartureDateTime());
+                departureFlights.put(departureDate, departureFlightInfo);
+                
+                // 귀국 항공편 정보
+                Map<String, String> returnFlightInfo = new HashMap<>();
+                returnFlightInfo.put("carrierName", reservation.getReturnCarrierName());
+                returnFlightInfo.put("flightNumber", reservation.getReturnFlightNumber());
+                returnFlightInfo.put("dateTime", reservation.getReturnDateTime());
+                returnFlights.put(departureDate, returnFlightInfo);
+                
+                // 상태 정보
+                itemSellStatusMap.put(departureDate, reservation.getItemSellStatus());
             }
 
             model.addAttribute("item", item);
-            model.addAttribute("prices", prices);
             model.addAttribute("minPrice", minPrice != Integer.MAX_VALUE ? minPrice : 0);
             model.addAttribute("maxPrice", maxPrice);
             model.addAttribute("remainingSeats", remainingSeats);
+            model.addAttribute("prices", prices);
+            model.addAttribute("departureFlights", departureFlights);
+            model.addAttribute("returnFlights", returnFlights);
+            model.addAttribute("itemSellStatus", itemSellStatusMap);
 
             return "item/itemCalendar";
         } catch (Exception e) {
@@ -177,22 +208,21 @@ public class ItemController {
     // 상세 페이지
     @GetMapping("/item/{itemId}/detail")
     public String itemDetail(@PathVariable("itemId") Long itemId,
-            @RequestParam("reservationDate") String reservationDate,
+            @RequestParam("departureDateTime") String departureDateTime,
             Model model) {
         try {
             Item item = itemService.getItem(itemId);
             ItemReservation reservation = itemReservationService.getItemReservation(
-                    itemId, LocalDate.parse(reservationDate));
+                    itemId, departureDateTime);
             List<ScheduleDto> schedules = scheduleService.getScheduleDtl(itemId);
 
             model.addAttribute("item", item);
             model.addAttribute("reservation", reservation);
             model.addAttribute("schedules", schedules);
-            model.addAttribute("reservationDate", reservationDate);
 
             return "item/itemDtl";
         } catch (Exception e) {
-            log.error("Failed to load item detail: {}", e.getMessage());
+            e.printStackTrace();
             return "redirect:/";
         }
     }

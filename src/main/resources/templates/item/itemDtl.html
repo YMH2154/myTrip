@@ -35,8 +35,8 @@
         }
 
         .icon-circle img {
-            width: 30px;
-            height: 30px;
+            width: 45px;
+            height: 45px;
             object-fit: contain;
         }
 
@@ -110,21 +110,22 @@
                             <img src="/images/duration.png" alt="여행기간">
                         </div>
                         <p class="info-label">여행기간</p>
-                        <p class="info-value" th:text="${night} + '박 ' +${duration} + '일'"></p>
+                        <p class="info-value" th:text="${item.night} + '박 ' +${item.duration} + '일'"></p>
                     </div>
                     <div class="info-item">
                         <div class="icon-circle">
                             <img src="/images/airline.png" alt="항공사">
                         </div>
                         <p class="info-label">항공사</p>
-                        <p class="info-value" th:text="${reservation.carrierName}"></p>
+                        <p class="info-value" th:if="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName}"></p>
+                        <p class="info-value"  th:unless="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName} + ', ' + ${reservation.returnCarrierName}"></p>
                     </div>
                     <div class="info-item">
                         <div class="icon-circle">
                             <img src="/images/leader.png" alt="인솔자">
                         </div>
                         <p class="info-label">인솔자</p>
-                        <p class="info-value" th:if="${item.hasLeader == true}">있음</p>
+                        <p class="info-value" th:if="${item.hasLeader == true}">동행</p>
                         <p class="info-value" th:if="${item.hasLeader == false}">없음</p>
                     </div>
                     <div class="info-item">
@@ -148,7 +149,7 @@
                             <img src="/images/insurance.png" alt="여행자 보험">
                         </div>
                         <p class="info-label">여행자 보험</p>
-                        <p class="info-value" th:if="${item.hasInsurance == true}">있음</p>
+                        <p class="info-value" th:if="${item.hasInsurance == true}">포함</p>
                         <p class="info-value" th:if="${item.hasInsurance == false}">없음</p>
                     </div>
                 </div>
@@ -161,13 +162,13 @@
                     <p><strong>출발지:</strong> <span th:text="${item.origin}">출발지</span></p>
                     <p><strong>도착지:</strong> <span th:text="${item.destination}">도착지</span></p>
                     <p><strong>여행 기간:</strong> <span th:text="${item.duration + '일'}">기간</span></p>
-                    <p><strong>출발일:</strong> <span th:text="${reservationDate}">출발일</span></p>
+                    <p><strong>출발일:</strong> <span th:text="${reservation.departureDateTime}">출발일</span></p>
                     <p><strong>총 금액:</strong> <span th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}">가격</span></p>
                     <p><strong>잔여 좌석:</strong> <span th:text="${reservation.remainingSeats + '석'}">잔여석</span></p>
                 </div>
                 <form th:action="@{/reservations/new}" method="get" class="mt-4">
                     <input type="hidden" name="itemId" th:value="${item.id}">
-                    <input type="hidden" name="reservationDate" th:value="${reservationDate}">
+                    <input type="hidden" name="departureDateTime" th:value="${reservation.departureDateTime}">
                     <button type="submit" class="btn btn-primary btn-lg w-100">예약하기</button>
                 </form>
             </div>

@@ -26,17 +26,34 @@
 
     <!-- Custom CSS -->
     <style>
+        .text-white{
+            font-size: 2.0em;
+            font-weight: bold;
+        }
+
+        .text-center{
+            margin: 10px 0;
+        }
+
+        main{
+            margin: 0;
+        }
+
         .admin-sidebar {
             min-height: 100vh;
             background-color: #343a40;
             padding-top: 20px;
+            position: fixed; /* 사이드바 고정 */
+            width: 16.666667%; /* col-md-2에 해당하는 너비 */
+            z-index: 100; /* 다른 요소들 위에 표시 */
         }
-        
+
         .admin-sidebar .nav-link {
             color: #fff;
-            padding: 15px 20px;
+            padding: 40px 20px;
             border-radius: 0;
             transition: all 0.3s;
+            font-size: 1.2em; /* 글자 크기 증가 */
         }
         
         .admin-sidebar .nav-link:hover,
@@ -47,10 +64,6 @@
         
         .admin-sidebar .nav-link i {
             margin-right: 10px;
-        }
-        
-        .admin-content {
-            padding: 20px;
         }
         
         .admin-header {
@@ -70,6 +83,11 @@
             text-align: center;
             width: 100%;
             bottom: 0;
+        }
+
+        /* main 컨텐츠 영역 여백 조정 */
+        .col-md-10.ms-sm-auto {
+            margin-left: 16.666667%; /* admin-sidebar 너비만큼 여백 추가 */
         }
     </style>
     
@@ -107,6 +125,11 @@
                                 <i class="bi bi-graph-up"></i>통계 조회
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">
+                                <i class="bi bi-graph-up"></i>메인 화면
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -120,8 +143,6 @@
                 
                 <!-- Content -->
                 <div class="admin-content">
-
-                    <div th:replace="~{fragments/header::header}"></div>
 
                     <th:block layout:fragment="content"></th:block>
 

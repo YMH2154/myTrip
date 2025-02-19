@@ -10,6 +10,7 @@ import com.soloProject.myTrip.exception.FlightSearchException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,19 +28,20 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class FlightSearchService {
     private final Amadeus amadeus;
+    private final RedisTemplate<String, List<FlightOfferDto>> flightOffersRedisTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
 
     private static final long CACHE_DURATION = 60 * 60; // 1시간 캐시
 
+    @Transactional
     public List<FlightOfferDto> searchFlights(String origin, String destination, LocalDate departureDate,
             LocalDate returnDate) {
         String cacheKey = generateCacheKey(origin, destination, departureDate, returnDate);
 
-        // 캐시에서 데이터 조회
-        @SuppressWarnings("unchecked")
-        List<FlightOfferDto> cachedOffers = (List<FlightOfferDto>) redisTemplate.opsForValue().get(cacheKey);
+        // 캐시에서 데이터 조회 - flightOffersRedisTemplate 사용
+        List<FlightOfferDto> cachedOffers = flightOffersRedisTemplate.opsForValue().get(cacheKey);
 
-        if (cachedOffers != null) {
+        if (cachedOffers != null && !cachedOffers.isEmpty()) {
             log.info("Cache hit for key: {}", cacheKey);
             return cachedOffers;
         }
@@ -52,16 +54,17 @@ public class FlightSearchService {
                             .and("returnDate", returnDate.toString())
                             .and("adults", 1)
                             .and("currencyCode", "KRW")
-                            .and("max", 5) // 최대 5개 결과
-            );
+                            .and("max", 1));
 
             List<FlightOfferDto> offers = Arrays.stream(flightOffers)
                     .map(this::convertDto)
                     .toList();
 
-            // 결과를 캐시에 저장
-            redisTemplate.opsForValue().set(cacheKey, offers, CACHE_DURATION, TimeUnit.SECONDS);
-            log.info("Cached flight offers for key: {}", cacheKey);
+            if (!offers.isEmpty()) {
+                // 캐시에 저장 - flightOffersRedisTemplate 사용
+                flightOffersRedisTemplate.opsForValue().set(cacheKey, offers, CACHE_DURATION, TimeUnit.SECONDS);
+                log.info("Cached flight offers for key: {}", cacheKey);
+            }
 
             return offers;
         } catch (ResponseException e) {
@@ -70,12 +73,12 @@ public class FlightSearchService {
         }
     }
 
-    // 항공권 최저가 조회
+    @Transactional
     public BigDecimal getLowestFlightPrice(String origin, String destination, LocalDate departureDate,
             LocalDate returnDate) {
         String cacheKey = generateLowestPriceCacheKey(origin, destination, departureDate, returnDate);
 
-        // 캐시에서 최저가 조회
+        // 캐시에서 최저가 조회 - redisTemplate 사용
         BigDecimal cachedPrice = (BigDecimal) redisTemplate.opsForValue().get(cacheKey);
 
         if (cachedPrice != null) {
@@ -90,7 +93,7 @@ public class FlightSearchService {
                     .min(BigDecimal::compareTo)
                     .orElse(BigDecimal.ZERO);
 
-            // 최저가를 캐시에 저장
+            // 최저가를 캐시에 저장 - redisTemplate 사용
             redisTemplate.opsForValue().set(cacheKey, lowestPrice, CACHE_DURATION, TimeUnit.SECONDS);
             log.info("Cached lowest price for key: {}", cacheKey);
 
@@ -101,19 +104,19 @@ public class FlightSearchService {
         }
     }
 
+    @Transactional
     private String generateCacheKey(String origin, String destination, LocalDate departureDate, LocalDate returnDate) {
         return String.format("flight:offers:%s:%s:%s:%s", origin, destination, departureDate, returnDate);
     }
 
+    @Transactional
     private String generateLowestPriceCacheKey(String origin, String destination, LocalDate departureDate,
             LocalDate returnDate) {
         return String.format("flight:lowest-price:%s:%s:%s:%s", origin, destination, departureDate, returnDate);
     }
 
+    @Transactional
     private FlightOfferDto convertDto(FlightOfferSearch offer) {
-        String carrierCode = offer.getItineraries()[0].getSegments()[0].getCarrierCode();
-        String carrierName = getCarrierName(carrierCode);
-
         return FlightOfferDto.builder()
                 .departureDate(offer.getItineraries()[0].getSegments()[0].getDeparture().getAt())
                 .returnDate(offer.getItineraries().length > 1
@@ -123,18 +126,10 @@ public class FlightSearchService {
                 .currency(offer.getPrice().getCurrency())
                 .origin(offer.getItineraries()[0].getSegments()[0].getDeparture().getIataCode())
                 .destination(offer.getItineraries()[0].getSegments()[0].getArrival().getIataCode())
-                .carrierCode(carrierCode)
-                .carrierName(carrierName)
+                .departureCarrierCode(offer.getItineraries()[0].getSegments()[0].getCarrierCode())
+                .departureFlightNumber(offer.getItineraries()[0].getSegments()[0].getNumber())
+                .returnCarrierCode(offer.getItineraries()[1].getSegments()[0].getCarrierCode())
+                .returnFlightNumber(offer.getItineraries()[1].getSegments()[0].getNumber())
                 .build();
-    }
-
-    private String getCarrierName(String carrierCode) {
-        try {
-            Params params = Params.with("carrierName",carrierCode);
-            return Arrays.toString(amadeus.referenceData.airlines.get(params));
-        } catch (ResponseException e) {
-            log.error("항공사 정보 조회 실패: {}", e.getMessage());
-            return carrierCode;
-        }
     }
 }

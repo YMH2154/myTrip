@@ -6,16 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface ItemReservationRepository extends JpaRepository<ItemReservation, Long> {
-  void deleteByItemAndReservationDate(Item item, LocalDate reservationDate);
+  void deleteByItemAndDepartureDateTime(Item item, String departureDateTime);
 
-  ItemReservation findByItemIdAndReservationDate(Long itemId, LocalDate reservationDate);
-
-  List<ItemReservation> findByItemAndReservationDateBetween(
-          Item item, LocalDate startDate, LocalDate endDate);
+  ItemReservation findByItemIdAndDepartureDateTime(Long itemId, String departureDateTime);
 
   List<ItemReservation> findByItemId(Long itemId);
 }

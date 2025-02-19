@@ -22,32 +22,46 @@ public class ItemReservation {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private LocalDate reservationDate;
-
     private int remainingSeats;
 
     private int totalPrice;
 
-    private String carrierCode;
+    // 출국편 정보
+    private String departureDateTime; // 시간 포함 출발 일시
+    private String departureCarrierCode;
+    private String departureCarrierName;
+    private String departureFlightNumber;
 
-    private String carrierName;
-
-    private int flightPrice;
+    // 귀국편 정보
+    private String returnDateTime; // 시간 포함 귀국 일시
+    private String returnCarrierCode;
+    private String returnCarrierName;
+    private String returnFlightNumber;
 
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
 
     @Builder
-    public ItemReservation(Item item, LocalDate reservationDate, int totalPrice,
-            String carrierCode, String carrierName, int flightPrice) {
+    public ItemReservation(Item item, String departureDateTime, String returnDateTime,
+            String departureCarrierCode, String departureCarrierName, String departureFlightNumber,
+            String returnCarrierCode, String returnCarrierName, String returnFlightNumber,
+            int totalPrice) {
         this.item = item;
-        this.reservationDate = reservationDate;
+        this.departureDateTime = departureDateTime;
+        this.returnDateTime = returnDateTime;
         this.itemSellStatus = ItemSellStatus.SELL;
         this.remainingSeats = item.getRemainingSeats();
         this.totalPrice = totalPrice;
-        this.carrierCode = carrierCode;
-        this.carrierName = carrierName;
-        this.flightPrice = flightPrice;
+
+        // 출국편 정보
+        this.departureCarrierCode = departureCarrierCode;
+        this.departureCarrierName = departureCarrierName;
+        this.departureFlightNumber = departureFlightNumber;
+
+        // 귀국편 정보
+        this.returnCarrierCode = returnCarrierCode;
+        this.returnCarrierName = returnCarrierName;
+        this.returnFlightNumber = returnFlightNumber;
     }
 
     public void updateTotalPrice(int totalPrice) {

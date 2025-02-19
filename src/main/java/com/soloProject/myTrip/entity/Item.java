@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -67,7 +68,8 @@ public class Item extends BaseEntity {
     @Column(name = "item_image_url")
     private List<String> itemImageUrls;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Schedule> schedules;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -82,13 +84,13 @@ public class Item extends BaseEntity {
 
     private boolean hasLeader; // 인솔자 유무
     private boolean hasGuideFee; // 가이드 경비 유무
-    private Integer guideFee; // 가이드 경비 금액
+    private int guideFee; // 가이드 경비 금액
 
     @Enumerated(EnumType.STRING)
     private CurrencyUnit guideFeeUnit; // 가이드 경비 통화 단위
 
     private boolean hasShopping; // 쇼핑 유무
-    private Integer shoppingCount; // 쇼핑 횟수
+    private int shoppingCount; // 쇼핑 횟수
     private boolean hasInsurance; // 여행자 보험 유무
 
     // 잔여 좌석 수 계산 메소드

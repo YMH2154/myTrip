@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.service;
 
+import com.soloProject.myTrip.constant.AirlineCode;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.repository.ItemReservationRepository;
@@ -25,6 +26,7 @@ public class ItemReservationService {
   private final FlightSearchService flightSearchService;
 
   // 최저가격 업데이트 메서드 추가
+  @Transactional
   public void updateItemLowestPrice(Item item) {
     List<ItemReservation> reservations = itemReservationRepository.findByItemId(item.getId());
     if (!reservations.isEmpty()) {
@@ -37,52 +39,53 @@ public class ItemReservationService {
   }
 
   // 새로운 날짜의 예약 엔티티 생성
+  @Transactional
   public void createReservationForDate(Item item, LocalDate date) {
     try {
-      // 항공권 정보 조회
+      // 왕복 항공권 검색
       List<FlightOfferDto> flightOffers = flightSearchService.searchFlights(
           item.getOrigin().name(),
           item.getDestination().name(),
           date,
           date.plusDays(item.getDuration() - 1));
 
-      // 최저가 항공권 선택
-      FlightOfferDto lowestPriceOffer = flightOffers.stream()
-          .min(Comparator.comparing(FlightOfferDto::getPrice))
-          .orElseThrow(() -> new RuntimeException("항공권 정보를 찾을 수 없습니다."));
+      if (flightOffers.isEmpty()) {
+        log.error("항공권 정보를 찾을 수 없음 - 상품: {}, 날짜: {}", item.getId(), date);
+        return;
+      }
 
-      int flightPrice = lowestPriceOffer.getPrice().intValue();
-      int totalPrice = item.getPrice() + flightPrice;
+      // 최저가 항공권 선택
+      FlightOfferDto offer = flightOffers.get(0); // max=1로 설정했으므로 첫 번째가 최저가
+      int totalPrice = item.getPrice() + offer.getPrice().intValue();
 
       ItemReservation reservation = ItemReservation.builder()
           .item(item)
-          .reservationDate(date)
+          .departureDateTime(offer.getDepartureDate())
+          .returnDateTime(offer.getReturnDate())
           .totalPrice(totalPrice)
-          .carrierCode(lowestPriceOffer.getCarrierCode())
-          .carrierName(lowestPriceOffer.getCarrierName())
-          .flightPrice(flightPrice)
+          .departureCarrierCode(offer.getDepartureCarrierCode())
+          .departureCarrierName(AirlineCode.getCompanyNameByCode(offer.getDepartureCarrierCode()))
+          .departureFlightNumber(offer.getDepartureFlightNumber())
+          .returnCarrierCode(offer.getReturnCarrierCode())
+          .returnCarrierName(AirlineCode.getCompanyNameByCode(offer.getReturnCarrierCode()))
+          .returnFlightNumber(offer.getReturnFlightNumber())
           .build();
 
       itemReservationRepository.save(reservation);
     } catch (Exception e) {
       log.error("예약 생성 실패 - 상품: {}, 날짜: {}", item.getId(), date, e);
-      // 항공권 정보 조회 실패 시 상품 가격만으로 예약 생성
-      ItemReservation reservation = ItemReservation.builder()
-          .item(item)
-          .reservationDate(date)
-          .totalPrice(item.getPrice())
-          .build();
-
-      itemReservationRepository.save(reservation);
     }
   }
 
   // 특정 날짜의 예약 엔티티 삭제
+  @Transactional
   public void deleteReservationForDate(Item item, LocalDate date) {
-    itemReservationRepository.deleteByItemAndReservationDate(item, date);
+    String dateTime = date.toString() + "T00:00:00";
+    itemReservationRepository.deleteByItemAndDepartureDateTime(item, dateTime);
   }
 
   // 다음날부터 7일치 예약 엔티티 생성
+  @Transactional
   public void initializeReservations(Item item) {
     LocalDate startDate = LocalDate.now().plusDays(1);
     LocalDate endDate = startDate.plusDays(6);
@@ -95,10 +98,12 @@ public class ItemReservationService {
     updateItemLowestPrice(item);
   }
 
-  public ItemReservation getItemReservation(Long itemId, LocalDate reservationDate) {
-    return itemReservationRepository.findByItemIdAndReservationDate(itemId, reservationDate);
+  @Transactional
+  public ItemReservation getItemReservation(Long itemId, String departureDateTime) {
+    return itemReservationRepository.findByItemIdAndDepartureDateTime(itemId, departureDateTime);
   }
 
+  @Transactional
   public List<ItemReservation> getReservationsForItem(Long itemId) {
     return itemReservationRepository.findByItemId(itemId);
   }

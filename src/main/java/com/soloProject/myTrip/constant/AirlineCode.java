@@ -12,7 +12,8 @@ public enum AirlineCode {
     INCHEON("KJ", "에어 인천"),
     SEOUL("RS", "에어 서울"),
     GANGWON("4V", "플라이 강원"),
-    TWAY("TW", "티웨이 항공");
+    TWAY("TW", "티웨이 항공"),
+    AIRPREMIA("YP", "에어 프레미아");
 
     private final String code;
     private final String companyName;
@@ -28,6 +29,15 @@ public enum AirlineCode {
 
     public String getCompanyName(){
         return companyName;
+    }
+
+    public static String getCompanyNameByCode(String code) {
+        for (AirlineCode airline : values()) {
+            if (airline.getCode().equals(code)) {
+                return airline.getCompanyName();
+            }
+        }
+        return null;  // 없으면 null 반환
     }
 
 }

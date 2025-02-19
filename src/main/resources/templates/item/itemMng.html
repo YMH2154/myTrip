@@ -446,47 +446,38 @@ select.form-control:focus, input.form-control:focus {
                 overseasDiv.style.display = 'none';
                 themeDiv.style.display = 'none';
 
-                // 모든 select의 disabled 속성을 true로 설정
-                domesticSelect.disabled = true;
-                overseasSelect.disabled = true;
-                themeSelect.disabled = true;
+                // 모든 select의 값을 빈 문자열로 초기화
+                domesticSelect.value = '';
+                overseasSelect.value = '';
+                themeSelect.value = '';
 
-                // 선택된 타입에 따라 해당 카테고리만 표시하고 활성화
+                // 선택된 타입에 따라 해당 카테고리만 표시
                 switch(selectedType) {
                     case 'DOMESTIC':
                         domesticDiv.style.display = 'block';
-                        domesticSelect.disabled = false;
                         break;
                     case 'OVERSEAS':
                         overseasDiv.style.display = 'block';
-                        overseasSelect.disabled = false;
                         break;
                     case 'THEME':
                         themeDiv.style.display = 'block';
-                        themeSelect.disabled = false;
                         break;
                 }
-
-                // 숨겨진 select들의 값을 초기화
-                if (domesticSelect.disabled) domesticSelect.value = '';
-                if (overseasSelect.disabled) overseasSelect.value = '';
-                if (themeSelect.disabled) themeSelect.value = '';
             }
         });
 
         function page(page){
-
             const searchDateType = $("#searchDateType").val();
             const travelType = $("#travelType").val();
-            const domesticCategory = $("#domesticCategory").val();
-            const overseasCategory = $("#overseasCategory").val();
-            const themeCategory = $("#themeCategory").val();
+            const domesticCategory = $("#domesticCategory").val() || '';  // 빈 문자열로 대체
+            const overseasCategory = $("#overseasCategory").val() || '';  // 빈 문자열로 대체
+            const themeCategory = $("#themeCategory").val() || '';       // 빈 문자열로 대체
             const searchBy = $("#searchBy").val();
             const searchQuery = $("#searchQuery").val();
 
             location.href = "/admin/items/" + page
                 + "?searchDateType=" + searchDateType
-                + "&travelType=" + travelType
+                + "&travelType=" + (travelType || '')
                 + "&domesticCategory=" + domesticCategory
                 + "&overseasCategory=" + overseasCategory
                 + "&themeCategory=" + themeCategory

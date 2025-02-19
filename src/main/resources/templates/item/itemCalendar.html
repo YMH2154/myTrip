@@ -2,414 +2,502 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout}">
-
 <th:block layout:fragment="css">
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+
     <style>
+        .calendar-page-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 30px;
+            padding: 20px;
+            min-height: 800px;
+        }
         .calendar-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card {
-            height: 100%;  /* 카드 높이를 100%로 설정 */
-        }
-
-        .flatpickr-months {
-            flex-shrink: 0;
-            padding: 10px 0;
-        }
-
-        .flatpickr-weekdays {
-            flex-shrink: 0;
-        }
-
-        .flatpickr-days {
-            flex: 1;
-            display: flex !important;
-            max-width: none !important;
-            width: 100% !important;
-        }
-
-        /* 카드 본문 높이 계산 시 패딩을 포함하도록 설정 */
-        .card-body {
-            height: calc(100% - 56px);  /* 헤더 높이를 제외한 나머지 공간 */
-            padding: 1.5rem;
-            box-sizing: border-box; /* 패딩을 포함한 높이 계산 */
-        }
-
-        /* 달력 컨테이너가 부모 카드 본문 영역을 채우도록 설정 */
-        .calendar-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .flatpickr-calendar {
-            background: transparent;
-            opacity: 1;
-            display: flex;
-            position: relative;
-            width: 100% !important;
-            height: 100% !important;
-            box-sizing: border-box;
-            touch-action: manipulation;
+            flex: 2;
             background: #fff;
-            box-shadow: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            height: 917px;
         }
-
-        .dayContainer {
-            width: 100%;
-            min-width: 100%;
-            max-width: 100%;
-            display: grid !important;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            padding: 0;
-        }
-
-        .flatpickr-day {
-            height: auto !important;
-            max-height: none !important;
-            line-height: 1.5 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-            align-items: center !important;
-            margin: 1px !important;
+        .selection-info {
             flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+            height: 917px;
+            display: flex;
+            flex-direction: column;
         }
-
-        .day-price {
-            font-size: 0.85em;
-            margin-top: 4px;
+        .item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 20px;
         }
-
-        /* 달력 헤더(월, 년도) 스타일 */
-        .flatpickr-current-month {
-            font-size: 1.5em !important;
-            padding: 10px 0 !important;
+        .selection-content {
+            padding: 0 25px 25px 25px;
+            flex-grow: 1;
         }
-
-        .flatpickr-current-month .cur-month {
-            font-weight: bold !important;
+        .fc .fc-toolbar.fc-header-toolbar {
+            margin-bottom: 1.5em;
+            margin-top: 1.5em;
+            text-align: center;
         }
-
-        .flatpickr-current-month .cur-year {
-            font-size: 1em !important;
+        .fc .fc-toolbar-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
         }
-
-        /* 화살표 크기 증가 */
-        .flatpickr-months .flatpickr-prev-month,
-        .flatpickr-months .flatpickr-next-month {
-            padding: 10px !important;
+        .fc .fc-today-button {
+            display: none;
         }
-
-        .flatpickr-months .flatpickr-prev-month svg,
-        .flatpickr-months .flatpickr-next-month svg {
-            width: 16px !important;
-            height: 16px !important;
+        .fc .fc-toolbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10px;
+            gap: 20px;
         }
-
-        .flatpickr-day {
-            height: 60px !important;
-            line-height: 25px !important;
-            padding: 5px !important;
-        }
-
-        .flatpickr-day.selected {
-            background: #3498db !important;
-            border-color: #3498db !important;
-        }
-
-        /* 기존 상품 정보 관련 스타일 유지 */
-        .product-info .info-row {
+        .fc .fc-toolbar-chunk {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
         }
-
-        .product-info .label {
-            color: #666;
-            flex: 1;
+        .fc .fc-toolbar-chunk:nth-child(2) {
+            flex-grow: 0;
+            margin: 0 20px;
         }
-
-        .product-info .value {
+        .fc .fc-scrollgrid-liquid{
+            height: 125%;
+        }
+        .price-info {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+        }
+        .price-info h2 {
             font-weight: bold;
-            color: #2c3e50;
+            text-align: center;
+            font-size: 2.3em;
+            margin-bottom: 15px;
+            color: #333;
         }
 
-        .product-image {
+        .price-info p {
+            color: #666;
+            font-size: 1.1em;
+            float: left;
+        }
+        .price-info span {
+            font-size: 1.3em;
+            color: red;
+            font-weight: bold;
+        }
+        .fc {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .fc-day-future {
+            cursor: pointer;
+        }
+        .fc-day-past {
+            background-color: #f8f9fa;
+        }
+        .fc-day-today {
+            background-color: rgba(25, 118, 210, 0.1) !important;
+        }
+        .price-display {
+            font-size: 0.95em;
+            padding: 3px;
+            text-align: center;
+            color: #1976d2;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        .seats-display {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 2px;
+        }
+        .no-seats {
+            background-color: #fff3f3;
+        }
+        .has-price {
+            background-color: #fff;
+        }
+        .selected-date {
             position: relative;
-            padding-top: 66.67%;
-            overflow: hidden;
         }
-
-        .product-image img {
+        .selected-date::after {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(25, 118, 210, 0.2);
+            border-radius: 50%;
+            margin: 5px;
         }
-
-        .product-title {
-            color: #2c3e50;
-            font-weight: bold;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 8px;
-            z-index: 100;
-        }
-
-        /* 컨테이너 높이 설정 */
-        .container-fluid {
-            height: calc(100vh - 150px); /* 상단 여백을 제외한 높이 */
-        }
-
-        .row {
-            height: 100%;
-        }
-
-        .col-md-8, .col-md-4 {
-            height: 100%;
-        }
-
-        .calendar-section {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-
-        .flight-info {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            background: #f8f9fa;
-            border-left: 4px solid #3498db;
-        }
-
-        .price-range {
-            color: #e74c3c;
-            font-size: 1.2rem;
+        .selection-info h3 {
+            font-size: 1.3em;
             margin-bottom: 20px;
-            padding: 10px;
-            background: #fff3f3;
-            border-radius: 6px;
+            color: #333;
+            border-bottom: 2px solid #1976d2;
+            padding-bottom: 10px;
+            text-align: center;
         }
-
-        .price-range span {
-            font-weight: bold;
-        }
-
-        .flatpickr-day {
-            border-radius: 8px;
-            height: 80px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            justify-content: center !important;
-        }
-
-        .flatpickr-day.selected {
-            background: #3498db !important;
-            border-color: #3498db !important;
-        }
-
-        .day-price {
-            font-size: 0.8em;
-            margin-top: 5px;
-            color: #e74c3c;
-            font-weight: bold;
-        }
-
-        .flight-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .info-row {
             margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .info-label {
+            color: #666;
+            font-size: 1.05em;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.05em;
+        }
+        .book-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 80px;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            bottom: 0;
+        }
+        .book-button:hover {
+            background-color: #1565c0;
+            transform: translateY(-2px);
+        }
+        .book-button:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .no-date-selected {
+            text-align: center;
+            color: #666;
+            padding: 30px 0;
+            font-size: 1.1em;
+        }
+        .fc .fc-daygrid-day-number {
+            font-weight: 600;
+            color: #333;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .fc-theme-standard td, .fc-theme-standard th {
+            border-color: #e0e0e0;
+        }
+        .fc .fc-col-header-cell-cushion {
+            text-decoration: none;
+            padding: 8px;
+            color: #333;
+        }
+        .fc .fc-button {
+            padding: 3px 5px;
+            font-size: 1em;
+        }
+        .fc .fc-toolbar-title {
+            min-width: 200px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .fc .fc-button:hover {
+            background-color: #1565c0;
+            border-color: #1565c0;
+        }
+        .fc .fc-button-primary:disabled {
+            background-color: #90caf9;
+            border-color: #90caf9;
+        }
+        .fc .fc-daygrid-day {
+            height: 100px !important;
+        }
+        
+        .fc td, .fc th {
+            border-style: solid;
+            border-width: 1px !important;
+        }
+        
+        .fc .fc-daygrid-day-number {
+            float: none;
+            text-align: center;
+            width: auto;
         }
 
-        .status-indicator {
-            display: inline-block;
-            padding: 4px 12px;
+        .fc .fc-daygrid-body-unbalanced .fc-daygrid-day-events {
+            min-height: 0 !important;
+        }
+        
+        .status-info {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            float: right;
+        }
+        
+        .status-item {
+            padding: 5px 10px;
             border-radius: 15px;
-            font-size: 0.9em;
+            font-size: 0.85em;
+            display: inline-flex;
+            align-items: center;
+            background-color: #f5f5f5;
         }
-
-        .status-available {
-            background: #e8f5e9;
+        
+        .status-item p {
+            margin: 0;
+            font-weight: 500;
+        }
+        
+        .status-item:has(.status-sell) {
+            background-color: #e8f5e9;
             color: #2e7d32;
         }
-
-        .status-pending {
-            background: #fff3e0;
+        
+        .status-item:has(.status-waiting) {
+            background-color: #fff3e0;
             color: #f57c00;
         }
-
-        .status-unavailable {
-            background: #ffebee;
+        
+        .status-item:has(.status-soldout) {
+            background-color: #ffebee;
             color: #c62828;
         }
-
-        .flight-details {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        
+        .cell-sell {
+            background-color: #e8f5e9 !important;
         }
-
-        .flight-route {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
+        
+        .cell-waiting {
+            background-color: #fff3e0 !important;
         }
-
-        .route-arrow {
-            color: #3498db;
-            font-size: 1.2em;
+        
+        .cell-soldout {
+            background-color: #ffebee !important;
         }
-
-
-        .airplane-icon {
-            font-size: 3em;
-            animation: fly 2s infinite linear;
+        
+        .price-info-container {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
         }
-
-        @keyframes fly {
-            0% { transform: translateX(-50px) translateY(0); }
-            50% { transform: translateX(50px) translateY(-20px); }
-            100% { transform: translateX(-50px) translateY(0); }
+        
+        .fc .fc-daygrid-day-top {
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .price-display, .seats-display {
+            text-align: center;
         }
     </style>
 </th:block>
 
 <div layout:fragment="content">
-    <div class="container-fluid my-4">
-        <div class="row">
-            <!-- 달력 섹션 -->
-            <div class="col-lg-8">
-                <div class="calendar-section">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h3>여행 일정 선택</h3>
-                        <div class="flight-status">
-                            <span class="status-indicator status-available">예약가능</span>
-                            <span class="status-indicator status-pending">대기예약</span>
+    <div class="calendar-page-container">
+        <div class="calendar-container">
+            <div class="price-info-container">
+                <div class="price-info">
+                    <h2 th:text="${item.itemName}"></h2>
+                    <p>최저가: <span th:text="${#numbers.formatInteger(minPrice, 0, 'COMMA')}">0</span>원 ~
+                       최고가: <span th:text="${#numbers.formatInteger(maxPrice, 0, 'COMMA')}">0</span>원</p>
+
+                    <div class="status-info">
+                        <div class="status-item">
+                            <div class="status-sell"></div>
+                            <p>예약 가능</p>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-waiting"></div>
+                            <p>예약 대기</p>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-soldout"></div>
+                            <p>예약 마감</p>
                         </div>
                     </div>
-                    
-                    <div class="price-range">
-                        최저 <span th:text="${#numbers.formatInteger(minPrice, 0, 'COMMA')}">0</span>원 ~ 
-                        최고 <span th:text="${#numbers.formatInteger(maxPrice, 0, 'COMMA')}">0</span>원
-                    </div>
 
-                    <div id="calendar"></div>
                 </div>
             </div>
-
-            <!-- 상품 정보 섹션 -->
-            <div class="col-lg-4">
-                <div class="product-info-section">
-                    <div id="selectedDateInfo" class="mt-4" style="display: none;">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5>선택하신 일정</h5>
-                                <p>출발일: <span id="departureDate"></span></p>
-                                <p>도착일: <span id="returnDate"></span></p>
-                                <p>잔여 좌석: <span id="remainingSeats"></span>석</p>
-                                <p>총 금액: <span id="totalPrice"></span>원</p>
-                                <button id="reserveBtn" class="btn btn-primary w-100" disabled>
-                                    예약하기
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <div id='calendar'></div>
+        </div>
+        
+        <div class="selection-info" id="selectionInfo">
+            <img th:src="${item.itemImageUrls.getFirst()}" class="item-image" alt="상품 이미지">
+            <div class="selection-content">
+                <div class="no-date-selected">
+                    <p>날짜를 선택해주세요</p>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- 예약 정보 표시 영역 -->
-
 </div>
 
 <th:block layout:fragment="script">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- FullCalendar 번들 JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    
     <script th:inline="javascript">
-        const prices = /*[[${prices}]]*/ {};
-        const duration = /*[[${item.duration}]]*/ 0;
-        const remainingSeats = /*[[${remainingSeats}]]*/ {};
-        
         document.addEventListener('DOMContentLoaded', function() {
-            const calendar = flatpickr("#calendar", {
-                inline: true,
-                mode: "single",
-                minDate: "today",
-                disable: [],
-                locale: "ko",
-                defaultDate: "today",
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        updateSelectedDateInfo(selectedDates[0]);
+            const remainingSeats = /*[[${remainingSeats}]]*/ {};
+            const prices = /*[[${prices}]]*/ {};
+            const itemId = /*[[${item.id}]]*/ null;
+            const itemName = /*[[${item.itemName}]]*/ '';
+            const itemSellStatus = /*[[${itemSellStatus}]]*/ {};
+            const departureFlights = /*[[${departureFlights}]]*/ {};
+            const returnFlights = /*[[${returnFlights}]]*/ {};
+            const duration = /*[[${item.duration}]]*/ 0;
+
+            let selectedCell = null;
+
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function updateSelectionInfo(clickedDate, price, seats) {
+                const departureFlight = departureFlights[clickedDate];
+                const returnFlight = returnFlights[clickedDate];
+                const selectionInfo = document.getElementById('selectionInfo');
+                const selectionContent = selectionInfo.querySelector('.selection-content');
+                
+                if (!departureFlight || !returnFlight) {
+                    selectionContent.innerHTML = `
+                        <div class="no-date-selected">
+                            <p>예약 가능한 날짜가 아닙니다</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                //날짜 포맷팅 함수
+                function formatDateString(dateTimeStr) {
+                    const date = new Date(dateTimeStr);
+                    return date.toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    });
+                }
+
+                // 항공사 정보 생성
+                let airlineInfo = departureFlight.carrierName === returnFlight.carrierName
+                    ? `<span class="info-value">${departureFlight.carrierName}</span>`
+                    : `<span class="info-value">${departureFlight.carrierName}, ${returnFlight.carrierName}</span>`;
+
+                selectionContent.innerHTML = `
+                    <h3>선택 일정</h3>
+                    <div class="info-row">
+                        <span class="info-label">상품명</span>
+                        <span class="info-value">${itemName}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">출국일</span>
+                        <span class="info-value">${formatDateString(departureFlight.dateTime)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">귀국일</span>
+                        <span class="info-value">${formatDateString(returnFlight.dateTime)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">가격</span>
+                        <span class="info-value">${price.toLocaleString()}원</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">항공사</span>
+                        ${airlineInfo}
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">잔여좌석</span>
+                        <span class="info-value">${seats}석</span>
+                    </div>
+                    <button class="book-button" 
+                            onclick="location.href='/item/${itemId}/detail?departureDateTime=${departureFlight.dateTime}'"
+                            ${seats <= 0 ? 'disabled' : ''}>
+                        ${seats <= 0 ? '예약마감' : '일정 선택하기'}
+                    </button>
+                `;
+            }
+
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ko',
+                headerToolbar: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                dayCellDidMount: function(arg) {
+                    const date = formatDate(arg.date);
+                    const cell = arg.el;
+                    
+                    // 오늘 날짜 처리
+                    if (arg.date.toDateString() === new Date().toDateString()) {
+                        cell.classList.remove(...Array.from(cell.classList).filter(c => c.startsWith('cell-')));
+                    }
+                    
+                    if (departureFlights[date]) {
+                        const price = prices[date];
+                        const seats = remainingSeats[date];
+                        const status = itemSellStatus[date];
+                        
+                        cell.classList.add(`cell-${status.toLowerCase()}`);
+                        
+                        const contentEl = cell.querySelector('.fc-daygrid-day-top');
+                        const priceDiv = document.createElement('div');
+                        priceDiv.className = 'price-display';
+                        priceDiv.innerHTML = price.toLocaleString() + '원';
+                        
+                        const seatsDiv = document.createElement('div');
+                        seatsDiv.className = 'seats-display';
+                        seatsDiv.innerHTML = '잔여: ' + seats + '석';
+                        
+                        cell.querySelector('.fc-daygrid-day-events').innerHTML = '';
+                        cell.querySelector('.fc-daygrid-day-bg').innerHTML = '';
+                        
+                        contentEl.parentNode.appendChild(priceDiv);
+                        contentEl.parentNode.appendChild(seatsDiv);
                     }
                 },
-                onDayCreate: function(dObj, dStr, fp, dayElem) {
-                    const dateStr = dayElem.dateObj.toISOString().split('T')[0];
-                    const price = prices[dateStr];
-                    
-                    if (price) {
-                        const priceDiv = document.createElement('div');
-                        priceDiv.className = 'day-price';
-                        const priceInManwon = (price / 10000).toFixed(1);
-                        priceDiv.textContent = `${priceInManwon}만원`;
-                        dayElem.appendChild(priceDiv);
+                dateClick: function(info) {
+                    const clickedDate = formatDate(info.date);
+                    const price = prices[clickedDate];
+                    const seats = remainingSeats[clickedDate];
+
+                    if (selectedCell) {
+                        selectedCell.classList.remove('selected-date');
                     }
+
+                    info.dayEl.classList.add('selected-date');
+                    selectedCell = info.dayEl;
+
+                    updateSelectionInfo(clickedDate, price, seats);
                 }
             });
+            
+            calendar.render();
         });
-
-        function updateSelectedDateInfo(selectedDate) {
-            const dateStr = selectedDate.toISOString().split('T')[0];
-            const returnDate = new Date(selectedDate);
-            returnDate.setDate(returnDate.getDate() + duration - 1);
-            const remainingSeat = remainingSeats[dateStr];
-
-            const price = prices[dateStr];
-            if (price) {
-                document.getElementById('departureDate').textContent = dateStr;
-                document.getElementById('returnDate').textContent = 
-                    returnDate.toISOString().split('T')[0];
-                document.getElementById('remainingSeats').textContent =
-                    remainingSeat.toLocaleString();
-                document.getElementById('totalPrice').textContent = 
-                    price.toLocaleString();
-                document.getElementById('selectedDateInfo').style.display = 'block';
-                
-                // 예약하기 버튼 활성화 및 URL 업데이트
-                const reserveBtn = document.getElementById('reserveBtn');
-                reserveBtn.disabled = false;
-                reserveBtn.onclick = function() {
-                    location.href = `/item/${/*[[${item.id}]]*/'0'}/detail?reservationDate=${dateStr}`;
-                };
-            }
-        }
     </script>
 </th:block>
 </html>

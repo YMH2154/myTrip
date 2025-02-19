@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns="http://www.w3.org/1999/html"
       layout:decorate="~{layouts/admin-layout}">
 
 <head>
@@ -107,27 +107,6 @@
             background-position: right 1rem center;
             background-size: 1em;
         }
-
-        /* flatpickr 커스텀 스타일 */
-        .flatpickr-calendar {
-            border-radius: 8px;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.1);
-        }
-
-        .flatpickr-day.selected {
-            background: #3498db;
-            border-color: #3498db;
-        }
-
-        .flatpickr-day.selected:hover {
-            background: #2980b9;
-            border-color: #2980b9;
-        }
-
-        .flatpickr-day.inRange {
-            background: #e8f4f9;
-            border-color: #e8f4f9;
-        }
     </style>
 </th:block>
 <div layout:fragment="content">
@@ -208,15 +187,92 @@
                     </option>
                 </select>
             </div>
+
             <div class="form-group">
-                <label>여행 기간</label>
-                <input type="number" th:field="*{night}" class="form-control" required>
-                <p>박</p>
-                <input type="number" th:field="*{duration}" class="form-control" required>
-                <p>일</p>
-                <p th:if="${#fields.hasErrors('night')}" th:errors="*{night}" class="fieldError">Incorrect data</p>
-                <p th:if="${#fields.hasErrors('duration')}" th:errors="*{duration}" class="fieldError">Incorrect data</p>
+                <label>부가항목</label>
+                <div class="border p-3 rounded">
+
+                    <div class="mb-3">
+                        <label>여행 기간</label>
+                        <input id="night" type="number" th:field="*{night}" required>
+                        <label for="night">박</label>
+                        <input id="duration" type="number" th:field="*{duration}" required>
+                        <label for="duration">일</label>
+                    </div>
+
+                    <!-- 인솔자 -->
+                    <div class="mb-3">
+                        <label>인솔자</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input id="yesLeader" type="radio" th:field="*{hasLeader}" value="true" class="form-check-input">
+                                <label for="yesLeader" class="form-check-label">동행</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="noLeader" type="radio" th:field="*{hasLeader}" value="false" class="form-check-input">
+                                <label for="noLeader" class="form-check-label">없음(자유여행)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 가이드 경비 -->
+                    <div class="mb-3">
+                        <label>가이드 경비</label>
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="form-check">
+                                <input id="yesFee" type="radio" th:field="*{hasGuideFee}" value="true" class="form-check-input" onchange="toggleGuideFee(this)">
+                                <label for="yesFee" class="form-check-label">있음</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="noFee" type="radio" th:field="*{hasGuideFee}" value="false" class="form-check-input" onchange="toggleGuideFee(this)">
+                                <label for="noFee" class="form-check-label">없음</label>
+                            </div>
+                            <div id="guideFeeInput" style="display: none;">
+                                <input type="number" th:field="*{guideFee}" class="form-control" placeholder="가이드 경비">
+                                <select th:field="*{guideFeeUnit}" class="form-control mt-2">
+                                    <option th:each="unit : ${T(com.soloProject.myTrip.constant.CurrencyUnit).values()}"
+                                            th:value="${unit}"
+                                            th:text="${unit.description} + '(' +${unit.sign} +')'"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 쇼핑 -->
+                    <div class="mb-3">
+                        <label>쇼핑</label>
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="form-check">
+                                <input id="yesShopping" type="radio" th:field="*{hasShopping}" value="true" class="form-check-input" onchange="toggleShopping(this)">
+                                <label for="yesShopping" class="form-check-label">있음</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="noShopping" type="radio" th:field="*{hasShopping}" value="false" class="form-check-input" onchange="toggleShopping(this)">
+                                <label for="noShopping" class="form-check-label">없음</label>
+                            </div>
+                            <div id="shoppingCountInput" style="display: none;">
+                                <input type="number" th:field="*{shoppingCount}" class="form-control" placeholder="쇼핑 횟수">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 여행자 보험 -->
+                    <div class="mb-3">
+                        <label>여행자 보험</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input id="yesInsurance" type="radio" th:field="*{hasInsurance}" value="true" class="form-check-input">
+                                <label for="yesInsurance" class="form-check-label">있음</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="noInsurance" type="radio" th:field="*{hasInsurance}" value="false" class="form-check-input">
+                                <label for="noInsurance" class="form-check-label">없음</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <div class="form-group">
                 <label th:for="price">가격(항공권 제외)</label>
                 <input type="number" th:field="*{price}" class="form-control" placeholder="항공권을 제외한 가격을 입력해주세요">
@@ -238,84 +294,6 @@
                 <label th:for="minParticipants">최소 출발 인원</label>
                 <input type="number" th:field="*{minParticipants}" class="form-control" placeholder="최소 출발 인원을 입력해주세요">
                 <p th:if="${#fields.hasErrors('minParticipants')}" th:errors="*{minParticipants}" class="fieldError">Incorrect data</p>
-            </div>
-
-            <!-- minParticipants 입력 필드 다음에 추가 -->
-            <div class="form-group">
-                <label>부가항목</label>
-                <div class="border p-3 rounded">
-                    <!-- 인솔자 -->
-                    <div class="mb-3">
-                        <label>인솔자</label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasLeader}" value="true" class="form-check-input">
-                                <label class="form-check-label">동행</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasLeader}" value="false" class="form-check-input">
-                                <label class="form-check-label">없음(자유여행)</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 가이드 경비 -->
-                    <div class="mb-3">
-                        <label>가이드 경비</label>
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasGuideFee}" value="true" class="form-check-input" onchange="toggleGuideFee(this)">
-                                <label class="form-check-label">있음</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasGuideFee}" value="false" class="form-check-input" onchange="toggleGuideFee(this)">
-                                <label class="form-check-label">없음</label>
-                            </div>
-                            <div id="guideFeeInput" style="display: none;">
-                                <input type="number" th:field="*{guideFee}" class="form-control" placeholder="가이드 경비">
-                                <select th:field="*{guideFeeUnit}" class="form-control mt-2">
-                                    <option value="KRW">원(₩)</option>
-                                    <option value="USD">달러($)</option>
-                                    <option value="EUR">유로(€)</option>
-                                    <option value="JPY">엔(¥)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 쇼핑 -->
-                    <div class="mb-3">
-                        <label>쇼핑</label>
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasShopping}" value="true" class="form-check-input" onchange="toggleShopping(this)">
-                                <label class="form-check-label">있음</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasShopping}" value="false" class="form-check-input" onchange="toggleShopping(this)">
-                                <label class="form-check-label">없음</label>
-                            </div>
-                            <div id="shoppingCountInput" style="display: none;">
-                                <input type="number" th:field="*{shoppingCount}" class="form-control" placeholder="쇼핑 횟수">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 여행자 보험 -->
-                    <div class="mb-3">
-                        <label>여행자 보험</label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasInsurance}" value="true" class="form-check-input">
-                                <label class="form-check-label">있음</label>
-                            </div>
-                            <div class="form-check">
-                                <input type="radio" th:field="*{hasInsurance}" value="false" class="form-check-input">
-                                <label class="form-check-label">없음</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- 이미지 수정/등록 영역 -->

@@ -52,7 +52,7 @@ public class ItemService {
         }
         item.setItemImageUrls(itemImageUrlList);
         
-        // 15일치 예약 엔티티 초기화
+        // 7일치 예약 엔티티 초기화
         itemReservationService.initializeReservations(savedItem);
         
         return savedItem;
