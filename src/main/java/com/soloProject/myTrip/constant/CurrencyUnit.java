@@ -1,5 +1,8 @@
 package com.soloProject.myTrip.constant;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum CurrencyUnit {
   KRW("원" , "₩"),
   USD("달러", "$"),
@@ -11,11 +14,6 @@ public enum CurrencyUnit {
 
   private final String description;
   private final String sign;
-
-  CurrencyUnit(String description, String sign) {
-    this.description = description;
-    this.sign = sign;
-  }
 
   public String getDescription() {
     return description;

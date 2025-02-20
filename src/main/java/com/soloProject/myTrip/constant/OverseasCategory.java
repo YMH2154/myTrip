@@ -1,9 +1,12 @@
 package com.soloProject.myTrip.constant;
 
+import lombok.AllArgsConstructor;
+
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 public enum OverseasCategory {
   // 유럽
   FRANCE("france","프랑스", "유럽"),
@@ -32,12 +35,6 @@ public enum OverseasCategory {
   private final String link;
   private final String description;
   private final String region;
-
-  OverseasCategory(String link, String description, String region) {
-    this.link = link;
-    this.description = description;
-    this.region = region;
-  }
 
   public String getLink(){
     return link;

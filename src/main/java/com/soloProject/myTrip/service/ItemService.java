@@ -76,8 +76,8 @@ public class ItemService {
 
     // 상품 데이터 조회
     @Transactional(readOnly = true)
-    public Item getItem(Long itemId) {
-        return itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
+    public ItemFormDto getItem(Long itemId) {
+        return ItemFormDto.of(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
     }
 
     // 상품 조회

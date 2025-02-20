@@ -56,4 +56,8 @@ public class MemberService implements UserDetailsService {
                 .build();
     }
 
+    public MemberFormDto getMember(String email){
+        return MemberFormDto.of(memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new));
+    }
+
 }

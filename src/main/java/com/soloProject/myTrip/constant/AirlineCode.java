@@ -1,7 +1,8 @@
 package com.soloProject.myTrip.constant;
 
-import org.springframework.data.domain.PageRequest;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 public enum AirlineCode {
     KOREAN("KE", "대한항공"),
     ASIANA("OZ", "아시아나 항공"),
@@ -13,15 +14,11 @@ public enum AirlineCode {
     SEOUL("RS", "에어 서울"),
     GANGWON("4V", "플라이 강원"),
     TWAY("TW", "티웨이 항공"),
-    AIRPREMIA("YP", "에어 프레미아");
+    AIRPREMIA("YP", "에어 프레미아"),
+    XIAMEN("MF", "샤먼 항공");
 
     private final String code;
     private final String companyName;
-
-    AirlineCode(String code, String companyName){
-        this.code = code;
-        this.companyName = companyName;
-    }
 
     public String getCode(){
         return code;

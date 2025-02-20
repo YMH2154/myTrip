@@ -27,15 +27,16 @@ public class SecurityConfig {
                 http.authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                                 .requestMatchers("/", "/member/**", "/item/**", "/images/**", "/itemImages/**",
-                                                "/email/**")
-                                .permitAll()
+                                                "/email/**", "/api/prices/status/**").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/prices/status/**").permitAll()
-                                .anyRequest().authenticated()).formLogin(formLogin -> formLogin
+                                .requestMatchers("/reservation/**").authenticated()
+                                .anyRequest().authenticated()).formLogin(login -> login
                                                 .loginPage("/member/login")
-                                                .defaultSuccessUrl("/")
+                                                .defaultSuccessUrl("/member/login/success")
+                                                .failureUrl("/member/login/error")
                                                 .usernameParameter("email")
-                                                .failureUrl("/member/login/error"))
+                                                .passwordParameter("password")
+                                                .permitAll())
                                 .logout(logout -> logout
                                                 .logoutRequestMatcher(new AntPathRequestMatcher("/member/logout"))
                                                 .logoutSuccessUrl("/"))

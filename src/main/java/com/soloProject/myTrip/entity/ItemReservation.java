@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Getter
@@ -41,6 +42,9 @@ public class ItemReservation {
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
 
+    @OneToMany(mappedBy = "itemReservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MemberReservation> memberReservations;
+
     @Builder
     public ItemReservation(Item item, String departureDateTime, String returnDateTime,
             String departureCarrierCode, String departureCarrierName, String departureFlightNumber,
@@ -66,5 +70,8 @@ public class ItemReservation {
 
     public void updateTotalPrice(int totalPrice) {
         this.totalPrice = totalPrice;
+    }
+    public void updateRemainingSeats(int remainingSeats){
+        this.remainingSeats = remainingSeats;
     }
 }

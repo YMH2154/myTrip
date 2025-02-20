@@ -186,6 +186,27 @@
                 font-size: 16px;
             }
         }
+
+        /* 알림 메시지 스타일 추가 */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
     </style>
 </th:block>
 
@@ -193,6 +214,15 @@
 <div layout:fragment="content" class="content">
     <div class="login-container">
         <h2 class="login-title">로그인</h2>
+        
+        <!-- 로그인 필요 메시지 -->
+        <div class="alert alert-warning" th:if="${loginErrorMsg}" th:text="${loginErrorMsg}"></div>
+        
+        <!-- 로그인 에러 메시지 -->
+        <div class="alert alert-danger" th:if="${param.error}">
+            아이디 또는 비밀번호를 확인해주세요.
+        </div>
+
         <form action="/member/login" role="form" method="post">
             <div class="form-group">
                 <input type="email" name="email" id="email" class="form-control" placeholder="이메일">
@@ -200,7 +230,6 @@
             <div class="form-group">
                 <input type="password" name="password" class="form-control" placeholder="비밀번호">
             </div>
-            <p th:if="${loginErrorMsg}" class="error" th:text="${loginErrorMsg}"></p>
             <button class="btn btn-primary">로그인</button>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         </form>

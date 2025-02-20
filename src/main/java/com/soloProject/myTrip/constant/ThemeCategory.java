@@ -1,5 +1,8 @@
 package com.soloProject.myTrip.constant;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum ThemeCategory {
   HONEYMOON("honeymoon","허니문"),
   GOLF("golf","골프"),
@@ -8,11 +11,6 @@ public enum ThemeCategory {
 
   private final String link;
   private final String description;
-
-  ThemeCategory(String link, String description) {
-    this.link = link;
-    this.description = description;
-  }
 
   public String getLink(){
     return link;

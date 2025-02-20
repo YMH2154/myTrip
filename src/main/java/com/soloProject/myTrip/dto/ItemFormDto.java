@@ -47,6 +47,8 @@ public class ItemFormDto {
     @NotNull(message = "최소 출발 인원은 필수 입력 값입니다.")
     private Integer minParticipants;
 
+    private Integer currentParticipants;
+
     private List<String> itemImageUrls;
 
     private List<ScheduleDto> scheduleDtos;

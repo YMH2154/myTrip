@@ -461,13 +461,14 @@
                         const price = prices[date];
                         const seats = remainingSeats[date];
                         const status = itemSellStatus[date];
+                        const formattedPrice = (price / 10000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
                         
                         cell.classList.add(`cell-${status.toLowerCase()}`);
                         
                         const contentEl = cell.querySelector('.fc-daygrid-day-top');
                         const priceDiv = document.createElement('div');
                         priceDiv.className = 'price-display';
-                        priceDiv.innerHTML = price.toLocaleString() + '원';
+                        priceDiv.innerHTML = Math.floor(price.toLocaleString()) + '만 원';
                         
                         const seatsDiv = document.createElement('div');
                         seatsDiv.className = 'seats-display';

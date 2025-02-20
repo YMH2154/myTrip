@@ -1,11 +1,13 @@
 package com.soloProject.myTrip.dto;
 
+import com.soloProject.myTrip.entity.Member;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
+import org.modelmapper.ModelMapper;
 
 @Getter
 @Setter
@@ -35,4 +37,9 @@ public class MemberFormDto {
     @Length(max = 12,message = "12자 이하의 전화번호를 입력해주세요")
     private String tel;
 
+    public static ModelMapper modelMapper = new ModelMapper();
+
+    public static MemberFormDto of(Member member){
+        return modelMapper.map(member, MemberFormDto.class);
+    }
 }

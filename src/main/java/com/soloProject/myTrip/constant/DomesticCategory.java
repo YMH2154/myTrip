@@ -1,6 +1,8 @@
 package com.soloProject.myTrip.constant;
 
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 public enum DomesticCategory {
   SEOUL("seoul","서울"),
   BUSAN("busan","부산"),
@@ -12,11 +14,6 @@ public enum DomesticCategory {
 
   private final String link;
   private final String description;
-
-  DomesticCategory(String link, String description) {
-    this.link = link;
-    this.description = description;
-  }
 
   public String getDescription(){
     return description;

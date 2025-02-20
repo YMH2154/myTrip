@@ -1,5 +1,8 @@
 package com.soloProject.myTrip.constant;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum AirportCode {
     // 대한민국 (Korea)
     ICN("ICN", "인천", "대한민국"), // 인천 공항
@@ -36,13 +39,6 @@ public enum AirportCode {
     private final String code;
     private final String name;
     private final String country;
-
-    // 생성자
-    AirportCode(String code, String name, String country) {
-        this.code = code;
-        this.name = name;
-        this.country = country;
-    }
 
     // getter 메서드들
     public String getCode() {

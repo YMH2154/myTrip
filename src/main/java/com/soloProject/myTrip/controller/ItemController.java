@@ -136,7 +136,7 @@ public class ItemController {
     @GetMapping("/item/{itemId}/calendar")
     public String itemCalendar(@PathVariable("itemId") Long itemId, Model model) {
         try {
-            Item item = itemService.getItem(itemId);
+            ItemFormDto item = itemService.getItem(itemId);
             List<ItemReservation> reservations = itemReservationService.getReservationsForItem(itemId);
 
             // 날짜별 잔여좌석 맵 생성
@@ -147,37 +147,27 @@ public class ItemController {
             int minPrice = Integer.MAX_VALUE;
             int maxPrice = 0;
 
-            // 출발 항공편 정보 맵 생성
             Map<String, Map<String, String>> departureFlights = new HashMap<>();
-            
-            // 귀국 항공편 정보 맵 생성
             Map<String, Map<String, String>> returnFlights = new HashMap<>();
-            
-            // 상태 정보 맵 생성
             Map<String, ItemSellStatus> itemSellStatusMap = new HashMap<>();
 
             for (ItemReservation reservation : reservations) {
-                // 출발일자 추출 (시간 제외)
                 String departureDate = reservation.getDepartureDateTime().split("T")[0];
-                
-                // 잔여좌석
                 remainingSeats.put(departureDate, reservation.getRemainingSeats());
-                
-                // 가격
+
                 int totalPrice = reservation.getTotalPrice();
                 prices.put(departureDate, totalPrice);
-                
-                // 최소/최대 가격 업데이트
+
                 if (totalPrice < minPrice) minPrice = totalPrice;
                 if (totalPrice > maxPrice) maxPrice = totalPrice;
-                
+
                 // 출발 항공편 정보
                 Map<String, String> departureFlightInfo = new HashMap<>();
                 departureFlightInfo.put("carrierName", reservation.getDepartureCarrierName());
                 departureFlightInfo.put("flightNumber", reservation.getDepartureFlightNumber());
                 departureFlightInfo.put("dateTime", reservation.getDepartureDateTime());
                 departureFlights.put(departureDate, departureFlightInfo);
-                
+
                 // 귀국 항공편 정보
                 Map<String, String> returnFlightInfo = new HashMap<>();
                 returnFlightInfo.put("carrierName", reservation.getReturnCarrierName());
@@ -211,7 +201,7 @@ public class ItemController {
             @RequestParam("departureDateTime") String departureDateTime,
             Model model) {
         try {
-            Item item = itemService.getItem(itemId);
+            ItemFormDto item = itemService.getItem(itemId);
             ItemReservation reservation = itemReservationService.getItemReservation(
                     itemId, departureDateTime);
             List<ScheduleDto> schedules = scheduleService.getScheduleDtl(itemId);

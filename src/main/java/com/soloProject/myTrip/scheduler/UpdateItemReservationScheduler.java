@@ -33,7 +33,7 @@ public class UpdateItemReservationScheduler {
             itemReservationService.deleteReservationForDate(item, today);
 
             // 7일 후 날짜의 예약 엔티티 생성
-            itemReservationService.createReservationForDate(item, futureDate);
+            itemReservationService.createReservationForDateAsync(item, futureDate);
 
             // 예약 변경 후 최저가격 업데이트
             itemReservationService.updateItemLowestPrice(item);

@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.controller;
 
+import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.Schedule;
@@ -29,7 +30,7 @@ public class ScheduleController {
     // 여행 일정 등록페이지(GET)
     @GetMapping("/admin/item/{itemId}/schedule")
     public String newSchedule(Model model, @PathVariable("itemId") Long itemId) {
-        Item item = itemService.getItem(itemId);
+        ItemFormDto item = itemService.getItem(itemId);
         List<ScheduleDto> scheduleDtoList = scheduleService.getScheduleDtl(itemId);
         model.addAttribute("item", item);
         model.addAttribute("scheduleDtoList", scheduleDtoList);
