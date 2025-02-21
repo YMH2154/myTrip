@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .detail-container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .reservation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .reservation-number {
+            font-size: 24px;
+            color: #007bff;
+        }
+
+        .reservation-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 20px;
+        }
+
+        .info-table th {
+            width: 150px;
+            background: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .info-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .participant-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .participant-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .participant-type {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .type-adult {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .type-child {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .type-infant {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .participant-info {
+            margin-top: 20px;
+        }
+
+        .participant-info p {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-edit {
+            padding: 10px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="detail-container">
+        <div class="section">
+            <div class="reservation-header">
+                <span class="reservation-number" th:text="${'예약번호: ' + reservation.memberReservationNumber}"></span>
+                <span class="reservation-status" th:text="${reservation.reservationStatus.name()}"></span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">상품 정보</h3>
+            <table class="info-table">
+                <tr>
+                    <th>상품명</th>
+                    <td th:text="${reservation.itemReservation.item.itemName}"></td>
+                </tr>
+                <tr>
+                    <th>출발일</th>
+                    <td th:text="${#temporals.format(reservation.itemReservation.departureDateTime, 'yyyy-MM-dd')}"></td>
+                </tr>
+                <tr>
+                    <th>예약금</th>
+                    <td th:text="${#numbers.formatInteger(reservation.deposit, 3, 'COMMA') + '원'}"></td>
+                </tr>
+                <tr>
+                    <th>총 인원</th>
+                    <td th:text="${reservation.participants.size() + '명'}"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">예약자 정보</h3>
+            <table class="info-table">
+                <tr>
+                    <th>예약자명</th>
+                    <td th:text="${reservation.member.name}"></td>
+                </tr>
+                <tr>
+                    <th>이메일</th>
+                    <td th:text="${reservation.member.email}"></td>
+                </tr>
+                <tr>
+                    <th>연락처</th>
+                    <td th:text="${reservation.member.tel}"></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">여행자 정보</h3>
+            <div class="participant-list">
+                <div th:each="participant : ${reservation.participants}" class="participant-card">
+                    <span th:class="'participant-type ' + 'type-' + ${#strings.toLowerCase(participant.age)}"
+                          th:text="${participant.age}"></span>
+                    <div class="participant-info">
+                        <p>
+                            <span>이름</span>
+                            <span th:text="${participant.name}"></span>
+                        </p>
+                        <p>
+                            <span>생년월일</span>
+                            <span th:text="${participant.birth}"></span>
+                        </p>
+                        <p>
+                            <span>성별</span>
+                            <span th:text="${participant.sex}"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/member/reservations" class="btn btn-secondary btn-edit">목록으로</a>
+            <button type="button" class="btn btn-primary btn-edit" 
+                    th:onclick="'location.href=\'/member/reservations/edit/' + ${reservation.memberReservationNumber} + '\''">
+                정보 수정
+            </button>
+            <button type="button" class="btn btn-success btn-edit"
+                    th:onclick="'location.href=\'/payment/' + ${reservation.memberReservationNumber} + '\''">
+                결제하기
+            </button>
+        </div>
+    </div>
+</div>
+</html> 

@@ -3,8 +3,23 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout}">
 
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+
 <th:block layout:fragment="css">
     <style>
+        @media (min-width: 768px) {
+            .col-md-6 {
+                flex: 0 0 auto;
+                width: 100%;
+                padding: 0;
+            }
+        }
+        .carousel-control-next, .carousel-control-prev{
+            width: 10%;
+        }
         .travel-info-container {
             background-color: #f8f9fa;
             padding: 20px 0;
@@ -105,19 +120,28 @@
         }
 
         .count-btn {
-            width: 30px;
-            height: 30px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 50%;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            line-height: 30px;
+            width: 36px;
+            height: 36px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 50%;
+            font-size: 19px;
+            transition: all 0.2s;
+        }
+
+        .count-btn:not(:disabled):hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
         }
 
         .count-btn:disabled {
-            background: #f5f5f5;
+            background: #e9ecef;
+            color: #adb5bd;
             cursor: not-allowed;
         }
 
@@ -136,230 +160,402 @@
         }
 
         .total-price {
-            font-size: 1.2em;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 700;
+            color: #dc3545;
             text-align: right;
+            margin-top: 15px;
+        }
+
+        .main-content {
+            width: calc(100% - 400px);
+            padding-right: 30px;
+        }
+
+        .booking-container {
+            width: 350px;
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .product-title {
+            font-size: 28px;
+            color: #1a237e;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #1a237e;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .content-wrapper {
+            display: flex;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+            display: flex;
+            background: #f8f9fa;
+        }
+
+        /* 추가적인 스타일 개선 */
+        .carousel {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .notice-box {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* 상품 제목 스타일 */
+        .product-title {
+            font-size: 32px;
+            color: #1a1a1a;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 700;
+        }
+
+        /* 예약 컨테이너 스타일 */
+        .booking-container {
+            width: 380px;
+            position: sticky;
+            top: 100px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* 인원 선택 스타일 */
+        .person-count {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .count-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .count {
+            font-size: 18px;
+            font-weight: 500;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        /* 가격 요약 스타일 */
+        .price-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .price-summary .d-flex {
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        /* 예약 버튼 스타일 */
+        #bookButton {
+            background: #007bff;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        #bookButton:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        /* 일정표 스타일 */
+        .schedule-timeline {
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+        }
+
+        .schedule-item {
+            border-left: 3px solid #007bff;
+            padding-left: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* 경고 메시지 스타일 */
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
             margin-top: 10px;
+            font-size: 14px;
+            display: none;
         }
     </style>
 </th:block>
 
 <div layout:fragment="content">
-    <div class="container my-5">
-        <!-- 상품 기본 정보 -->
-        <div class="row mb-5">
-            <div class="col-md-6">
-                <!-- 이미지 슬라이더 -->
-                <div id="itemImageCarousel" class="carousel slide" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        <div th:each="imageUrl, status : ${item.itemImageUrls}" 
-                             th:class="${status.first} ? 'carousel-item active' : 'carousel-item'">
-                            <img th:src="${imageUrl}" class="d-block w-100" alt="상품 이미지">
-                        </div>
-                    </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    </button>
-                </div>
-            </div>
-            <div class="travel-info-container my-4">
-                <hr class="my-4">
-                <div class="travel-info d-flex justify-content-around text-center">
-                    <div class="info-item">
-                        <div class="icon-circle">
-                            <img src="/images/duration.png" alt="여행기간">
-                        </div>
-                        <p class="info-label">여행기간</p>
-                        <p class="info-value" th:text="${item.night} + '박 ' +${item.duration} + '일'"></p>
-                    </div>
-                    <div class="info-item">
-                        <div class="icon-circle">
-                            <img src="/images/airline.png" alt="항공사">
-                        </div>
-                        <p class="info-label">항공사</p>
-                        <p class="info-value" th:if="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName}"></p>
-                        <p class="info-value"  th:unless="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName} + ', ' + ${reservation.returnCarrierName}"></p>
-                    </div>
-                    <div class="info-item">
-                        <div class="icon-circle">
-                            <img src="/images/leader.png" alt="인솔자">
-                        </div>
-                        <p class="info-label">인솔자</p>
-                        <p class="info-value" th:if="${item.hasLeader == true}">동행</p>
-                        <p class="info-value" th:if="${item.hasLeader == false}">없음</p>
-                    </div>
-                    <div class="info-item">
-                        <div class="icon-circle">
-                            <img src="/images/expense.png" alt="가이드 경비">
-                        </div>
-                        <p class="info-label">가이드 경비</p>
-                        <p class="info-value" th:if="${item.hasGuideFee == true}" th:text="${item.guideFee} + ${item.guideFeeUnit}"></p>
-                        <p class="info-value" th:if="${item.hasGuideFee == false}">없음</p>
-                    </div>
-                    <div class="info-item">
-                        <div class="icon-circle">
-                            <img src="/images/shopping.png" alt="쇼핑">
-                        </div>
-                        <p class="info-label">쇼핑</p>
-                        <p class="info-value" th:if="${item.hasShopping == true}" th:text="${item.shoppingCount} + ' 회'"></p>
-                        <p class="info-value" th:if="${item.hasShopping == false}">없음</p>
-                    </div>
-                    <div class="info-item">
-                        <div class="icon-circle">
-                            <img src="/images/insurance.png" alt="여행자 보험">
-                        </div>
-                        <p class="info-label">여행자 보험</p>
-                        <p class="info-value" th:if="${item.hasInsurance == true}">포함</p>
-                        <p class="info-value" th:if="${item.hasInsurance == false}">없음</p>
-                    </div>
-                </div>
-                <hr class="my-4">
-            </div>
-        </div>
+    <div class="content-wrapper">
+        <div class="main-content">
+            <h1 class="product-title" th:text="${item.itemName}">상품명</h1>
 
-        <div class="product-info-container my-4">
-            <h3 class="mb-4">상품 정보</h3>
-            <div class="table-responsive">
+            <!-- 상품 기본 정보 -->
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <!-- 이미지 슬라이더 -->
+                    <div id="itemImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div th:each="imageUrl, status : ${item.itemImageUrls}"
+                                 th:class="${status.first} ? 'carousel-item active' : 'carousel-item'">
+                                <img th:src="${imageUrl}" class="d-block w-100" alt="상품 이미지">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#itemImageCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="travel-info-container my-4">
+                    <hr class="my-4">
+                    <div class="travel-info d-flex justify-content-around text-center">
+                        <div class="info-item">
+                            <div class="icon-circle">
+                                <img src="/images/duration.png" alt="여행기간">
+                            </div>
+                            <p class="info-label">여행기간</p>
+                            <p class="info-value" th:text="${item.night} + '박 ' +${item.duration} + '일'"></p>
+                        </div>
+                        <div class="info-item">
+                            <div class="icon-circle">
+                                <img src="/images/airline.png" alt="항공사">
+                            </div>
+                            <p class="info-label">항공사</p>
+                            <p class="info-value" th:if="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName}"></p>
+                            <p class="info-value"  th:unless="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName} + ', ' + ${reservation.returnCarrierName}"></p>
+                        </div>
+                        <div class="info-item">
+                            <div class="icon-circle">
+                                <img src="/images/leader.png" alt="인솔자">
+                            </div>
+                            <p class="info-label">인솔자</p>
+                            <p class="info-value" th:if="${item.hasLeader == true}">동행</p>
+                            <p class="info-value" th:if="${item.hasLeader == false}">없음</p>
+                        </div>
+                        <div class="info-item">
+                            <div class="icon-circle">
+                                <img src="/images/expense.png" alt="가이드 경비">
+                            </div>
+                            <p class="info-label">가이드 경비</p>
+                            <p class="info-value" th:if="${item.hasGuideFee == true}" th:text="${item.guideFee} + ${item.guideFeeUnit}"></p>
+                            <p class="info-value" th:if="${item.hasGuideFee == false}">없음</p>
+                        </div>
+                        <div class="info-item">
+                            <div class="icon-circle">
+                                <img src="/images/shopping.png" alt="쇼핑">
+                            </div>
+                            <p class="info-label">쇼핑</p>
+                            <p class="info-value" th:if="${item.hasShopping == true}" th:text="${item.shoppingCount} + ' 회'"></p>
+                            <p class="info-value" th:if="${item.hasShopping == false}">없음</p>
+                        </div>
+                        <div class="info-item">
+                            <div class="icon-circle">
+                                <img src="/images/insurance.png" alt="여행자 보험">
+                            </div>
+                            <p class="info-label">여행자 보험</p>
+                            <p class="info-value" th:if="${item.hasInsurance == true}">포함</p>
+                            <p class="info-value" th:if="${item.hasInsurance == false}">없음</p>
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                </div>
+            </div>
+
+            <div class="product-info-container my-4">
+                <h3 class="mb-4">상품 정보</h3>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                        <tr>
+                            <th class="table-light" style="width: 20%">항공편</th>
+                            <td>
+                                <div class="mb-2">
+                                    <strong>항공사:</strong>
+                                    <span th:if="${reservation.departureCarrierName == reservation.returnCarrierName}"
+                                          th:text="${reservation.departureCarrierName}"></span>
+                                    <span th:unless="${reservation.departureCarrierName == reservation.returnCarrierName}"
+                                          th:text="${reservation.departureCarrierName + ', ' + reservation.returnCarrierName}"></span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>출국:</strong>
+                                    <span th:text="${reservation.departureCarrierCode + reservation.departureFlightNumber}"></span>
+                                    <span th:text="${#strings.substring(reservation.departureDateTime, 11, 16)}"></span>
+                                </div>
+                                <div>
+                                    <strong>귀국:</strong>
+                                    <span th:text="${reservation.returnCarrierCode + reservation.returnFlightNumber}"></span>
+                                    <span th:text="${#strings.substring(reservation.returnDateTime, 11, 16)}"></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="table-light">예약 현황</th>
+                            <td>
+                                <div>
+                                    <strong>현재 예약:</strong>
+                                    <span th:text="${item.currentParticipants + '명'}"></span>
+                                </div>
+                                <div>
+                                    <strong>잔여 좌석:</strong>
+                                    <span th:text="${reservation.remainingSeats + '석'}"></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="table-light">방문 공항</th>
+                            <td>
+                                <div>
+                                    <strong>출발:</strong>
+                                    <span th:text="${item.origin.name + ' 공항'}"></span>
+                                </div>
+                                <div>
+                                    <strong>도착:</strong>
+                                    <span th:text="${item.destination.name + ' 공항'}"></span>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 가격 정보 테이블 -->
+            <div class="price-info mb-5">
+                <h3 class="mb-4">가격 정보</h3>
                 <table class="table table-bordered">
-                    <tbody>
-                    <tr>
-                        <th class="table-light" style="width: 20%">항공편</th>
-                        <td>
-                            <div class="mb-2">
-                                <strong>항공사:</strong>
-                                <span th:if="${reservation.departureCarrierName == reservation.returnCarrierName}"
-                                      th:text="${reservation.departureCarrierName}"></span>
-                                <span th:unless="${reservation.departureCarrierName == reservation.returnCarrierName}"
-                                      th:text="${reservation.departureCarrierName + ', ' + reservation.returnCarrierName}"></span>
-                            </div>
-                            <div class="mb-2">
-                                <strong>출국:</strong>
-                                <span th:text="${reservation.departureCarrierCode + reservation.departureFlightNumber}"></span>
-                                <span th:text="${#strings.substring(reservation.departureDateTime, 11, 16)}"></span>
-                            </div>
-                            <div>
-                                <strong>귀국:</strong>
-                                <span th:text="${reservation.returnCarrierCode + reservation.returnFlightNumber}"></span>
-                                <span th:text="${#strings.substring(reservation.returnDateTime, 11, 16)}"></span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="table-light">예약 현황</th>
-                        <td>
-                            <div>
-                                <strong>현재 예약:</strong>
-                                <span th:text="${item.currentParticipants + '명'}"></span>
-                            </div>
-                            <div>
-                                <strong>잔여 좌석:</strong>
-                                <span th:text="${reservation.remainingSeats + '석'}"></span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="table-light">방문 공항</th>
-                        <td>
-                            <div>
-                                <strong>출발:</strong>
-                                <span th:text="${item.origin.name + ' 공항'}"></span>
-                            </div>
-                            <div>
-                                <strong>도착:</strong>
-                                <span th:text="${item.destination.name + ' 공항'}"></span>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 가격 정보 테이블 -->
-        <div class="price-info mb-5">
-            <h3 class="mb-4">가격 정보</h3>
-            <table class="table table-bordered">
-                <thead class="table-light">
+                    <thead class="table-light">
                     <tr>
                         <th>구분</th>
                         <th>성인</th>
                         <th>아동</th>
                         <th>유아</th>
                     </tr>
-                </thead>
-                <tbody>
+                    </thead>
+                    <tbody>
                     <tr>
                         <td>총 상품가</td>
                         <td th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></td>
                         <td th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></td>
                         <td th:text="${#numbers.formatInteger(reservation.totalPrice * 0.3, 3, 'COMMA') + '원'}"></td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- 상품 상세 설명 -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <h3 class="mb-4">상품 설명</h3>
-                <div class="description-box p-4 bg-light rounded">
-                    <p th:text="${item.itemDetail}">상품 상세 설명</p>
+            <!-- 상품 상세 설명 -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h3 class="mb-4">상품 설명</h3>
+                    <div class="description-box p-4 bg-light rounded">
+                        <p th:text="${item.itemDetail}">상품 상세 설명</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 참고/주의사항 -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <h3 class="mb-4">참고/주의사항</h3>
-                <div class="notice-box p-4 bg-light rounded">
-                    <h5>필수 안내사항</h5>
-                    <ul class="mb-4">
-                        <li>여권은 출발일 기준 6개월 이상 유효기간이 남아있어야 합니다.</li>
-                        <li>항공 일정은 항공사 사정에 따라 변경될 수 있습니다.</li>
-                        <li>현지 사정에 따라 관광일정이 변경될 수 있습니다.</li>
-                    </ul>
+            <!-- 참고/주의사항 -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h3 class="mb-4">참고/주의사항</h3>
+                    <div class="notice-box p-4 bg-light rounded">
+                        <h5>필수 안내사항</h5>
+                        <ul class="mb-4">
+                            <li>여권은 출발일 기준 6개월 이상 유효기간이 남아있어야 합니다.</li>
+                            <li>항공 일정은 항공사 사정에 따라 변경될 수 있습니다.</li>
+                            <li>현지 사정에 따라 관광일정이 변경될 수 있습니다.</li>
+                        </ul>
 
-                    <h5>포함사항</h5>
-                    <ul class="mb-4">
-                        <li>항공권 및 왕복 공항세</li>
-                        <li>호텔 숙박비(2인 1실 기준)</li>
-                        <li th:if="${item.hasInsurance == true}">여행자 보험</li>
-                        <li th:if="${item.hasGuideFee == false}">전문 가이드 비용</li>
-                    </ul>
+                        <h5>포함사항</h5>
+                        <ul class="mb-4">
+                            <li>항공권 및 왕복 공항세</li>
+                            <li>호텔 숙박비(2인 1실 기준)</li>
+                            <li th:if="${item.hasInsurance == true}">여행자 보험</li>
+                            <li th:if="${item.hasGuideFee == false}">전문 가이드 비용</li>
+                        </ul>
 
-                    <h5>불포함사항</h5>
-                    <ul class="mb-4">
-                        <li th:if="${item.hasInsurance == false}">여행자 보험</li>
-                        <li th:if="${item.hasGuideFee == true}">전문 가이드 비용</li>
-                        <li>개인경비 및 식사비용</li>
-                        <li>선택관광 비용</li>
-                        <li>가이드/기사 팁</li>
-                        <li>1인실 사용 시 추가요금</li>
-                    </ul>
+                        <h5>불포함사항</h5>
+                        <ul class="mb-4">
+                            <li th:if="${item.hasInsurance == false}">여행자 보험</li>
+                            <li th:if="${item.hasGuideFee == true}">전문 가이드 비용</li>
+                            <li>개인경비 및 식사비용</li>
+                            <li>선택관광 비용</li>
+                            <li>가이드/기사 팁</li>
+                            <li>1인실 사용 시 추가요금</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 일정표 -->
-        <div class="row">
-            <div class="col-12">
-                <h3 class="mb-4">일정표</h3>
-                <div class="schedule-timeline">
-                    <div th:each="schedule : ${schedules}" class="schedule-item mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title" th:text="${schedule.day + '일차'}">일차</h5>
-                                <div class="row">
-                                    <div class="col-md-4" th:if="${schedule.imageUrl}">
-                                        <img th:src="${schedule.imageUrl}" class="img-fluid rounded" alt="일정 이미지">
-                                    </div>
-                                    <div th:class="${schedule.imageUrl} ? 'col-md-8' : 'col-md-12'">
-                                        <h6 th:text="${schedule.activity}">활동명</h6>
-                                        <p th:text="${schedule.description}">활동 설명</p>
+            <!-- 일정표 -->
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mb-4">일정표</h3>
+                    <div class="schedule-timeline">
+                        <div th:each="schedule : ${schedules}" class="schedule-item mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title" th:text="${schedule.day + '일차'}">일차</h5>
+                                    <div class="row">
+                                        <div class="col-md-4" th:if="${schedule.imageUrl}">
+                                            <img th:src="${schedule.imageUrl}" class="img-fluid rounded" alt="일정 이미지">
+                                        </div>
+                                        <div th:class="${schedule.imageUrl} ? 'col-md-8' : 'col-md-12'">
+                                            <h6 th:text="${schedule.activity}">활동명</h6>
+                                            <p th:text="${schedule.description}">활동 설명</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -368,69 +564,70 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="booking-container">
-        <h4 class="mb-4">예약하기</h4>
-        <form id="bookingForm" method="get">
-            <input type="hidden" name="itemId" th:value="${item.id}">
-            <input type="hidden" name="departureDateTime" th:value="${reservation.departureDateTime}">
-            <input type="hidden" name="adultCount" id="adultCountInput" value="1">
-            <input type="hidden" name="childCount" id="childCountInput" value="0">
-            <input type="hidden" name="infantCount" id="infantCountInput" value="0">
-            
-            <div class="person-count">
-                <span>성인</span>
-                <div class="count-control">
-                    <button type="button" class="count-btn minus-btn" data-type="adult" disabled>-</button>
-                    <span class="count" id="adultCount">1</span>
-                    <button type="button" class="count-btn plus-btn" data-type="adult">+</button>
+        <div class="booking-container">
+            <h4 class="mb-4">예약하기</h4>
+            <form id="bookingForm" method="get">
+                <input type="hidden" name="itemId" th:value="${item.id}">
+                <input type="hidden" name="departureDateTime" th:value="${reservation.departureDateTime}">
+                <input type="hidden" name="adultCount" id="adultCountInput" value="1">
+                <input type="hidden" name="childCount" id="childCountInput" value="0">
+                <input type="hidden" name="infantCount" id="infantCountInput" value="0">
+
+                <div class="person-count">
+                    <span>성인</span>
+                    <div class="count-control">
+                        <button type="button" class="count-btn minus-btn" data-type="adult" disabled>-</button>
+                        <span class="count" id="adultCount">1</span>
+                        <button type="button" class="count-btn plus-btn" data-type="adult">+</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="person-count">
-                <span>아동</span>
-                <div class="count-control">
-                    <button type="button" class="count-btn minus-btn" data-type="child">-</button>
-                    <span class="count" id="childCount">0</span>
-                    <button type="button" class="count-btn plus-btn" data-type="child">+</button>
+
+                <div class="person-count">
+                    <span>아동</span>
+                    <div class="count-control">
+                        <button type="button" class="count-btn minus-btn" data-type="child">-</button>
+                        <span class="count" id="childCount">0</span>
+                        <button type="button" class="count-btn plus-btn" data-type="child">+</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="person-count">
-                <span>유아</span>
-                <div class="count-control">
-                    <button type="button" class="count-btn minus-btn" data-type="infant">-</button>
-                    <span class="count" id="infantCount">0</span>
-                    <button type="button" class="count-btn plus-btn" data-type="infant">+</button>
+
+                <div class="person-count">
+                    <span>유아</span>
+                    <div class="count-control">
+                        <button type="button" class="count-btn minus-btn" data-type="infant">-</button>
+                        <span class="count" id="infantCount">0</span>
+                        <button type="button" class="count-btn plus-btn" data-type="infant">+</button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="warning-message" id="seatsWarning">
-                선택하신 인원이 잔여 좌석을 초과했습니다.
-            </div>
-            
-            <div class="price-summary">
-                <div class="d-flex justify-content-between">
-                    <span>성인 1명</span>
-                    <span th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
+
+                <div class="warning-message" id="seatsWarning">
+                    선택하신 인원이 잔여 좌석을 초과했습니다.
                 </div>
-                <div class="d-flex justify-content-between child-price" style="display: none;">
-                    <span id="childPriceText">아동 0명</span>
-                    <span id="childTotalPrice">0원</span>
+
+                <div class="price-summary">
+                    <div class="d-flex justify-content-between">
+                        <span>성인 1명</span>
+                        <span th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
+                    </div>
+                    <div class="d-flex justify-content-between child-price" style="display: none;">
+                        <span id="childPriceText">아동 0명</span>
+                        <span id="childTotalPrice">0원</span>
+                    </div>
+                    <div class="d-flex justify-content-between infant-price" style="display: none;">
+                        <span id="infantPriceText">유아 0명</span>
+                        <span id="infantTotalPrice">0원</span>
+                    </div>
+                    <hr>
+                    <div class="total-price">
+                        총 합계: <span id="totalPrice" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between infant-price" style="display: none;">
-                    <span id="infantPriceText">유아 0명</span>
-                    <span id="infantTotalPrice">0원</span>
-                </div>
-                <hr>
-                <div class="total-price">
-                    총 합계: <span id="totalPrice" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
-                </div>
-            </div>
-            
-            <button type="button" class="btn btn-primary btn-lg w-100" id="bookButton">예약하기</button>
-        </form>
+
+                <button type="button" class="btn btn-primary btn-lg w-100" id="bookButton">예약하기</button>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -442,123 +639,124 @@
             let adultCount = 1;
             let childCount = 0;
             let infantCount = 0;
-            
-            function updatePrice() {
+
+            function updateButtons() {
+                // 성인 버튼 상태 업데이트
+                document.querySelector('.minus-btn[data-type="adult"]').disabled = adultCount <= 1;
+                document.querySelector('.plus-btn[data-type="adult"]').disabled =
+                    (adultCount + childCount) >= remainingSeats;
+
+                // 아동 버튼 상태 업데이트
+                document.querySelector('.minus-btn[data-type="child"]').disabled = childCount <= 0;
+                document.querySelector('.plus-btn[data-type="child"]').disabled =
+                    (adultCount + childCount) >= remainingSeats;
+
+                // 유아 버튼 상태 업데이트
+                document.querySelector('.minus-btn[data-type="infant"]').disabled = infantCount <= 0;
+                document.querySelector('.plus-btn[data-type="infant"]').disabled =
+                    infantCount >= adultCount;
+
+                // 인원수에 따른 가격 표시 업데이트
+                updatePriceDisplay();
+            }
+
+            function updatePriceDisplay() {
                 const adultTotalPrice = adultCount * basePrice;
                 const childTotalPrice = childCount * basePrice;
-                const infantTotalPrice = infantCount * (basePrice * 0.3);
+                const infantTotalPrice = Math.floor(infantCount * (basePrice * 0.3)); // 유아는 30%
                 const totalPrice = adultTotalPrice + childTotalPrice + infantTotalPrice;
-                
-                // 성인 가격 업데이트
-                document.getElementById('adultPriceText').textContent = `성인 ${adultCount}명`;
-                document.getElementById('adultTotalPrice').textContent = 
-                    adultTotalPrice.toLocaleString() + '원';
-                
-                // 아동 가격 업데이트
+
+                // 성인 가격 표시
+                document.querySelector('.d-flex.justify-content-between:not(.child-price):not(.infant-price) span:first-child')
+                    .textContent = `성인 ${adultCount}명`;
+                document.querySelector('.d-flex.justify-content-between:not(.child-price):not(.infant-price) span:last-child')
+                    .textContent = adultTotalPrice.toLocaleString() + '원';
+
+                // 아동 가격 표시
+                const childPriceDiv = document.querySelector('.child-price');
                 if (childCount > 0) {
-                    document.querySelector('.child-price').style.display = 'flex';
+                    childPriceDiv.style.display = 'flex';
                     document.getElementById('childPriceText').textContent = `아동 ${childCount}명`;
-                    document.getElementById('childTotalPrice').textContent = 
-                        childTotalPrice.toLocaleString() + '원';
+                    document.getElementById('childTotalPrice').textContent = childTotalPrice.toLocaleString() + '원';
                 } else {
-                    document.querySelector('.child-price').style.display = 'none';
+                    childPriceDiv.style.display = 'none';
                 }
-                
-                // 유아 가격 업데이트
+
+                // 유아 가격 표시
+                const infantPriceDiv = document.querySelector('.infant-price');
                 if (infantCount > 0) {
-                    document.querySelector('.infant-price').style.display = 'flex';
+                    infantPriceDiv.style.display = 'flex';
                     document.getElementById('infantPriceText').textContent = `유아 ${infantCount}명`;
-                    document.getElementById('infantTotalPrice').textContent = 
-                        infantTotalPrice.toLocaleString() + '원';
+                    document.getElementById('infantTotalPrice').textContent = infantTotalPrice.toLocaleString() + '원';
                 } else {
-                    document.querySelector('.infant-price').style.display = 'none';
+                    infantPriceDiv.style.display = 'none';
                 }
-                
-                document.getElementById('totalPrice').textContent = 
-                    totalPrice.toLocaleString() + '원';
-                
+
+                // 총 합계 업데이트
+                document.getElementById('totalPrice').textContent = totalPrice.toLocaleString() + '원';
+
                 // hidden input 값 업데이트
                 document.getElementById('adultCountInput').value = adultCount;
                 document.getElementById('childCountInput').value = childCount;
                 document.getElementById('infantCountInput').value = infantCount;
             }
-            
-            function checkAvailability() {
-                const totalCount = adultCount + childCount;
-                const isExceeded = totalCount > remainingSeats;
-                
-                // 경고 메시지 표시/숨김
-                document.getElementById('seatsWarning').style.display = 
-                    isExceeded ? 'block' : 'none';
-                
-                // 예약 버튼 비활성화/활성화
-                document.getElementById('bookButton').disabled = isExceeded;
-                
-                // plus 버튼 비활성화/활성화
-                document.querySelectorAll('[data-type="adult"].plus-btn, [data-type="child"].plus-btn').forEach(button => {
-                    button.disabled = totalCount >= remainingSeats;
-                });
 
-                // 성인 minus 버튼 비활성화/활성화
-                document.querySelector('[data-type="adult"].minus-btn').disabled = adultCount <= 1;
-            }
-            
-            // 인원 수 조절 버튼 이벤트
+            // 인원 수 조절 버튼 이벤트 리스너
             document.querySelectorAll('.count-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const type = this.dataset.type;
                     const isPlus = this.classList.contains('plus-btn');
-                    const countElement = document.getElementById(`${type}Count`);
-                    let count = parseInt(countElement.textContent);
-                    
-                    if (isPlus) {
-                        // 증가 시 잔여좌석 체크
-                        const newTotalCount = (type === 'infant' ? 
-                            adultCount + childCount : 
-                            (type === 'adult' ? adultCount + 1 + childCount : adultCount + childCount + 1));
-                        
-                        if (type !== 'infant' && newTotalCount > remainingSeats) {
-                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
-                            return;
-                        }
-                        count++;
-                    } else if (count > (type === 'adult' ? 1 : 0)) {
-                        count--;
+
+                    switch(type) {
+                        case 'adult':
+                            if (isPlus && (adultCount + childCount) < remainingSeats) {
+                                adultCount++;
+                            } else if (!isPlus && adultCount > 1) {
+                                if (infantCount >= adultCount - 1) {
+                                    infantCount = adultCount - 1;
+                                }
+                                adultCount--;
+                            }
+                            break;
+                        case 'child':
+                            if (isPlus && (adultCount + childCount) < remainingSeats) {
+                                childCount++;
+                            } else if (!isPlus && childCount > 0) {
+                                childCount--;
+                            }
+                            break;
+                        case 'infant':
+                            if (isPlus && infantCount < adultCount) {
+                                infantCount++;
+                            } else if (!isPlus && infantCount > 0) {
+                                infantCount--;
+                            }
+                            break;
                     }
-                    
-                    if (type === 'adult') {
-                        adultCount = count;
-                    } else if (type === 'child') {
-                        childCount = count;
-                    } else {
-                        infantCount = count;
-                    }
-                    
-                    countElement.textContent = count;
-                    updatePrice();
-                    checkAvailability();
+
+                    // UI 업데이트
+                    document.getElementById(type + 'Count').textContent =
+                        type === 'adult' ? adultCount :
+                        type === 'child' ? childCount : infantCount;
+
+                    updateButtons();
                 });
             });
-            
-            // 예약하기 버튼 클릭 이벤트
+
             document.getElementById('bookButton').addEventListener('click', function() {
                 const form = document.getElementById('bookingForm');
-                
-                // hidden input 값들 업데이트
+
                 document.getElementById('adultCountInput').value = adultCount;
                 document.getElementById('childCountInput').value = childCount;
                 document.getElementById('infantCountInput').value = infantCount;
-                
-                // form action 설정
+
                 form.action = '/reservation/new';
-                
-                // form 제출
+
                 form.submit();
             });
-            
+
             // 초기 상태 설정
-            checkAvailability();
-            updatePrice();
+            updateButtons();
         });
     </script>
 </th:block>

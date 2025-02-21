@@ -3,6 +3,7 @@ package com.soloProject.myTrip.service;
 import com.soloProject.myTrip.constant.AirlineCode;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.ItemReservation;
+import com.soloProject.myTrip.repository.ItemRepository;
 import com.soloProject.myTrip.repository.ItemReservationRepository;
 import com.soloProject.myTrip.dto.FlightOfferDto;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +28,7 @@ public class ItemReservationService {
 
   private final ItemReservationRepository itemReservationRepository;
   private final FlightSearchService flightSearchService;
+  private final ItemRepository itemRepository;
   private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
   // 최저가격 업데이트 메서드 추가
@@ -45,42 +48,51 @@ public class ItemReservationService {
   @Async
   public CompletableFuture<ItemReservation> createReservationForDateAsync(Item item, LocalDate date) {
     return CompletableFuture.supplyAsync(() -> {
-      try {
-        List<FlightOfferDto> flightOffers = flightSearchService.searchFlights(
-            item.getOrigin().name(),
-            item.getDestination().name(),
-            date,
-            date.plusDays(item.getDuration() - 1));
-
-        if (flightOffers.isEmpty()) {
-          log.error("항공권 정보를 찾을 수 없음 - 상품: {}, 날짜: {}", item.getId(), date);
-          return null;
+        try {
+            return createReservationForDate(item, date);
+        } catch (Exception e) {
+            log.error("예약 생성 실패 - 상품: {}, 날짜: {}", item, date, e);
+            return null;
         }
-
-        FlightOfferDto offer = flightOffers.get(0);
-        int totalPrice = item.getPrice() + offer.getPrice().intValue();
-
-        ItemReservation reservation = ItemReservation.builder()
-            .item(item)
-            .departureDateTime(offer.getDepartureDate())
-            .returnDateTime(offer.getReturnDate())
-            .totalPrice(totalPrice)
-            .departureCarrierCode(offer.getDepartureCarrierCode())
-            .departureCarrierName(AirlineCode.getCompanyNameByCode(offer.getDepartureCarrierCode()))
-            .departureFlightNumber(offer.getDepartureFlightNumber())
-            .returnCarrierCode(offer.getReturnCarrierCode())
-            .returnCarrierName(AirlineCode.getCompanyNameByCode(offer.getReturnCarrierCode()))
-            .returnFlightNumber(offer.getReturnFlightNumber())
-            .build();
-
-        return itemReservationRepository.save(reservation);
-      } catch (Exception e) {
-        log.error("예약 생성 실패 - 상품: {}, 날짜: {}", item.getId(), date, e);
-        return null;
-      }
     }, executorService);
   }
 
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  protected ItemReservation createReservationForDate(Item item, LocalDate date) {
+    try {
+      List<FlightOfferDto> flightOffers = flightSearchService.searchFlights(
+          item.getOrigin().name(),
+          item.getDestination().name(),
+          date,
+          date.plusDays(item.getDuration() - 1));
+
+      if (flightOffers.isEmpty()) {
+          log.error("항공권 정보를 찾을 수 없음 - 상품: {}, 날짜: {}", item.getId(), date);
+          return null;
+      }
+
+      FlightOfferDto offer = flightOffers.get(0);
+      int totalPrice = item.getPrice() + offer.getPrice().intValue();
+
+      ItemReservation reservation = ItemReservation.builder()
+          .item(item)
+          .departureDateTime(offer.getDepartureDate())
+          .returnDateTime(offer.getReturnDate())
+          .totalPrice(totalPrice)
+          .departureCarrierCode(offer.getDepartureCarrierCode())
+          .departureCarrierName(AirlineCode.getCompanyNameByCode(offer.getDepartureCarrierCode()))
+          .departureFlightNumber(offer.getDepartureFlightNumber())
+          .returnCarrierCode(offer.getReturnCarrierCode())
+          .returnCarrierName(AirlineCode.getCompanyNameByCode(offer.getReturnCarrierCode()))
+          .returnFlightNumber(offer.getReturnFlightNumber())
+          .build();
+
+      return itemReservationRepository.saveAndFlush(reservation);
+    } catch (Exception e) {
+      log.error("예약 생성 중 오류 발생 - 상품: {}, 날짜: {}", item.getId(), date, e);
+      throw e;
+    }
+  }
 
   // 특정 날짜의 예약 엔티티 삭제
   @Transactional
@@ -95,20 +107,20 @@ public class ItemReservationService {
     LocalDate startDate = LocalDate.now().plusDays(1);
     LocalDate endDate = startDate.plusDays(6);
 
-    List<CompletableFuture<ItemReservation>> futures = new ArrayList<>();
-
-    // 비동기로 모든 날짜의 예약 생성 요청
+    // 순차적으로 처리하도록 수정
     for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-      futures.add(createReservationForDateAsync(item, date));
+      try {
+        ItemReservation reservation = createReservationForDate(item, date);
+        if (reservation != null) {
+          log.info("예약 생성 성공 - 상품: {}, 날짜: {}", item.getId(), date);
+        }
+      } catch (Exception e) {
+        log.error("예약 생성 실패 - 상품: {}, 날짜: {}", item.getId(), date, e);
+      }
     }
 
-    // 모든 비동기 작업이 완료될 때까지 대기
-    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-        .thenRun(() -> {
-          // 모든 예약 생성이 완료된 후 최저가격 업데이트
-          updateItemLowestPrice(item);
-        })
-        .join();
+    // 모든 예약 생성이 완료된 후 최저가격 업데이트
+    updateItemLowestPrice(item);
   }
 
   @Transactional

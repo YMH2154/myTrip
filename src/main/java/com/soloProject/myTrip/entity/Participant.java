@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.entity;
 
+import com.soloProject.myTrip.constant.Age;
 import com.soloProject.myTrip.constant.Sex;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,6 +24,10 @@ public class Participant {
 
     @Column(length = 6, nullable = false)
     private String birth;
+
+    @Column(length = 6, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Age age;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

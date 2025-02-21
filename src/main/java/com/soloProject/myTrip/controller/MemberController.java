@@ -1,8 +1,11 @@
 package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.dto.MemberFormDto;
+import com.soloProject.myTrip.entity.Member;
+import com.soloProject.myTrip.entity.MemberReservation;
 import com.soloProject.myTrip.service.EmailService;
 import com.soloProject.myTrip.service.MemberService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -123,5 +128,29 @@ public class MemberController {
         }
         
         return "redirect:/";
+    }
+
+    @GetMapping("/reservations")
+    public String reservationList(Principal principal, Model model) {
+        try {
+            List<MemberReservation> reservations = memberService.getReservations(principal.getName());
+            model.addAttribute("reservations", reservations);
+            return "reservation/reservationConfirm";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/error";
+        }
+    }
+
+    @GetMapping("/reservations/{reservationNumber}")
+    public String reservationDetail(@PathVariable String reservationNumber, Model model) {
+        try {
+            MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
+            model.addAttribute("reservation", reservation);
+            return "reservation/reservationDetail";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/error";
+        }
     }
 }

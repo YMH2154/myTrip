@@ -461,14 +461,18 @@
                         const price = prices[date];
                         const seats = remainingSeats[date];
                         const status = itemSellStatus[date];
-                        const formattedPrice = (price / 10000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+                        // 가격을 만원 단위로 변환하고 소수점 한자리까지 표시
+                        const formattedPrice = (price / 10000).toLocaleString(undefined, {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        });
                         
                         cell.classList.add(`cell-${status.toLowerCase()}`);
                         
                         const contentEl = cell.querySelector('.fc-daygrid-day-top');
                         const priceDiv = document.createElement('div');
                         priceDiv.className = 'price-display';
-                        priceDiv.innerHTML = Math.floor(price.toLocaleString()) + '만 원';
+                        priceDiv.innerHTML = formattedPrice + '만원';  // '만원'으로 단위 변경
                         
                         const seatsDiv = document.createElement('div');
                         seatsDiv.className = 'seats-display';

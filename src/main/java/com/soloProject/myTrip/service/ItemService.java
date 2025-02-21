@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
 
@@ -40,22 +41,30 @@ public class ItemService {
     private String activityImageLocation;
 
     // 여행 상품 등록
+    @Transactional
     public Item saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImages) throws Exception {
         // 기존 상품 저장 로직
-        Item item = itemFormDto.createItem();
-        Item savedItem = itemRepository.save(item);
+        Item savedItem = itemRepository.save(itemFormDto.createItem());
+        itemRepository.flush(); // 명시적으로 flush 호출
 
         // 상품 이미지 저장 로직
         List<String> itemImageUrlList = new ArrayList<>();
         for (MultipartFile itemImage : itemImages) {
             itemImageUrlList.add(saveItemImageFile(itemImage));
         }
-        item.setItemImageUrls(itemImageUrlList);
+        savedItem.setItemImageUrls(itemImageUrlList);
+        itemRepository.flush(); // 다시 한번 flush 호출
         
-        // 7일치 예약 엔티티 초기화
-        itemReservationService.initializeReservations(savedItem);
+        // 별도의 트랜잭션에서 예약 엔티티 초기화
+        initializeReservationsAsync(savedItem);
         
         return savedItem;
+    }
+
+    // 비동기로 예약 초기화를 수행하는 새로운 메서드
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void initializeReservationsAsync(Item item) {
+        itemReservationService.initializeReservations(item);
     }
 
     // 여행 상품 업데이트

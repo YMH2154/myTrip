@@ -12,8 +12,8 @@ import java.util.List;
 @Setter
 public class MemberReservation {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_reservation_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -23,6 +23,12 @@ public class MemberReservation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_reservation_id")
     private ItemReservation itemReservation;
+
+    @Column(unique = true, nullable = false)
+    private String reservationNumber;
+
+    @Column(nullable = false)
+    private String totalDeposit;
 
     @OneToMany(mappedBy = "memberReservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
