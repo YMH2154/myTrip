@@ -32,7 +32,7 @@ public class MemberService implements UserDetailsService {
         if(memberRepository.findByEmail(memberFormDto.getEmail()).isPresent()){ //isPresent() -> Optional 값이 null이면 false, 아니면 true
             throw new IllegalStateException("이미 가입된 이메일입니다");
         }
-        if(memberRepository.findByTel(memberFormDto.getTel()) != null){
+        if(memberRepository.findByTel(memberFormDto.getTel()).isPresent()){
             throw new IllegalStateException("이미 가입된 전화번호입니다");
         }
     }

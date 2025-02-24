@@ -1,0 +1,18 @@
+/* 회원가입 페이지 전용 스타일 */
+body {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                url('/images/travel-member-bg.jpg') center/cover no-repeat fixed;
+    color: var(--dark-bg);
+    min-height: 100vh;
+}
+
+.signup-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 40px;
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 회원가입 페이지 나머지 스타일... */ 

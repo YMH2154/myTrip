@@ -33,14 +33,15 @@
   <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.min.css' rel='stylesheet' />
 
   <th:block layout:fragment="css"></th:block>
+  <th:block layout:fragment="page-css"></th:block>
 
 </head>
 <body>
-<div th:replace="~{fragments/header::header}"></div>
-
-<div layout:fragment="content" class="content"></div>
-
-<div th:replace="~{fragments/footer::footer}"></div>
+    <div th:replace="~{fragments/header::header}"></div>
+    <div class="page-wrapper">
+        <div layout:fragment="content" class="content"></div>
+    </div>
+    <div th:replace="~{fragments/footer::footer}"></div>
   <th:block layout:fragment="script"></th:block>
 </body>
 </html>

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface MemberReservationRepository extends JpaRepository<MemberReservation, Long> {
-    Optional<MemberReservation> findByReservationNumber(String number);
+    Optional<MemberReservation> findByReservationNumber(String reservationNumber);
 
     List<MemberReservation> findByMemberOrderByReservationNumberDesc(Member member);
 } 

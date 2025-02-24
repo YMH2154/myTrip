@@ -135,7 +135,7 @@ public class MemberController {
         try {
             List<MemberReservation> reservations = memberService.getReservations(principal.getName());
             model.addAttribute("reservations", reservations);
-            return "reservation/reservationConfirm";
+            return "member/history";
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/error";
@@ -143,12 +143,25 @@ public class MemberController {
     }
 
     @GetMapping("/reservations/{reservationNumber}")
-    public String reservationDetail(@PathVariable String reservationNumber, Model model) {
+    public String reservationDetail(@PathVariable("reservationNumber") String reservationNumber, Model model) {
         try {
             MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
             model.addAttribute("reservation", reservation);
             return "reservation/reservationDetail";
         } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/error";
+        }
+    }
+
+    //여권 정보 등록
+    @GetMapping("/member/reservations/passport/{reservationNumber}")
+    public String passportRegist(@PathVariable("reservationNumber")String reservationNumber, Model model){
+        try {
+            MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
+            model.addAttribute("reservation", reservation);
+            return "reservation/passport";
+        } catch (Exception e){
             e.printStackTrace();
             return "redirect:/error";
         }

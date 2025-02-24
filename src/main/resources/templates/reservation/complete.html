@@ -82,7 +82,11 @@
                 </tr>
                 <tr>
                     <th>예약금</th>
-                    <td th:text="${reservation.totalDeposit + '원'}"></td>
+                    <td th:text="${#numbers.formatInteger(reservation.totalDeposit, 3, 'COMMA')} + '원'"></td>
+                </tr>
+                <tr>
+                    <th>전체 금액</th>
+                    <td th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA')} + '원'"></td>
                 </tr>
             </table>
         </div>
@@ -103,7 +107,7 @@
 
         <div class="buttons">
             <a href="/" class="btn btn-secondary">메인으로</a>
-            <a th:href="@{/member/reservations}" class="btn btn-primary">예약 내역 확인</a>
+            <a th:href="@{'/member/reservations/' + ${reservation.reservationNumber}}" class="btn btn-primary">예약 내역 확인</a>
         </div>
     </div>
 </div>

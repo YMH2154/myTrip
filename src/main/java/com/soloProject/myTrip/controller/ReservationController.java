@@ -91,11 +91,16 @@ public class ReservationController {
             @RequestParam("departureDateTime") String departureDateTime,
             @RequestParam Map<String, String> paramMap,
             @RequestParam("totalDeposit") String totalDeposit,
+            @RequestParam("totalPrice") String totalPrice,
             @RequestParam("bookerTel") String bookerTel,
             Principal principal) {
         try {
+            // 쉼표 제거 후 정수로 변환
+            int depositAmount = Integer.parseInt(totalDeposit.replaceAll("[^0-9]", ""));
+            int priceAmount = Integer.parseInt(totalPrice.replaceAll("[^0-9]", ""));
             // 참가자 정보 파싱
             List<ParticipantDto> participants = new ArrayList<>();
+
             int index = 0;
             while (paramMap.containsKey("participants[" + index + "].name")) {
                 ParticipantDto participant = new ParticipantDto();
@@ -110,7 +115,7 @@ public class ReservationController {
 
             MemberReservation reservation = reservationService.createReservation(
                     itemId, departureDateTime, participants,
-                    principal.getName(), totalDeposit, bookerTel);
+                    principal.getName(), depositAmount, priceAmount, bookerTel);
 
             return "redirect:/reservation/complete?reservationNumber=" +
                     reservation.getReservationNumber();

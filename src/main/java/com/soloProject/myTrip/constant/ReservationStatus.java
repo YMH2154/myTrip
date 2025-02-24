@@ -1,14 +1,19 @@
 package com.soloProject.myTrip.constant;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 public enum ReservationStatus {
-    RESERVED("결제 대기"),
-    PAID("결제 완료"),
-    CANCEL("예약 취소");
+    RESERVED("예약 완료"),
+    DEPOSIT_PAID("예약금 결제완료"),
+    BALANCE_PAID("잔금 결제완료"),
+    CANCELLED("결제 취소"),
+    REFUNDED("환불 완료");
 
     private final String description;
 
+    ReservationStatus(String description) {
+        this.description = description;
+    }
 
+    public String getDescription() {
+        return description;
+    }
 }

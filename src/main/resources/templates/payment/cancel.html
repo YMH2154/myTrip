@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .payment-result-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+
+        .result-message {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-retry {
+            background-color: #ffc107;
+            color: #000;
+            padding: 10px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .btn-home {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .btn-retry:hover {
+            background-color: #e0a800;
+            color: #000;
+        }
+
+        .btn-home:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="payment-result-container">
+        <div class="result-icon">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h2 class="result-title">결제가 취소되었습니다</h2>
+        <p class="result-message">
+            <span th:text="${paymentMethod}"></span> 결제가 취소되었습니다.<br>
+            다시 시도하시거나 다른 결제 수단을 선택해주세요.
+        </p>
+        <div>
+            <a href="javascript:history.back()" class="btn-retry">다시 시도</a>
+            <a href="/" class="btn-home">홈으로 돌아가기</a>
+        </div>
+    </div>
+</div>
+</html> 

@@ -1,6 +1,5 @@
 package com.soloProject.myTrip.entity;
 
-
 import com.soloProject.myTrip.constant.AirportCode;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
@@ -15,22 +14,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Member {
+public class Member extends BaseTimeEntity {
     @Id
-    @Column(name = "member_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
     private Long id;
-
-    @Column(nullable = false)
-    private String name;
 
     @Column(unique = true)
     private String email;
 
-    @Column(nullable = false)
     private String password;
-
-    @Column(unique = true, length = 12)
+    private String name;
     private String tel;
 
     @Column(length = 5)

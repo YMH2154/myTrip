@@ -32,7 +32,7 @@ public class ReservationService {
 
     @Transactional
     public MemberReservation createReservation(Long itemId, String departureDateTime,
-            List<ParticipantDto> participants, String email, String totalDeposit, String bookerTel) {
+            List<ParticipantDto> participants, String email, int totalDeposit, int totalPrice, String bookerTel) {
         // 1. 필요한 엔티티 조회
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityExistsException("회원을 찾을 수 없습니다."));
@@ -59,6 +59,7 @@ public class ReservationService {
         memberReservation.setItemReservation(itemReservation);
         memberReservation.setReservationStatus(ReservationStatus.RESERVED);
         memberReservation.setTotalDeposit(totalDeposit);
+        memberReservation.setTotalPrice(totalPrice);
         memberReservation.setMember(member);
 
         // 4. Participant 목록 생성

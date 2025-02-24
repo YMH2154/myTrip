@@ -127,6 +127,33 @@
         top: 20px;
         cursor: pointer;
     }
+
+    /* 가격 요약 스타일 추가 */
+    .price-summary {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .price-summary .d-flex {
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .price-summary hr {
+      margin: 15px 0;
+      border-color: #dee2e6;
+    }
+
+    .price-summary .total {
+      font-size: 18px;
+      color: #1a1a1a;
+    }
+
+    .child-price, .infant-price {
+      display: none;
+    }
   </style>
 </th:block>
 
@@ -141,8 +168,8 @@
         </tr>
         <tr>
           <th>예약금</th>
-          <td th:text="${'인당 ' + #numbers.formatInteger(itemReservation.totalPrice / 3 / 100000 * 100000, 3, 'COMMA') + '원'}"></td>
-          <input type="hidden" id="depositPerPerson" th:value="${#numbers.formatInteger(itemReservation.totalPrice / 3 / 100000 * 100000, 3, 'COMMA')}">
+          <td th:text="${'인당 ' + #numbers.formatInteger(itemReservation.totalPrice / 3 / 10000 * 10000, 3, 'COMMA') + '원'}"></td>
+          <input type="hidden" id="depositPerPerson" th:value="${itemReservation.totalPrice / 3 / 10000 * 10000}">
         </tr>
         <tr>
           <th>이용 교통</th>
@@ -228,11 +255,33 @@
           <span id="childCount" class="mx-2" th:text="${peopleCount.childCount}">0</span>
           <button class="count-btn plus-btn" data-type="child">+</button>
         </div>
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center mb-3">
           <span class="me-3">유아</span>
           <button class="count-btn minus-btn" data-type="infant" th:disabled="${peopleCount.infantCount <= 0}">-</button>
           <span id="infantCount" class="mx-2" th:text="${peopleCount.infantCount}">0</span>
           <button class="count-btn plus-btn" data-type="infant">+</button>
+        </div>
+
+        <!-- 가격 요약 섹션 추가 -->
+        <div class="price-summary">
+          <div class="d-flex justify-content-between">
+            <span>성인 <span id="adultCountText">1</span>명</span>
+            <span id="adultTotalPrice">0원</span>
+          </div>
+          <div class="d-flex justify-content-between child-price" style="display: none;">
+            <span id="childPriceText">아동 0명</span>
+            <span id="childTotalPrice">0원</span>
+          </div>
+          <div class="d-flex justify-content-between infant-price" style="display: none;">
+            <span id="infantPriceText">유아 0명</span>
+            <span id="infantTotalPrice">0원</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between total">
+            <strong>총 합계</strong>
+            <strong id="totalPrice">0원</strong>
+            <input type="hidden" id="totalPriceInput" value="">
+          </div>
         </div>
       </div>
 
@@ -321,13 +370,54 @@
 <th:block layout:fragment="script">
   <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function() {
-        const remainingSeats = [[${itemReservation.remainingSeats}]];
+        const remainingSeats = /*[[${itemReservation.remainingSeats}]]*/ 0;
+        const basePrice = /*[[${itemReservation.totalPrice}]]*/ 0;
+        let adultCount = /*[[${peopleCount.adultCount}]]*/ 1;
+        let childCount = /*[[${peopleCount.childCount}]]*/ 0;
+        let infantCount = /*[[${peopleCount.infantCount}]]*/ 0;
+
         // 좌석 경고 메시지를 위한 div 추가
         const warningDiv = '<div id="seatsWarning" style="display:none; color:red;">선택하신 인원이 잔여 좌석을 초과했습니다.</div>';
         document.querySelector('.section').insertAdjacentHTML('beforeend', warningDiv);
-        let adultCount = [[${peopleCount.adultCount}]];
-        let childCount = [[${peopleCount.childCount}]];
-        let infantCount = [[${peopleCount.infantCount}]];
+
+        function updatePriceDisplay() {
+            const adultTotalPrice = adultCount * basePrice;
+            const childTotalPrice = childCount * basePrice;
+            const infantTotalPrice = Math.floor(infantCount * (basePrice * 0.3)); // 유아는 30%
+            const totalPrice = adultTotalPrice + childTotalPrice + infantTotalPrice;
+
+            // 성인 가격 표시
+            document.getElementById('adultCountText').textContent = adultCount;
+            document.getElementById('adultTotalPrice').textContent = 
+                adultTotalPrice.toLocaleString() + '원';
+
+            // 아동 가격 표시
+            const childPriceDiv = document.querySelector('.child-price');
+            if (childCount > 0) {
+                childPriceDiv.style.display = 'flex';
+                document.getElementById('childPriceText').textContent = `아동 ${childCount}명`;
+                document.getElementById('childTotalPrice').textContent = 
+                    childTotalPrice.toLocaleString() + '원';
+            } else {
+                childPriceDiv.style.display = 'none';
+            }
+
+            // 유아 가격 표시
+            const infantPriceDiv = document.querySelector('.infant-price');
+            if (infantCount > 0) {
+                infantPriceDiv.style.display = 'flex';
+                document.getElementById('infantPriceText').textContent = `유아 ${infantCount}명`;
+                document.getElementById('infantTotalPrice').textContent = 
+                    infantTotalPrice.toLocaleString() + '원';
+            } else {
+                infantPriceDiv.style.display = 'none';
+            }
+
+            // 총 합계 업데이트
+            document.getElementById('totalPrice').textContent = 
+                totalPrice.toLocaleString() + '원';
+            document.getElementById('totalPriceInput').value = totalPrice;
+        }
 
         function updatePersonDetailForms() {
             const container = document.getElementById('personDetailSection');
@@ -423,21 +513,46 @@
                 let count = parseInt(countElement.textContent);
 
                 if (isPlus) {
-                    if (type !== 'infant' && (adultCount + childCount + 1) > remainingSeats) {
-                        alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
-                        return;
+                    if (type === 'adult') {
+                        if ((adultCount + childCount + 1) <= remainingSeats) {
+                            adultCount++;
+                            count = adultCount;
+                        } else {
+                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
+                            return;
+                        }
+                    } else if (type === 'child') {
+                        if ((adultCount + childCount + 1) <= remainingSeats) {
+                            childCount++;
+                            count = childCount;
+                        } else {
+                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
+                            return;
+                        }
+                    } else if (type === 'infant' && infantCount < adultCount) {
+                        infantCount++;
+                        count = infantCount;
                     }
-                    count++;
-                } else if (count > (type === 'adult' ? 1 : 0)) {
-                    count--;
+                } else {
+                    if (type === 'adult' && count > 1) {
+                        if (infantCount >= count - 1) {
+                            infantCount = count - 1;
+                            document.getElementById('infantCount').textContent = infantCount;
+                        }
+                        adultCount--;
+                        count = adultCount;
+                    } else if (type === 'child' && count > 0) {
+                        childCount--;
+                        count = childCount;
+                    } else if (type === 'infant' && count > 0) {
+                        infantCount--;
+                        count = infantCount;
+                    }
                 }
-
-                if (type === 'adult') adultCount = count;
-                else if (type === 'child') childCount = count;
-                else infantCount = count;
 
                 countElement.textContent = count;
                 updatePersonDetailForms();
+                updatePriceDisplay();
                 checkAvailability();
             });
         });
@@ -563,7 +678,7 @@
 
         function submitReservationForm(participants, bookerTel) {
             const form = document.createElement('form');
-            const depositPerPerson = $("#depositPerPerson").val();
+            const depositPerPerson = parseInt($("#depositPerPerson").val());
             form.method = 'POST';
             form.action = '/reservation/new';
 
@@ -579,7 +694,10 @@
             addHiddenField(form, 'itemId', [[${itemReservation.item.id}]]);
             addHiddenField(form, 'departureDateTime', [[${itemReservation.departureDateTime}]]);
             addHiddenField(form, 'bookerTel', bookerTel);
-            addHiddenField(form, 'totalDeposit', depositPerPerson * (participants.length));
+            // 총 예약금 계산 (쉼표 없이 숫자만)
+            addHiddenField(form, 'totalDeposit', (depositPerPerson * participants.length));
+            // 전체 가격 계산
+            addHiddenField(form, 'totalPrice', document.getElementById('totalPriceInput').value);
 
             // 참가자 정보 추가
             participants.forEach((participant, index) => {
@@ -604,6 +722,7 @@
 
         // 초기 실행
         updatePersonDetailForms();
+        updatePriceDisplay();
         checkAvailability();
     });
   </script>

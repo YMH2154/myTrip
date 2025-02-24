@@ -9,13 +9,8 @@
 <!-- 사용자 CSS 추가-->
 <th:block layout:fragment="css">
     <style>
-        :root {
-            --primary-color: #4A90E2;
-            --dark-bg: #2C3E50;
-            --light-text: #FFFFFF;
-        }
-
-        body {
+        /* body 대신 특정 컨테이너에 배경 적용 */
+        .login-page-wrapper {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -25,7 +20,7 @@
                         url('/images/travel-member-bg.jpg') center/cover no-repeat fixed;
         }
 
-        /* 컨텐츠 영역 */
+        /* content 클래스 추가 */
         .content {
             flex: 1;
             display: flex;
@@ -45,68 +40,12 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-        /* Footer 영역 */
-        footer {
-            margin-top: auto;  /* footer를 항상 아래에 위치 */
-            background-color: rgba(255, 255, 255, 0.95);
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         .login-title {
             color: var(--dark-bg);
             font-size: 2.2rem;
             margin-bottom: 30px;
             text-align: center;
             font-weight: bold;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-control {
-            background-color: #F5F7FA;
-            border: 2px solid #E4E7EB;
-            border-radius: 12px;
-            color: #2C3E50;
-            height: 55px;
-            padding: 0 20px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            background-color: #FFFFFF;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            padding: 15px;
-            width: 100%;
-            margin-top: 30px;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: #357ABD;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
         }
 
         .social-login {
@@ -152,14 +91,25 @@
             text-decoration: underline;
         }
 
-        .error {
-            color: #E53E3E;
-            font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
-            padding: 10px;
-            background-color: #FFF5F5;
+        /* 알림 메시지 스타일 */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
             border-radius: 8px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
         }
 
         /* 반응형 디자인 */
@@ -186,63 +136,50 @@
                 font-size: 16px;
             }
         }
-
-        /* 알림 메시지 스타일 추가 */
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .alert-warning {
-            color: #856404;
-            background-color: #fff3cd;
-            border-color: #ffeeba;
-        }
-
-        .alert-danger {
-            color: #721c24;
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-        }
     </style>
 </th:block>
 
+<th:block layout:fragment="page-css">
+    <link rel="stylesheet" th:href="@{/css/member/login.css}">
+</th:block>
+
 <!-- 레이아웃 구조 -->
-<div layout:fragment="content" class="content">
-    <div class="login-container">
-        <h2 class="login-title">로그인</h2>
-        
-        <!-- 로그인 필요 메시지 -->
-        <div class="alert alert-warning" th:if="${loginErrorMsg}" th:text="${loginErrorMsg}"></div>
-        
-        <!-- 로그인 에러 메시지 -->
-        <div class="alert alert-danger" th:if="${param.error}">
-            아이디 또는 비밀번호를 확인해주세요.
-        </div>
+<div layout:fragment="content">
+    <div class="login-page-wrapper">
+        <div class="content">
+            <div class="login-container">
+                <h2 class="login-title">로그인</h2>
+                
+                <!-- 로그인 필요 메시지 -->
+                <div class="alert alert-warning" th:if="${loginErrorMsg}" th:text="${loginErrorMsg}"></div>
+                
+                <!-- 로그인 에러 메시지 -->
+                <div class="alert alert-danger" th:if="${param.error}">
+                    아이디 또는 비밀번호를 확인해주세요.
+                </div>
 
-        <form action="/member/login" role="form" method="post">
-            <div class="form-group">
-                <input type="email" name="email" id="email" class="form-control" placeholder="이메일">
+                <form action="/member/login" role="form" method="post">
+                    <div class="form-group">
+                        <input type="email" name="email" id="email" class="form-control" placeholder="이메일">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="password" class="form-control" placeholder="비밀번호">
+                    </div>
+                    <button class="btn btn-primary">로그인</button>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                </form>
+
+                <div class="social-login">
+                    <a href="/oauth2/authorization/google">Google로 로그인</a>
+                    <a href="/oauth2/authorization/kakao">Kakao로 로그인</a>
+                    <a href="/oauth2/authorization/naver">Naver로 로그인</a>
+                </div>
+
+                <p class="signup-link">
+                    myTrip이 처음이신가요? <a href="/member/new">지금 가입하세요</a>
+                </p>
             </div>
-            <div class="form-group">
-                <input type="password" name="password" class="form-control" placeholder="비밀번호">
-            </div>
-            <button class="btn btn-primary">로그인</button>
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-        </form>
-
-        <div class="social-login">
-            <a href="/oauth2/authorization/google">Google로 로그인</a>
-            <a href="/oauth2/authorization/kakao">Kakao로 로그인</a>
-            <a href="/oauth2/authorization/naver">Naver로 로그인</a>
         </div>
-
-        <p class="signup-link">
-            myTrip이 처음이신가요? <a href="/member/new">지금 가입하세요</a>
-        </p>
     </div>
 </div>
 </html>

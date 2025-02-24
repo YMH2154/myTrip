@@ -142,8 +142,8 @@
     <div class="detail-container">
         <div class="section">
             <div class="reservation-header">
-                <span class="reservation-number" th:text="${'예약번호: ' + reservation.memberReservationNumber}"></span>
-                <span class="reservation-status" th:text="${reservation.reservationStatus.name()}"></span>
+                <span class="reservation-number" th:text="${'예약번호: ' + reservation.reservationNumber}"></span>
+                <span class="reservation-status" th:text="${reservation.reservationStatus.getDescription()}"></span>
             </div>
         </div>
 
@@ -155,12 +155,28 @@
                     <td th:text="${reservation.itemReservation.item.itemName}"></td>
                 </tr>
                 <tr>
-                    <th>출발일</th>
-                    <td th:text="${#temporals.format(reservation.itemReservation.departureDateTime, 'yyyy-MM-dd')}"></td>
+                    <th>출국 정보</th>
+                    <td>
+                        <span th:text="${reservation.itemReservation.departureCarrierCode + reservation.itemReservation.departureFlightNumber}"></span><br>
+                        <span th:text="${#strings.substring(reservation.itemReservation.departureDateTime, 0, 10)}"></span>
+                        <span th:text="${#strings.substring(reservation.itemReservation.departureDateTime, 11, 16)}"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>귀국 정보</th>
+                    <td>
+                        <span th:text="${reservation.itemReservation.returnCarrierCode + reservation.itemReservation.returnFlightNumber}"></span><br>
+                        <span th:text="${#strings.substring(reservation.itemReservation.returnDateTime, 0, 10)}"></span>
+                        <span th:text="${#strings.substring(reservation.itemReservation.returnDateTime, 11, 16)}"></span>
+                    </td>
                 </tr>
                 <tr>
                     <th>예약금</th>
-                    <td th:text="${#numbers.formatInteger(reservation.deposit, 3, 'COMMA') + '원'}"></td>
+                    <td th:text="${#numbers.formatInteger(reservation.totalDeposit, 3, 'COMMA')} + '원'"></td>
+                </tr>
+                <tr>
+                    <th>전체 금액</th>
+                    <td th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA')} + '원'"></td>
                 </tr>
                 <tr>
                     <th>총 인원</th>
@@ -192,7 +208,7 @@
             <div class="participant-list">
                 <div th:each="participant : ${reservation.participants}" class="participant-card">
                     <span th:class="'participant-type ' + 'type-' + ${#strings.toLowerCase(participant.age)}"
-                          th:text="${participant.age}"></span>
+                          th:text="${participant.age.getDescription()}"></span>
                     <div class="participant-info">
                         <p>
                             <span>이름</span>
@@ -213,14 +229,28 @@
 
         <div class="action-buttons">
             <a href="/member/reservations" class="btn btn-secondary btn-edit">목록으로</a>
+            <div th:if="${reservation.reservationStatus.name == 'RESERVED' || reservation.reservationStatus.name == 'DEPOSIT_PAID'}">
             <button type="button" class="btn btn-primary btn-edit" 
-                    th:onclick="'location.href=\'/member/reservations/edit/' + ${reservation.memberReservationNumber} + '\''">
+                    th:onclick="@{'|window.location.href='@{/member/reservations/edit/{id}(id=${reservation.reservationNumber})}'|}">
                 정보 수정
             </button>
             <button type="button" class="btn btn-success btn-edit"
-                    th:onclick="'location.href=\'/payment/' + ${reservation.memberReservationNumber} + '\''">
-                결제하기
+                    th:onclick="|window.location.href='@{/payment/ready/{id}(id=${reservation.reservationNumber})}'|">
+                <span th:if="${reservation.reservationStatus.name == 'RESERVED'}">예약금 결제</span>
+                <span th:if="${reservation.reservationStatus.name == 'DEPOSIT_PAID'}">잔금 결제</span>
             </button>
+            </div>
+            <div th:if="${reservation.reservationStatus.name == 'BALANCE_PAID'}">
+                <button type="button" class="btn btn-primary btn-edit"
+                        th:onclick="@{'|window.location.href='@{/member/reservations/passport/{id}(id=${reservation.reservationNumber})}'|}">
+                    여권 정보 등록
+                </button>
+                <button type="button" class="btn btn-success btn-edit"
+                        th:onclick="|window.location.href='@{/payment/cancel/request/{id}(id=${reservation.reservationNumber})}'|">
+                    환불 신청
+                </button>
+            </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         </div>
     </div>
 </div>

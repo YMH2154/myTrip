@@ -1,3 +1,4 @@
+/* 기본 레이아웃 스타일 */
 .footer {
     background-color: #141414;
     color: #6E6E6E;
@@ -17,12 +18,69 @@
     margin-right: 50px;
 }
 
+/* 공통 버튼 스타일 */
 button:hover{
     cursor: pointer;
 }
 
+/* 숫자 입력 화살표 제거 */
 input::-webkit-inner-spin-button,
 input::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* 공통 변수 */
+:root {
+    --primary-color: #4A90E2;
+    --dark-bg: #2C3E50;
+    --light-text: #FFFFFF;
+}
+
+/* 공통 폼 스타일 */
+.form-control {
+    background-color: #F5F7FA;
+    border: 2px solid #E4E7EB;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: none;
+}
+
+/* 공통 버튼 스타일 */
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #357ABD;
+    transform: translateY(-2px);
+}
+
+/* 공통 에러 메시지 스타일 */
+.fieldError {
+    color: #E53E3E;
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+/* 공통 애니메이션 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function () {
+                    // CSRF 토큰을 모든 AJAX 요청에 자동으로 추가
+                    $.ajaxSetup({
+                        beforeSend: function (xhr) {
+                            const token = $('meta[name="_csrf"]').attr('content');
+                            const header = $('meta[name="_csrf_header"]').attr('content');
+                            if (token && header) {
+                                xhr.setRequestHeader(header, token);
+                            }
+                        }
+                    });
+                });
+
+            function refundPayment(button)  {
+                const impUid = button.getAttribute('data-impuid'); // 버튼의 data-impuid 속성 값 읽기
+
+                console.log("확인 impUid:", impUid);
+
+                const token = $("meta[name='_csrf']").attr("content");
+                const header = $("meta[name='_csrf_header']").attr("content");
+
+                const url = "/payment/refund";
+                const paramData = { impUid: impUid };
+
+                const param = JSON.stringify(paramData);
+                console.log("Request Payload:", param); // 요청 데이터 출력
+
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    contentType: "application/json",
+                    data: param,
+                    beforeSend: function (xhr) {
+                        console.log("Adding CSRF token to header:", token);
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function (result) {
+                        alert("환불이 성공적으로 처리되었습니다.");
+                        location.reload(); // 페이지 새로고침
+                    },
+                    error: function (jqXHR) {
+                        console.error("Refund error:", jqXHR.responseText);
+                        alert(jqXHR.responseText || "환불 처리에 실패했습니다.");
+                    }
+                });
+            };
+    </script>
+</th:block>
+
+<th:block layout:fragment="css">
+    <style>
+        html, body {
+            background-color: #141414;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        .content-mg {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            margin: 100px;
+        }
+
+        .form-box {
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 50px 40px;
+            border-radius: 10px;
+            min-width: 900px;
+            width: 900px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            margin: 50px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            color: #fff;
+            text-align: center;
+        }
+
+        thead tr {
+            background-color: #444;
+        }
+
+        thead th {
+            font-size: 16px;
+            font-weight: bold;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #6a0dad;
+            text-align: center;
+        }
+
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        tbody tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        tbody tr:hover {
+            background-color: rgba(106, 13, 173, 0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+        }
+
+        .pagination li {
+            margin: 0 5px;
+        }
+
+        .pagination a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #444;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination a:hover {
+            background-color: #6a0dad;
+        }
+
+        .pagination .active a {
+            background-color: #6a0dad;
+            font-weight: bold;
+            cursor: default;
+        }
+
+        .pagination .disabled a {
+            background-color: #333;
+            color: #777;
+            pointer-events: none;
+        }
+
+        .refund-button {
+        background-color: #6a0dad;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 1px 5px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .refund-button:hover {
+        background-color: #8344bd;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .refund-button:active {
+        background-color: #5a0882;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .refund-button:disabled {
+        background-color: #555;
+        color: #aaa;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    </style>
+</th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="content-mg">
+    <div class="form-box">
+        <h2>결제 이력</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>상품 이름</th>
+                <th>결제 금액</th>
+                <th>결제 날짜</th>
+                <th>예약 상태</th>
+                <th>환불 여부</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="payment : ${payments.content}">
+                <td th:text="${payment.itemName}"></td>
+                <td th:text="${payment.price}"></td>
+                <td th:text="${#temporals.format(payment.paymentDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                <td th:text="${payment.reservationStatus.getDescription()}"></td><!-- 구독 상태 표시 -->
+                <td>
+                    <button th:if="${payment.status == 'paid'}" th:attr="data-impuid=${payment.impUid}"
+                            onclick="refundPayment(this)" class="refund-button">환불가능
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <ul class="pagination">
+            <!-- 이전 페이지 -->
+            <li th:classappend="${payments.number == 0} ? 'disabled' : ''">
+                <a th:href="@{'/order/orderList?page=' + (${payments.number - 1}) + '&size=10'}">이전</a>
+            </li>
+
+            <!-- 페이지 번호 -->
+            <li th:each="page : ${#numbers.sequence(1, payments.totalPages > 0 ? payments.totalPages : 1)}"
+                th:classappend="${payments.number + 1 == page} ? 'active' : ''">
+                <a th:href="@{'/order/orderList?page=' + (${page - 1}) + '&size=10'}"
+                   th:text="${page}"></a>
+            </li>
+
+            <!-- 다음 페이지 -->
+            <li th:classappend="${payments.number + 1 >= payments.totalPages} ? 'disabled' : ''">
+                <a th:href="@{'/order/orderList?page=' + (${payments.number + 1}) + '&size=10'}">다음</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
