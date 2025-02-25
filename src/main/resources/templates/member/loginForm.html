@@ -9,19 +9,12 @@
 <!-- 사용자 CSS 추가-->
 <th:block layout:fragment="css">
     <style>
-        /* body 대신 특정 컨테이너에 배경 적용 */
-        .login-page-wrapper {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-                        url('/images/travel-member-bg.jpg') center/cover no-repeat fixed;
-        }
-
         /* content 클래스 추가 */
         .content {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url('/images/travel-member-bg.jpg') center/cover no-repeat fixed;
+            color: var(--dark-bg);
+            min-height: 100vh;
             flex: 1;
             display: flex;
             align-items: center;

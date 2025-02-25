@@ -27,16 +27,15 @@ public class Payment extends BaseTimeEntity {
    private String merchantUid; // 주문 번호
 
    @Column(name = "price", nullable = false)
-   private int price; // 결제된 금액
+   private String price; // 결제된 금액
 
    private String paymentKey;
 
    @Enumerated(EnumType.STRING)
    private PaymentMethod paymentMethod;
 
-   @OneToOne
+   @OneToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "member_reservation_id")
    private MemberReservation memberReservation; // 예약
-
 
 }

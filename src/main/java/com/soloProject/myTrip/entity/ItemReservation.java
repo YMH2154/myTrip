@@ -2,15 +2,11 @@ package com.soloProject.myTrip.entity;
 
 import com.soloProject.myTrip.constant.ItemSellStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AccessLevel;
-import lombok.Builder;
-
-import java.util.List;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ItemReservation {
     @Id
@@ -40,9 +36,6 @@ public class ItemReservation {
 
     @Enumerated(EnumType.STRING)
     private ItemSellStatus itemSellStatus;
-
-    @OneToMany(mappedBy = "itemReservation", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MemberReservation> memberReservations;
 
     @Builder
     public ItemReservation(Item item, String departureDateTime, String returnDateTime,

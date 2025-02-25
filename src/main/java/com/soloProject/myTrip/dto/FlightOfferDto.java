@@ -6,10 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public class FlightOfferDto implements Serializable {
     private static final long serialVersionUID = 1L;
     

@@ -6,232 +6,163 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        /* 전체 헤더 컨테이너 */
-        .navbar {
-            background-color: #FFFFFF;
-            box-shadow: 0 1px 0 0 #e9ecef;
-            padding: 15px 0;
-        }
+        /* Ensure the header section covers the top and bottom parts */
+.gnb{
+    background-color: #fff;
+    box-sizing: border-box;
+    border-bottom: 1px solid #222;
+}
 
-        /* 로고 */
-        .navbar-brand {
-            padding: 0;
-            margin-right: 40px;
-        }
+/* Top navigation bar styling */
+.top-nav-wrap {
+        display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 1200px;
+    padding: 20px 0 10px;
+    margin: 0 auto;
+}
+.top-nav-wrap > div:first-child{
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    width: 535px;
+    height: 46px;
+}
 
-        .navbar-brand img {
-            height: 28px;
-            width: auto;
-        }
+.top-nav-wrap .navbar-brand img {
+    height: 50px; /* Adjust logo size */
+}
 
-        /* 검색 폼 */
-        .search-form {
-            position: relative;
-            width: 600px;  /* 검색창 너비 증가 */
-        }
+.search-wrap{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 340px;
+    height: 46px;
+    padding: 0 25px 0 20px;
+    border-radius: 30px;
+    border: 2px solid #ffcb31;
+    box-sizing: border-box;
+}
+.search-form .input-group {
+        display: block;
+    width: 100%;
+    height: 100%;
+    color: #999;
+    font-size: 15px;
+    line-height: 42px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
 
-        .search-form .form-control {
-            height: 44px;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            padding: 0 20px;
-            font-size: 14px;
-            background-color: #f8f9fa;
-        }
+/* Member menu styling */
+.member-menu {
+    display: flex;
+    gap: 20px;
+}
 
-        .search-form .form-control:focus {
-            border-color: #4A90E2;
-            box-shadow: none;
-            background-color: #fff;
-        }
+.member-menu .nav-link {
+    font-size: 14px;
+    color: #007bff;
+}
 
-        .search-form .btn {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #666;
-            padding: 8px;
-        }
+/* Category navigation bar styling */
+.category-nav {
+    background-color: #343a40;
+    padding: 10px 0;
+}
 
-        /* 상단 네비게이션 */
-        .top-nav {
+.category-nav .navbar-nav {
+    display: flex;
+    justify-content: space-between;
+}
+
+.category-nav .nav-item {
+    position: relative;
+        display: block;
+        padding: 20px 15px;
+        font-family: "pr-font-regular";
+        font-size: 17px;
+        color: #555;
+        line-height: 1;
+}
+
+/* Dropdown Menu styling */
+.nav-item.dropdown .dropdown-menu {
+    background-color: #f8f9fa;
+    border: none;
+}
+
+.nav-item.dropdown .dropdown-item {
+    color: #333333;
+    padding: 8px 20px;
+}
+
+/* Hover Effects */
+.nav-item.dropdown .nav-link:hover {
+    color: #ff7f50; /* Customize hover color */
+}
+
+.nav-item.dropdown .dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+        .navbar-nav{
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            margin-bottom: 15px;
+            width: 1200px;
+            margin: 0 auto;
         }
-
-        /* 하단 카테고리 메뉴 */
-        .category-nav {
-            border-top: 1px solid #e9ecef;
-            padding-top: 15px;
-        }
-
-        /* 네비게이션 메뉴 */
-        .navbar-nav {
+        .utile-links{
             display: flex;
+            gap: 40px;
             align-items: center;
-            gap: 10px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-        }
-
-        .nav-link {
-            color: #333;
-            font-size: 15px;
-            font-weight: 500;
-            padding: 8px 16px;
-            white-space: nowrap;
-        }
-
-        .nav-link:hover {
-            color: #4A90E2;
-        }
-
-        /* 드롭다운 메뉴 */
-        .dropdown-menu {
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            padding: 8px 0;
-            margin-top: 8px;
-        }
-
-        .dropdown-item {
-            color: #333;
-            font-size: 14px;
-            padding: 8px 16px;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-            color: #4A90E2;
-        }
-
-        /* 로그인/회원가입 버튼 */
-        .auth-buttons {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .auth-buttons .btn {
-            font-size: 14px;
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 4px;
-        }
-
-        .btn-outline-primary {
-            border-color: #e9ecef;
-            color: #333;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: #f8f9fa;
-            border-color: #e9ecef;
-            color: #4A90E2;
-        }
-
-        /* 반응형 디자인 */
-        @media (max-width: 991.98px) {
-            .navbar {
-                padding: 10px 15px;
-            }
-
-            .search-form {
-                width: 100%;
-                margin: 10px 0;
-            }
-
-            .navbar-collapse {
-                background-color: #fff;
-                padding: 15px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-                margin-top: 10px;
-            }
-
-            .auth-buttons {
-                margin-top: 10px;
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        /* 아이콘 스타일 */
-        .fa, .fas {
-            font-size: 18px;
-            margin-right: 4px;
-        }
-
-        /* 알림 아이콘 뱃지 */
-        .notification-badge {
-            position: relative;
-        }
-
-        .notification-badge::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 6px;
-            height: 6px;
-            background-color: #ff3b30;
-            border-radius: 50%;
         }
     </style>
 </head>
-<body>
-<div th:fragment="header">
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container">
+<header>
+<div th:fragment="header" class="travel-header">
+        <div class="gnb">
             <!-- 상단 네비게이션 -->
-            <div class="top-nav w-100">
+            <div class="top-nav-wrap">
                 <!-- 로고 -->
-                <a class="navbar-brand" href="/">
-                    <img src="/images/travel-logo.png" alt="Travel Logo">
-                </a>
-
+                <div>
+                    <h1>
+                        <a class="navbar-brand" href="/">
+                            <img src="/images/travel-logo.png" alt="Travel Logo">
+                        </a>
+                    </h1>
                 <!-- 검색창 -->
-                <form class="search-form">
+                <form class="search-wrap">
                     <div class="input-group">
                         <input class="form-control" type="search" placeholder="어디로 떠나시나요?" aria-label="Search">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-primary" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                        <button class="btn-search" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
                 </form>
-
-                <!-- 로그인/회원가입 메뉴 -->
-                <div class="d-flex align-items-center gap-3">
+            </div>
+                <!-- 회원 메뉴 -->
+                <div class="utile-links">
                     <div sec:authorize="isAnonymous()">
-                        <a class="nav-link d-inline-block" href="/member/login">로그인</a>
-                        <a class="nav-link d-inline-block" href="/member/new">회원가입</a>
+                        <a class="nav-link" href="/member/login">로그인</a>
+                        <a class="nav-link" href="/member/new">회원가입</a>
                     </div>
                     <div sec:authorize="isAuthenticated()">
-                        <a class="nav-link d-inline-block" href="/member/mypage">마이페이지</a>
-                        <a class="nav-link d-inline-block" href="/member/reservations">예약내역</a>
-                        <a class="nav-link d-inline-block" href="/member/logout">로그아웃</a>
+                        <a class="nav-link" href="/member/myPage">마이페이지</a>
+                        <a class="nav-link" href="/member/reservations">예약내역</a>
+                        <a class="nav-link" href="/member/logout">로그아웃</a>
                     </div>
                     <div sec:authorize="hasRole('ADMIN')">
-                        <a class="nav-link d-inline-block" th:href="@{/admin}">관리자</a>
+                        <a class="nav-link" th:href="@{/admin}">관리자</a>
                     </div>
                 </div>
             </div>
 
             <!-- 하단 카테고리 메뉴 -->
-            <div class="category-nav">
-                <ul class="navbar-nav w-100 justify-content-center">
+            <nav>
+                <ul class="navbar-nav">
                     <!-- 국내여행 -->
                     <li class="nav-item dropdown mx-2">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
@@ -273,10 +204,10 @@
                         </div>
                     </li>
                 </ul>
-            </div>
+            </nav>
         </div>
-    </nav>
-
+</div>
+</header>
     <!-- 필요한 JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
@@ -294,6 +225,4 @@
             });
         });
     </script>
-</div>
-</body>
 </html>

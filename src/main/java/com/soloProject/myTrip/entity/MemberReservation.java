@@ -19,7 +19,7 @@ public class MemberReservation extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_reservation_id")
     private ItemReservation itemReservation;
 
@@ -29,7 +29,7 @@ public class MemberReservation extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReservationStatus reservationStatus;
 
-    @OneToMany(mappedBy = "memberReservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "memberReservation", cascade = CascadeType.ALL)
     private List<Participant> participants;
 
     @OneToOne(mappedBy = "memberReservation", cascade = CascadeType.ALL, orphanRemoval = true)

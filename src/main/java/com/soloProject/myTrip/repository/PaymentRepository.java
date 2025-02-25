@@ -1,6 +1,5 @@
 package com.soloProject.myTrip.repository;
 
-
 import com.soloProject.myTrip.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 

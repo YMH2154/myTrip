@@ -3,6 +3,7 @@ package com.soloProject.myTrip.entity;
 import com.soloProject.myTrip.constant.AirportCode;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
+import com.soloProject.myTrip.dto.MemberUpdateFormDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,5 +51,9 @@ public class Member extends BaseTimeEntity {
     public Member update(String name) {
         this.name = name;
         return this;
+    }
+
+    public void updateMember(MemberUpdateFormDto memberUpdateFormDto) {
+        this.tel = memberUpdateFormDto.getTel();
     }
 }

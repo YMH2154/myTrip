@@ -27,9 +27,10 @@ public class SecurityConfig {
                 http.authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                                 .requestMatchers("/", "/member/**", "/item/**", "/images/**", "/itemImages/**",
-                                                "/email/**", "/api/prices/status/**").permitAll()
+                                                "/email/**", "/api/prices/status/**")
+                                .permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/reservation/**","/payment/**").authenticated()
+                                .requestMatchers("/reservation/**", "/payment/**").authenticated()
                                 .anyRequest().authenticated()).formLogin(login -> login
                                                 .loginPage("/member/login")
                                                 .defaultSuccessUrl("/member/login/success")

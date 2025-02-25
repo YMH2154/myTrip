@@ -2,125 +2,138 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout}">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
 
 <th:block layout:fragment="css">
     <style>
         .payment-container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 20px;
-        }
-        .payment-method {
-            margin: 20px 0;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .payment-method:hover {
-            background-color: #f8f9fa;
-        }
-        .payment-method.selected {
-            border-color: #007bff;
-            background-color: #e7f5ff;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
         .payment-info {
             margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .payment-info div {
+            margin-bottom: 15px;
+        }
+        .payment-info label {
+            font-weight: bold;
+            color: #495057;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .payment-info p {
+            margin: 0;
+            color: #212529;
+            font-size: 1.1em;
+        }
+        .payment-amount {
+            font-size: 1.2em;
+            color: #dc3545;
+            font-weight: bold;
         }
         .payment-button {
             width: 100%;
             padding: 15px;
-            font-size: 18px;
+            font-size: 1.1em;
+            background-color: #FEE500;
+            border: none;
+            border-radius: 8px;
+            color: #000000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .payment-button:hover {
+            background-color: #FFD700;
+        }
+        .payment-button:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
         }
     </style>
 </th:block>
 
 <div layout:fragment="content">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    
     <div class="payment-container">
-        <h2 class="mb-4">결제 정보</h2>
+        <h2 class="text-center mb-4">결제 정보</h2>
         
         <div class="payment-info">
-            <h4>상품 정보</h4>
-            <p th:text="${reservation.itemReservation.item.itemName}"></p>
-            <p>결제 금액: <span th:text="${#numbers.formatInteger(reservation.reservationStatus.name() == 'RESERVED' ? reservation.totalDeposit : reservation.totalPrice, 3, 'COMMA')}"></span>원</p>
-        </div>
-
-        <div class="payment-methods">
-            <h4>결제 수단 선택</h4>
-            <div th:each="method : ${paymentMethods}" 
-                 class="payment-method"
-                 th:data-method="${method.name()}"
-                 onclick="selectPaymentMethod(this)">
-                <img th:src="@{'/images/' + ${method.name().toLowerCase()} + '_logo.png'}" 
-                     th:alt="${method.description}" 
-                     height="30">
-                <span th:text="${method.description}"></span>
+            <div>
+                <label>상품명</label>
+                <p th:text="${reservation.itemReservation.item.itemName}"></p>
+            </div>
+            <div>
+                <label>결제 금액</label>
+                <p class="payment-amount" th:text="${#numbers.formatInteger(reservation.reservationStatus.name() == 'RESERVED' ? reservation.totalDeposit : reservation.totalPrice, 3, 'COMMA')} + '원'"></p>
+                <input type="hidden" th:value="${reservation.reservationStatus.name() == 'RESERVED' ? reservation.totalDeposit : reservation.totalPrice}" id="amount">
             </div>
         </div>
 
-        <button class="btn btn-primary payment-button mt-4" 
-                onclick="requestPayment()" 
-                disabled>
-            결제하기
+        <button class="payment-button" id="paymentButton">
+            <img th:src="@{/images/kakao_pay_logo.png}" alt="카카오페이" height="24" style="vertical-align: middle; margin-right: 8px;">
+            카카오페이로 결제하기
         </button>
     </div>
+</div>
 
+<th:block layout:fragment="script">
     <script th:inline="javascript">
-        let selectedMethod = null;
-        const reservation = /*[[${reservation}]]*/ null;
-        const amount = /*[[${reservation.reservationStatus.name() == 'RESERVED' ? reservation.totalDeposit : reservation.totalPrice}]]*/ 0;
+        $(document).ready(function() {
+            const reservationNumber = /*[[${reservation.reservationNumber}]]*/ '';
+            const amount = document.getElementById('amount').value;
+            const token = $("meta[name='_csrf']").attr("content");
+            const header = $("meta[name='_csrf_header']").attr("content");
 
-        function selectPaymentMethod(element) {
-            document.querySelectorAll('.payment-method').forEach(el => {
-                el.classList.remove('selected');
-            });
-            element.classList.add('selected');
-            selectedMethod = element.getAttribute('data-method');
-            document.querySelector('.payment-button').disabled = false;
-        }
+            $('#paymentButton').click(function() {
+                console.log('결제 요청 시작');
+                console.log('예약번호:', reservationNumber);
+                console.log('결제금액:', amount);
 
-        async function requestPayment() {
-            if (!selectedMethod) {
-                alert('결제 수단을 선택해주세요.');
-                return;
-            }
-
-            const requestData = {
-                reservationNumber: reservation.reservationNumber,
-                amount: amount,
-                paymentMethod: selectedMethod,
-                itemName: reservation.itemReservation.item.itemName,
-                buyerName: reservation.member.name,
-                buyerEmail: reservation.member.email,
-                buyerTel: reservation.member.tel
-            };
-
-            try {
-                const response = await fetch('/payment/prepare', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').content
+                $.ajax({
+                    url: '/payment/prepare',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        reservationNumber: reservationNumber,
+                        amount: amount
+                    }),
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader(header, token);
                     },
-                    body: JSON.stringify(requestData)
+                    success: function(response) {
+                        console.log('카카오페이 요청 성공:', response);
+                        if(response && response.next_redirect_pc_url) {
+                            window.location.href = response.next_redirect_pc_url;
+                        } else {
+                            console.error('카카오페이 응답 오류:', response);
+                            alert('결제 준비 중 오류가 발생했습니다.');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('결제 요청 실패');
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response:', xhr.responseText);
+                        alert('결제 처리 중 오류가 발생했습니다.');
+                    }
                 });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || '결제 준비 중 오류가 발생했습니다.');
-                }
-
-                if (data.success && data.redirectUrl) {
-                    window.location.href = data.redirectUrl;
-                } else {
-                    throw new Error('결제 페이지 URL을 받지 못했습니다.');
-                }
-            } catch (error) {
-                console.error('Payment error:', error);
-                alert('결제 처리 중 오류가 발생했습니다: ' + error.message);
-            }
-        }
+            });
+        });
     </script>
+</th:block>
+
 </div>
 </html>

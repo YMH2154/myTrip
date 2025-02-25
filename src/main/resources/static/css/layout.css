@@ -11,13 +11,6 @@
     bottom: 0;
 }
 
-.content{
-    margin-bottom: 100px;
-    margin-top: 50px;
-    margin-left: 50px;
-    margin-right: 50px;
-}
-
 /* 공통 버튼 스타일 */
 button:hover{
     cursor: pointer;

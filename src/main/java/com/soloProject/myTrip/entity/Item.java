@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import groovy.transform.ToString;
@@ -68,8 +69,8 @@ public class Item extends BaseEntity {
     @Column(name = "item_image_url")
     private List<String> itemImageUrls;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<Schedule> schedules;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)

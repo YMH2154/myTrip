@@ -4,6 +4,7 @@ import com.amadeus.Amadeus;
 import com.amadeus.Params;
 import com.amadeus.exceptions.ResponseException;
 import com.amadeus.resources.FlightOfferSearch;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soloProject.myTrip.dto.FlightOfferDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.exception.FlightSearchException;
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -30,6 +32,7 @@ public class FlightSearchService {
     private final Amadeus amadeus;
     private final RedisTemplate<String, List<FlightOfferDto>> flightOffersRedisTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     private static final long CACHE_DURATION = 60 * 60; // 1시간 캐시
 
@@ -38,9 +41,9 @@ public class FlightSearchService {
             LocalDate returnDate) {
         String cacheKey = generateCacheKey(origin, destination, departureDate, returnDate);
 
-        // 캐시에서 데이터 조회 - flightOffersRedisTemplate 사용
+        // 캐시에서 데이터 조회
         List<FlightOfferDto> cachedOffers = flightOffersRedisTemplate.opsForValue().get(cacheKey);
-
+        
         if (cachedOffers != null && !cachedOffers.isEmpty()) {
             log.info("Cache hit for key: {}", cacheKey);
             return cachedOffers;
@@ -58,10 +61,10 @@ public class FlightSearchService {
 
             List<FlightOfferDto> offers = Arrays.stream(flightOffers)
                     .map(this::convertDto)
-                    .toList();
+                    .collect(Collectors.toList());
 
             if (!offers.isEmpty()) {
-                // 캐시에 저장 - flightOffersRedisTemplate 사용
+                // 캐시에 저장
                 flightOffersRedisTemplate.opsForValue().set(cacheKey, offers, CACHE_DURATION, TimeUnit.SECONDS);
                 log.info("Cached flight offers for key: {}", cacheKey);
             }

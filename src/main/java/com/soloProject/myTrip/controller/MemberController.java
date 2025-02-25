@@ -1,8 +1,10 @@
 package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.dto.MemberFormDto;
+import com.soloProject.myTrip.dto.MemberUpdateFormDto;
 import com.soloProject.myTrip.entity.Member;
 import com.soloProject.myTrip.entity.MemberReservation;
+import com.soloProject.myTrip.repository.MemberRepository;
 import com.soloProject.myTrip.service.EmailService;
 import com.soloProject.myTrip.service.MemberService;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,6 +30,7 @@ public class MemberController {
 
     private final MemberService memberService;
     private final EmailService emailService;
+    private final MemberRepository memberRepository;
     private Boolean confirmCheck = false;
 
     // 회원가입(GET)
@@ -155,7 +159,7 @@ public class MemberController {
     }
 
     //여권 정보 등록
-    @GetMapping("/member/reservations/passport/{reservationNumber}")
+    @GetMapping("/reservations/passport/{reservationNumber}")
     public String passportRegist(@PathVariable("reservationNumber")String reservationNumber, Model model){
         try {
             MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
@@ -165,5 +169,103 @@ public class MemberController {
             e.printStackTrace();
             return "redirect:/error";
         }
+    }
+
+    @GetMapping("/myPage")
+    public String memberMyPage(Model model, Principal principal) {
+        String email = principal.getName();
+
+        if (email == null) {
+            throw new IllegalStateException("로그인된 사용자의 이메일 정보를 가져올 수 없습니다.");
+        }
+
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        System.out.println("Member found: " + member);
+
+        MemberUpdateFormDto memberUpdateFormDto = new MemberUpdateFormDto();
+        memberUpdateFormDto.setTel(member.getTel());
+
+        model.addAttribute("member", member);
+        model.addAttribute("memberUpdateFormDto", memberUpdateFormDto);
+
+        return "member/myPage";
+    }
+
+    @PostMapping("/change-password")
+    public String changePassword(@RequestParam String currentPassword,
+                                 @RequestParam String newPassword,
+                                 @RequestParam String confirmPassword,
+                                 Model model, Principal principal) {
+        if (principal == null) {
+            model.addAttribute("errorMessage", "로그인 정보가 없습니다. 다시 로그인해주세요.");
+            reloadMemberData(model, principal);
+            return "member/myPage"; // 전체 페이지 반환
+        }
+
+        // 입력값 검증
+        if (currentPassword == null || currentPassword.trim().isEmpty() ||
+                newPassword == null || newPassword.trim().isEmpty() ||
+                confirmPassword == null || confirmPassword.trim().isEmpty()) {
+            model.addAttribute("errorMessage", "모든 빈칸을 입력해주세요.");
+            reloadMemberData(model, principal);
+            return "member/myPage"; // 전체 페이지 반환
+        }
+
+        String email = principal.getName();
+
+        try {
+            memberService.changePassword(email, currentPassword, newPassword, confirmPassword);
+            model.addAttribute("successMessage", "비밀번호가 성공적으로 변경되었습니다.");
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+        }
+
+        // 필요한 데이터를 다시 로드
+        reloadMemberData(model, principal);
+
+        return "member/myPage"; // 전체 페이지 반환
+    }
+
+    private void reloadMemberData(Model model, Principal principal) {
+        String email = principal.getName();
+
+        if (email == null) {
+            throw new IllegalStateException("로그인된 사용자의 이메일 정보를 가져올 수 없습니다.");
+        }
+
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        MemberUpdateFormDto memberUpdateFormDto = new MemberUpdateFormDto();
+        memberUpdateFormDto.setTel(member.getTel());
+
+        model.addAttribute("member", member);
+        model.addAttribute("memberUpdateFormDto", memberUpdateFormDto);
+    }
+
+    @PostMapping(value = "/update/{id}")
+    public String memberUpdate(@PathVariable Long id,
+                               @Valid MemberUpdateFormDto memberUpdateFormDto,
+                               BindingResult bindingResult,
+                               Model model,
+                               Principal principal) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("errorMessage", "입력값에 오류가 있습니다. 다시 확인해주세요.");
+            reloadMemberData(model, principal);
+            return "/member/myPage";
+        }
+
+        try {
+            memberService.updateMember(memberUpdateFormDto, id);
+            model.addAttribute("successMessage", "정보가 성공적으로 수정되었습니다.");
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "정보 수정 중 에러가 발생하였습니다.");
+        }
+
+        reloadMemberData(model, principal);
+        return "redirect:/member/myPage";
     }
 }

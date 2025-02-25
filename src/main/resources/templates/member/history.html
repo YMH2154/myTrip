@@ -157,7 +157,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">예약금</span>
-                    <span class="info-value" th:text="${reservation.totalDeposit} + '원'"></span>
+                    <span class="info-value" th:text="${#numbers.formatInteger(reservation.totalDeposit, 3, 'COMMA')} + '원'"></span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">인원</span>
