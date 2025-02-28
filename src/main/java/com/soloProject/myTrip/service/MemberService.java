@@ -4,8 +4,11 @@ package com.soloProject.myTrip.service;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
 import com.soloProject.myTrip.dto.MemberUpdateFormDto;
+import com.soloProject.myTrip.entity.Coupon;
+import com.soloProject.myTrip.entity.CouponWallet;
 import com.soloProject.myTrip.entity.Member;
 import com.soloProject.myTrip.entity.MemberReservation;
+import com.soloProject.myTrip.repository.CouponRepository;
 import com.soloProject.myTrip.repository.MemberRepository;
 import com.soloProject.myTrip.repository.MemberReservationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,6 +32,7 @@ public class MemberService implements UserDetailsService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberReservationRepository memberReservationRepository;
+    private final CouponService couponService;
 
     private void checkDuplicatedMember(MemberFormDto memberFormDto){
         if(memberRepository.findByEmail(memberFormDto.getEmail()).isPresent()){ //isPresent() -> Optional 값이 null이면 false, 아니면 true
@@ -41,9 +46,8 @@ public class MemberService implements UserDetailsService {
     public void saveMember(MemberFormDto memberFormDto){
         checkDuplicatedMember(memberFormDto);
         Member member = Member.createMember(memberFormDto, passwordEncoder);
-        member.setRole(Role.ADMIN); //Role 기본설정 (관리자)
-        member.setLoginCount(0); //로그인 카운트 0
-        member.setProvider("local"); //로컬 가입자
+        CouponWallet couponWallet = couponService.createCouponWaller(member);
+        member.setCouponWallet(couponWallet);
         memberRepository.save(member);
     }
 

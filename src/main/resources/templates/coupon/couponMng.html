@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}">
+<head>
+    <meta charset="UTF-8">
+    <title>myTrip 쿠폰 관리 페이지</title>
+</head>
+
+<th:block layout:fragment="css">
+    <style>
+        .admin-container {
+            background-color: #f2f8ff;
+            color: #333;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00aaff;
+        }
+
+        .add-coupon-btn {
+            background-color: #00aaff;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .add-coupon-btn:hover {
+            background-color: #008ecc;
+            color: white;
+            text-decoration: none;
+        }
+
+        .search-section {
+            background-color: #e8f5ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid #b3e0ff;
+        }
+
+        .content-table {
+            background-color: #e8f5ff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #b3e0ff;
+        }
+
+        .table {
+            color: #333;
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background-color: #ccefff;
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #b3e0ff;
+            color: #005f99;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+            background-color: #ffffff;
+        }
+
+        .table tbody tr:hover {
+            background-color: #d9f2ff !important;
+        }
+
+        .coupon-type {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .type-amount {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .type-percentage {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .coupon-status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .status-expired {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status-inactive {
+            background-color: #9e9e9e;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 5px 15px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        /* 모달 스타일 */
+        .modal-content {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .modal-header {
+            background-color: #00aaff;
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-control {
+            border: 1px solid #b3e0ff;
+            border-radius: 4px;
+        }
+
+        .form-control:focus {
+            border-color: #00aaff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 170, 255, 0.25);
+        }
+
+        .search-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-title {
+            color: #005f99;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .radio-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option label {
+            padding: 0.5rem 1rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background-color: #00aaff;
+            color: white;
+            border-color: #00aaff;
+        }
+
+        .search-input-group {
+            margin-top: 1rem;
+        }
+
+        .search-input-group .form-control {
+            height: 45px;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .radio-options {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content" class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">쿠폰 관리</h1>
+        <button type="button" class="add-coupon-btn"  onclick="window.location.href='/admin/coupon/new'">>
+            <i class="fas fa-plus"></i> 새 쿠폰 등록
+        </button>
+    </div>
+
+    <div class="search-section">
+        <form id="searchForm" th:action="@{/admin/coupons}" method="get" th:object="${couponSearchDto}">
+            <div class="search-filters">
+                <div class="filter-group">
+                    <h5 class="filter-title">유효 기간</h5>
+                    <div class="radio-options">
+                        <div class="radio-option">
+                            <input type="radio" name="searchDateType" id="date-all" value="all" checked>
+                            <label for="date-all">전체</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="searchDateType" id="date-1w" value="1w">
+                            <label for="date-1w">1주일</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="searchDateType" id="date-1m" value="1m">
+                            <label for="date-1m">1개월</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="searchDateType" id="date-3m" value="3m">
+                            <label for="date-3m">3개월</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="searchDateType" id="date-6m" value="6m">
+                            <label for="date-6m">6개월</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="searchDateType" id="date-1y" value="1y">
+                            <label for="date-1y">1일</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h5 class="filter-title">쿠폰 타입</h5>
+                    <div class="radio-options">
+                        <div class="radio-option">
+                            <input type="radio" name="couponType" id="type-all" value="" checked>
+                            <label for="type-all">전체</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="couponType" id="type-amount" value="AMOUNT">
+                            <label for="type-amount">정액</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="couponType" id="type-percentage" value="PERCENTAGE">
+                            <label for="type-percentage">정률</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h5 class="filter-title">사용 가능 금액</h5>
+                    <div class="radio-options">
+                        <div class="radio-option">
+                            <input type="radio" name="minAmount" id="amount-all" value="0" checked>
+                            <label for="amount-all">제한 없음</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="minAmount" id="amount-200k" value="200000">
+                            <label for="amount-200k">20만원 이상</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="minAmount" id="amount-500k" value="500000">
+                            <label for="amount-500k">50만원 이상</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" name="minAmount" id="amount-1m" value="1000000">
+                            <label for="amount-1m">100만원 이상</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-input-group">
+                    <input type="text" class="form-control" name="searchQuery" id="searchQuery" 
+                           placeholder="쿠폰 설명 검색" th:field="*{searchQuery}">
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="content-table">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>쿠폰 ID</th>
+                <th>쿠폰 타입</th>
+                <th>할인 금액/비율</th>
+                <th>최소 구매 금액</th>
+                <th>설명</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(coupons)}">
+                <td colspan="8" class="text-center">등록된 쿠폰이 없습니다.</td>
+            </tr>
+            <tr th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
+                <td th:text="${coupon.id}"></td>
+                <td>
+                    <span class="coupon-type" th:classappend="${coupon.couponType == 'AMOUNT' ? 'type-amount' : 'type-percentage'}"
+                          th:text="${coupon.couponType == 'AMOUNT' ? '정액' : '정률'}">
+                    </span>
+                </td>
+                <td>
+                    <span th:if="${coupon.couponType == 'AMOUNT'}" th:text="${#numbers.formatInteger(coupon.discountAmount, 0, 'COMMA') + '원'}"></span>
+                    <span th:if="${coupon.couponType == 'PERCENTAGE'}" th:text="${coupon.discountPercentage + '%'}"></span>
+                </td>
+                <td th:text="${#numbers.formatInteger(coupon.minPurchaseAmount, 0, 'COMMA') + '원'}"></td>
+                <td th:text="${coupon.description}"></td>
+                <td>
+                    <div class="action-buttons">
+                        <button type="button" class="action-btn" th:onclick="'deleteCoupon('+${coupon.id}+')'">
+                            <img src="/images/delete.png" alt="삭제" title="삭제">
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // 라디오 버튼 변경 이벤트 처리
+            const searchForm = document.getElementById('searchForm');
+            const radioInputs = searchForm.querySelectorAll('input[type="radio"]');
+            const searchQuery = document.getElementById('searchQuery');
+
+            function performSearch() {
+                const formData = new FormData(searchForm);
+                const searchParams = new URLSearchParams();
+
+                formData.forEach((value, key) => {
+                    searchParams.append(key, value);
+                });
+
+                ajaxRequest(
+                    `/admin/coupons/search?${searchParams.toString()}`,
+                    'GET',
+                    null,
+                    function(response) {
+                        updateCouponTable(response);
+                    }
+                );
+            }
+
+            // 라디오 버튼 변경 이벤트
+            radioInputs.forEach(radio => {
+                radio.addEventListener('change', performSearch);
+            });
+
+            // 검색어 입력 이벤트 (디바운싱 적용)
+            let searchTimeout;
+            searchQuery.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(performSearch, 300);
+            });
+
+            function updateCouponTable(coupons) {
+                const tbody = document.querySelector('.table tbody');
+                if (!coupons || coupons.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center">검색 조건에 맞는 쿠폰이 없습니다.</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = coupons.map(coupon => `
+                    <tr>
+                        <td>${coupon.id}</td>
+                        <td>
+                            <span class="coupon-type ${coupon.couponType === 'AMOUNT' ? 'type-amount' : 'type-percentage'}">
+                                ${coupon.couponType === 'AMOUNT' ? '정액' : '정률'}
+                            </span>
+                        </td>
+                        <td>
+                            ${coupon.couponType === 'AMOUNT' ? 
+                                new Intl.NumberFormat('ko-KR').format(coupon.discountAmount) + '원' : 
+                                coupon.discountPercentage + '%'}
+                        </td>
+                        <td>${new Intl.NumberFormat('ko-KR').format(coupon.minPurchaseAmount)}원</td>
+                        <td>${formatDate(coupon.startDate)} ~ ${formatDate(coupon.endDate)}</td>
+                        <td>${coupon.description}</td>
+                        <td>
+                            <span class="coupon-status ${getStatusClass(coupon.couponStatus)}">
+                                ${getStatusText(coupon.couponStatus)}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button type="button" class="action-btn delete-btn" 
+                                        onclick="deleteCoupon(${coupon.id})">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            function formatDate(dateString) {
+                return new Date(dateString).toLocaleDateString('ko-KR');
+            }
+        });
+
+        function deleteCoupon(couponId) {
+            if (!confirm('이 쿠폰을 삭제하시겠습니까?')) {
+                return;
+            }
+
+            ajaxRequest(
+                `/admin/coupons/${couponId}`,
+                'DELETE',
+                {},
+                function(response) {
+                    alert('쿠폰이 삭제되었습니다.');
+                    location.reload();
+                }
+            );
+        }
+    </script>
+</th:block>
+
+</html>

@@ -1,7 +1,8 @@
 package com.soloProject.myTrip.constant;
 
 public enum PaymentMethod {
-    KAKAO("카카오페이");
+    KAKAO("카카오페이"),
+    CARD("카드");
 
     private final String description;
 

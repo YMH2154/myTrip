@@ -5,6 +5,7 @@ import com.soloProject.myTrip.constant.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,8 +27,8 @@ public class Payment extends BaseTimeEntity {
    @Column(name = "merchant_uid", unique = true, nullable = false)
    private String merchantUid; // 주문 번호
 
-   @Column(name = "price", nullable = false)
-   private String price; // 결제된 금액
+   @Column(name = "amount", nullable = false)
+   private BigDecimal amount; // 결제된 금액
 
    private String paymentKey;
 

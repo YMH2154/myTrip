@@ -60,6 +60,29 @@
             background-color: #e9ecef;
             cursor: not-allowed;
         }
+        .payment-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .kakao-pay {
+            background-color: #FEE500;
+            color: #000000;
+        }
+        
+        .card-pay {
+            background-color: #4A90E2;
+            color: white;
+        }
+        
+        .kakao-pay:hover {
+            background-color: #FFD700;
+        }
+        
+        .card-pay:hover {
+            background-color: #357ABD;
+        }
     </style>
 </th:block>
 
@@ -73,31 +96,155 @@
                 <p th:text="${reservation.itemReservation.item.itemName}"></p>
             </div>
             <div>
-                <label>결제 금액</label>
+                <label>가격</label>
                 <p class="payment-amount" th:text="${#numbers.formatInteger(reservation.reservationStatus.name() == 'RESERVED' ? reservation.totalDeposit : reservation.totalPrice, 3, 'COMMA')} + '원'"></p>
                 <input type="hidden" th:value="${reservation.reservationStatus.name() == 'RESERVED' ? reservation.totalDeposit : reservation.totalPrice}" id="amount">
+                <input type="hidden" th:value="${reservation.reservationStatus.name()}" id="reservationStatus">
             </div>
         </div>
 
-        <button class="payment-button" id="paymentButton">
-            <img th:src="@{/images/kakao_pay_logo.png}" alt="카카오페이" height="24" style="vertical-align: middle; margin-right: 8px;">
-            카카오페이로 결제하기
-        </button>
+        <!-- 쿠폰 및 마일리지 할인 컨테이너 -->
+        <div class="discount-container" th:if="${reservation.reservationStatus.name() == 'DEPOSIT_PAID'}">
+            <div class="coupon-section">
+                <label>쿠폰 선택</label>
+                <select id="couponSelect" class="form-control">
+                    <option value="">쿠폰을 선택해주세요</option>
+                    <option th:each="coupon : ${availableCoupons}"
+                            th:value="${coupon.id}"
+                            th:text="${coupon.description + ' (' + (coupon.couponType == 'AMOUNT' ? #numbers.formatInteger(coupon.discountAmount, 3, 'COMMA') + '원' : coupon.discountPercentage + '%') + ')'}"
+                            th:data-min-amount="${coupon.minPurchaseAmount}"
+                            th:data-discount-type="${coupon.couponType}"
+                            th:data-discount-value="${coupon.couponType == 'AMOUNT' ? coupon.discountAmount : coupon.discountPercentage}">
+                    </option>
+                </select>
+                <p class="coupon-error text-danger" style="display: none;">최소 구매 금액을 만족하지 않습니다.</p>
+            </div>
+
+            <div class="mileage-section mt-3">
+                <label>마일리지 사용</label>
+                <div class="input-group">
+                    <input type="number" id="mileageInput" class="form-control" 
+                           th:max="${memberMileage}" min="0" value="0">
+                    <div class="input-group-append">
+                        <span class="input-group-text">사용 가능한 마일리지: <span th:text="${memberMileage}"></span>원</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="discount-summary mt-3">
+                <div class="row">
+                    <div class="col">
+                        <p>상품 금액: <span id="originalPrice" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA')}">0</span>원</p>
+                        <p>쿠폰 할인: -<span id="couponDiscount">0</span>원</p>
+                        <p>마일리지 사용: -<span id="mileageDiscount">0</span>원</p>
+                        <p class="font-weight-bold">최종 결제 금액: <span id="finalAmount" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA')}">0</span>원</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-buttons">
+            <button class="payment-button kakao-pay" id="kakaoPaymentButton">
+                <img th:src="@{/images/kakao_pay_logo.png}" alt="카카오페이" height="24" style="vertical-align: middle; margin-right: 8px;">
+                카카오페이로 결제하기
+            </button>
+            
+            <button class="payment-button card-pay mt-3" id="cardPaymentButton">
+                <i class="fas fa-credit-card" style="margin-right: 8px;"></i>
+                카드로 결제하기
+            </button>
+        </div>
     </div>
 </div>
 
 <th:block layout:fragment="script">
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <!-- iamport.payment.js -->
+    <script type="text/javascript" src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+    
     <script th:inline="javascript">
         $(document).ready(function() {
             const reservationNumber = /*[[${reservation.reservationNumber}]]*/ '';
-            const amount = document.getElementById('amount').value;
+            const originalAmount = parseInt(document.getElementById('amount').value);
+            const reservationStatus = document.getElementById('reservationStatus').value;
             const token = $("meta[name='_csrf']").attr("content");
             const header = $("meta[name='_csrf_header']").attr("content");
+            let selectedCouponId = null;
+            let finalAmount = originalAmount;
 
-            $('#paymentButton').click(function() {
-                console.log('결제 요청 시작');
-                console.log('예약번호:', reservationNumber);
-                console.log('결제금액:', amount);
+            // 아임포트 초기화
+            const IMP = window.IMP;
+            IMP.init("imp81251647"); // 실제 상점아이디로 변경 필요
+
+            // 쿠폰 선택 이벤트
+            $('#couponSelect').change(function() {
+                const selectedOption = $(this).find('option:selected');
+                const minAmount = parseFloat(selectedOption.data('min-amount'));
+                const discountType = selectedOption.data('discount-type');
+                const discountValue = parseFloat(selectedOption.data('discount-value'));
+                selectedCouponId = $(this).val();
+
+                if (selectedCouponId && originalAmount < minAmount) {
+                    $('.coupon-error').show();
+                    $(this).val('');
+                    selectedCouponId = null;
+                    calculateFinalAmount();
+                    return;
+                }
+                $('.coupon-error').hide();
+                calculateFinalAmount();
+            });
+
+            // 마일리지 입력 이벤트
+            $('#mileageInput').on('input', function() {
+                const maxMileage = /*[[${memberMileage}]]*/ 0;
+                let inputValue = parseInt($(this).val()) || 0;
+                
+                if (inputValue > maxMileage) {
+                    inputValue = maxMileage;
+                    $(this).val(maxMileage);
+                }
+                
+                if (inputValue < 0) {
+                    inputValue = 0;
+                    $(this).val(0);
+                }
+                
+                calculateFinalAmount();
+            });
+
+            // 최종 금액 계산 함수
+            function calculateFinalAmount() {
+                let discountAmount = 0;
+                const mileageAmount = parseInt($('#mileageInput').val()) || 0;
+
+                // 쿠폰 할인 계산
+                if (selectedCouponId) {
+                    const selectedOption = $('#couponSelect option:selected');
+                    const discountType = selectedOption.data('discount-type');
+                    const discountValue = parseFloat(selectedOption.data('discount-value'));
+
+                    if (discountType === 'AMOUNT') {
+                        discountAmount = discountValue;
+                    } else if (discountType === 'PERCENTAGE') {
+                        discountAmount = (originalAmount * (discountValue / 100));
+                    }
+                }
+
+                // 마일리지 할인 적용
+                const totalDiscount = discountAmount + mileageAmount;
+                finalAmount = Math.max(0, originalAmount - totalDiscount);
+
+                // 화면 업데이트
+                $('#couponDiscount').text(discountAmount.toLocaleString());
+                $('#mileageDiscount').text(mileageAmount.toLocaleString());
+                $('#finalAmount').text(finalAmount.toLocaleString());
+            }
+
+            // 카카오페이 결제 버튼 클릭 이벤트
+            $('#kakaoPaymentButton').click(function() {
+                const mileageAmount = parseInt($('#mileageInput').val()) || 0;
 
                 $.ajax({
                     url: '/payment/prepare',
@@ -105,7 +252,9 @@
                     contentType: 'application/json',
                     data: JSON.stringify({
                         reservationNumber: reservationNumber,
-                        amount: amount
+                        amount: finalAmount,
+                        couponId: selectedCouponId,
+                        usedMileage: mileageAmount
                     }),
                     beforeSend: function(xhr) {
                         xhr.setRequestHeader(header, token);
@@ -115,19 +264,102 @@
                         if(response && response.next_redirect_pc_url) {
                             window.location.href = response.next_redirect_pc_url;
                         } else {
-                            console.error('카카오페이 응답 오류:', response);
                             alert('결제 준비 중 오류가 발생했습니다.');
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('결제 요청 실패');
-                        console.error('Status:', status);
-                        console.error('Error:', error);
-                        console.error('Response:', xhr.responseText);
+                        console.error('결제 요청 실패:', error);
                         alert('결제 처리 중 오류가 발생했습니다.');
                     }
                 });
             });
+
+            // 카드결제 버튼 클릭 이벤트
+            $('#cardPaymentButton').click(function() {
+                const mileageAmount = parseInt($('#mileageInput').val()) || 0;
+                
+                console.log('카드결제 요청 시작');
+                console.log('예약번호:', reservationNumber);
+                console.log('결제금액:', finalAmount);
+                console.log('쿠폰ID:', selectedCouponId);
+                console.log('사용 마일리지:', mileageAmount);
+
+                // 결제 준비 요청
+                $.ajax({
+                    url: '/payment/card/prepare',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        reservationNumber: reservationNumber,
+                        amount: finalAmount,
+                        couponId: selectedCouponId,
+                        usedMileage: mileageAmount
+                    }),
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function(response) {
+                        console.log('결제 준비 성공:', response);
+                        requestCardPayment(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('결제 준비 실패:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        alert('결제 준비 중 오류가 발생했습니다.');
+                    }
+                });
+            });
+
+            function requestCardPayment(prepareResponse) {
+                IMP.request_pay({
+                    pg: "danal_tpay",
+                    pay_method: "card",
+                    merchant_uid: prepareResponse.merchantUid,
+                    name: prepareResponse.itemName,
+                    amount: finalAmount,
+                    buyer_email: prepareResponse.buyerEmail,
+                    buyer_name: prepareResponse.buyerName,
+                    buyer_tel: prepareResponse.buyerTel,
+                    card_quota: [2,3,4,5,6],  // 할부개월 선택옵션
+                }, function(rsp) {
+                    console.log('결제 응답:', rsp);
+                    
+                    if (rsp.success) {
+                        // 결제 성공 시 서버 검증 요청
+                        $.ajax({
+                            url: '/payment/card/verify',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                impUid: rsp.imp_uid,
+                                merchantUid: rsp.merchant_uid,
+                                reservationNumber: reservationNumber,
+                                amount: finalAmount,
+                                couponId: selectedCouponId,
+                                usedMileage: mileageAmount
+                            }),
+                            beforeSend: function(xhr) {
+                                xhr.setRequestHeader(header, token);
+                            },
+                            success: function(response) {
+                                console.log('결제 검증 성공:', response);
+                                alert('결제가 완료되었습니다.');
+                                window.location.href = '/payment/completed';
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('결제 검증 실패:', error);
+                                console.error('Status:', status);
+                                console.error('Response:', xhr.responseText);
+                                alert('결제 검증 중 오류가 발생했습니다.');
+                            }
+                        });
+                    } else {
+                        console.error('결제 실패:', rsp.error_msg);
+                        alert('결제에 실패했습니다.\n' + rsp.error_msg);
+                    }
+                });
+            }
         });
     </script>
 </th:block>

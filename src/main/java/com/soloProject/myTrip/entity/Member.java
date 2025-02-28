@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Entity
@@ -31,9 +33,13 @@ public class Member extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private Integer loginCount;
-
     private String provider;
+
+    private Integer mileage;
+
+    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private CouponWallet couponWallet;
+
 
     public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder){
         Member member = new Member();
@@ -42,7 +48,9 @@ public class Member extends BaseTimeEntity {
         String password = passwordEncoder.encode(memberFormDto.getPassword());
         member.setPassword(password);
         member.setTel(memberFormDto.getTel());
+        member.setMileage(0);
         member.setRole(Role.ADMIN);
+        member.setProvider("local"); //로컬 가입자
 
         return member;
     }

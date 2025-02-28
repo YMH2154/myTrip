@@ -2,6 +2,8 @@ package com.soloProject.myTrip.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -9,5 +11,7 @@ import lombok.*;
 @Builder
 public class PaymentRequestDto {
   private String reservationNumber;
-  private String amount;
+  private BigDecimal amount;
+  private Long couponId;
+  private Integer usedMileage;
 }
