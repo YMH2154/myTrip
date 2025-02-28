@@ -29,11 +29,11 @@ public class MemberReservation extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReservationStatus reservationStatus;
 
-    @OneToMany(mappedBy = "memberReservation", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "memberReservation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants;
 
-    @OneToOne(mappedBy = "memberReservation", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Payment payment;
+    @OneToMany(mappedBy = "memberReservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Payment> payment;
 
     private int totalPrice;
     private int totalDeposit;

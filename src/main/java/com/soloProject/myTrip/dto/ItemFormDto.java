@@ -36,8 +36,7 @@ public class ItemFormDto {
     @NotNull(message = "가격은 필수 입력 값입니다.")
     private Integer price;
 
-    @NotEmpty(message = "상품 상세설명은 필수 입력 값입니다.")
-    private String itemDetail;
+    private String itemDetailImageUrl;
 
     private ItemSellStatus itemSellStatus;
 
@@ -49,7 +48,7 @@ public class ItemFormDto {
 
     private Integer currentParticipants;
 
-    private List<String> itemImageUrls;
+    private List<String> thumbnailImageUrls;
 
     private List<ScheduleDto> scheduleDtos;
 

@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface ItemRepositoryCustom {
     Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable);
+    Page<Item> findItemsByCategory(String link, Pageable pageable);
 }

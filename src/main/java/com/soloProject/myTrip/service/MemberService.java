@@ -72,7 +72,7 @@ public class MemberService implements UserDetailsService {
                 .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다."));
 
         return memberReservationRepository
-                .findByMemberOrderByReservationNumberDesc(member);
+                .findByMemberOrderByRegTimeDesc(member);
     }
 
     @Transactional(readOnly = true)

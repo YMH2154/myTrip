@@ -134,6 +134,7 @@ public class MemberController {
         return "redirect:/";
     }
 
+    // 예약 내역 조회
     @GetMapping("/reservations")
     public String reservationList(Principal principal, Model model) {
         try {

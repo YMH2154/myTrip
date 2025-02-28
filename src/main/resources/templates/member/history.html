@@ -169,6 +169,10 @@
                 <a th:href="@{'/member/reservations/' + ${reservation.reservationNumber}}"
                    class="btn btn-primary btn-detail">상세보기</a>
             </div>
+            <div class="action-buttons" th:if="${reservation.reservationStatus.name() == 'DEPOSIT_PAID' || reservation.reservationStatus.name() == 'BALANCE_PAID'}">
+                <a th:href="@{'/payment/refund/' + ${reservation.reservationNumber}}"
+                    class="btn btn-primary btn-detail">환불 신청</a>
+            </div>
         </div>
     </div>
 </div>

@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -114,4 +115,46 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
 
         return new PageImpl<>(content, pageable, total);
     }
+
+    @Override
+    public Page<Item> findItemsByCategory(String link, Pageable pageable) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 국내여행 카테고리 검색
+        for (DomesticCategory category : DomesticCategory.values()) {
+            if (category.getLink().equals(link)) {
+                builder.or(item.domesticCategory.eq(category));
+            }
+        }
+
+        // 해외여행 카테고리 검색
+        for (OverseasCategory category : OverseasCategory.values()) {
+            if (category.getLink().equals(link)) {
+                builder.or(item.overseasCategory.eq(category));
+            }
+        }
+
+        // 테마여행 카테고리 검색
+        for (ThemeCategory category : ThemeCategory.values()) {
+            if (category.getLink().equals(link)) {
+                builder.or(item.themeCategory.eq(category));
+            }
+        }
+
+        List<Item> content = queryFactory
+                .selectFrom(item)
+                .where(builder)
+                .orderBy(item.regTime.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        long total = queryFactory
+                .selectFrom(item)
+                .where(builder)
+                .fetchCount();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
 }

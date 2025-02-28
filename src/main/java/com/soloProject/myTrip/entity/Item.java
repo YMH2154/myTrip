@@ -52,8 +52,8 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private int price;
 
-    @Column(nullable = false, columnDefinition = "LONGTEXT")
-    private String itemDetail;
+    @Column(nullable = false)
+    private String itemDetailImageUrl;
 
     @Column(nullable = false)
     private int maxParticipants; // 최대 참가자 수
@@ -65,9 +65,9 @@ public class Item extends BaseEntity {
     private int currentParticipants; // 현재 참가자 수
 
     @ElementCollection
-    @CollectionTable(name = "item_image_urls", joinColumns = @JoinColumn(name = "item_id"))
-    @Column(name = "item_image_url")
-    private List<String> itemImageUrls;
+    @CollectionTable(name = "thumbnail_image_urls", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "thumbnail_image_url")
+    private List<String> thumbnailImageUrls;
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
@@ -112,7 +112,7 @@ public class Item extends BaseEntity {
         this.setThemeCategory(itemFormDto.getThemeCategory());
         this.setDestination(itemFormDto.getDestination());
         this.setPrice(itemFormDto.getPrice());
-        this.setItemDetail(itemFormDto.getItemDetail());
+        this.setItemDetailImageUrl(itemFormDto.getItemDetailImageUrl());
         this.setMaxParticipants(itemFormDto.getMaxParticipants());
         this.setMinParticipants(itemFormDto.getMinParticipants());
         this.setDuration(itemFormDto.getDuration());

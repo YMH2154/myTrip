@@ -46,7 +46,7 @@ public class ScheduleService {
 
         List<String> imageUrls = new ArrayList<>();
         for (MultipartFile imageFile : imageFiles) {
-            String imageUrl = saveScheduleImageFile(imageFile);
+            String imageUrl = fileService.saveImageFile(imageFile, "schedule");
             imageUrls.add(imageUrl);
             schedule.setImageUrl(imageUrl);
         }
@@ -87,7 +87,7 @@ public class ScheduleService {
             MultipartFile imageFile = imageFiles.get(i);
             if (!imageFile.isEmpty()) {
                 // 새로운 이미지가 업로드된 경우
-                String newImageUrl = saveScheduleImageFile(imageFile);
+                String newImageUrl = fileService.saveImageFile(imageFile,"schedule");
                 schedule.setImageUrl(newImageUrl);
 
                 // 기존 이미지가 있었다면 삭제
@@ -178,32 +178,6 @@ public class ScheduleService {
         } catch (Exception e) {
             System.out.println("Error deleting schedule: " + e.getMessage());
             throw new Exception("일정 삭제 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }
-
-    private String saveScheduleImageFile(MultipartFile imageFile) throws Exception {
-        String oriFilename = imageFile.getOriginalFilename(); // 본래 오리지널 썸네일 경로
-        String imageUrl = "";
-        if (!StringUtils.isEmpty(oriFilename)) {
-            String fileName = fileService.uploadFile(activityImageLocation, oriFilename, imageFile.getBytes());
-            imageUrl = "/activityImages/" + fileName;
-        }
-        return imageUrl;
-    }
-
-    private void updateScheduleImageFile(Schedule schedule, MultipartFile imageFile) throws Exception {
-        String savedImageFileUrl = scheduleRepository.findById(schedule.getId())
-                .orElseThrow(EntityNotFoundException::new)
-                .getImageUrl();
-        if (!imageFile.isEmpty()) { // 새로운 파일이 있으면
-            if (!StringUtils.isEmpty(savedImageFileUrl)) { // 기존의 파일이 존재하면
-                fileService.deleteFile(savedImageFileUrl); // 지우고
-            }
-            // 기존의 파일이 없으면
-            String oriFileName = imageFile.getOriginalFilename();
-            String fileName = fileService.uploadFile(activityImageLocation, oriFileName, imageFile.getBytes()); // 업로드
-            String imageUrl = "/activityImages/" + fileName;
-            schedule.updateImageUrl(imageUrl);
         }
     }
 

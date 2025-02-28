@@ -2,211 +2,88 @@
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        /* Ensure the header section covers the top and bottom parts */
-.gnb{
-    background-color: #fff;
-    box-sizing: border-box;
-    border-bottom: 1px solid #222;
-}
+<header th:fragment="header">
+    <div class="header">
+        <!-- 메인 헤더 영역 -->
+        <div class="header-main">
+            <!-- 로고 -->
+            <div>
+                <a href="/" class="logo">
+                    <img src="/images/travel-logo.png" alt="Travel Logo">
+                </a>
 
-/* Top navigation bar styling */
-.top-nav-wrap {
-        display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 1200px;
-    padding: 20px 0 10px;
-    margin: 0 auto;
-}
-.top-nav-wrap > div:first-child{
-    display: flex;
-    gap: 30px;
-    align-items: center;
-    width: 535px;
-    height: 46px;
-}
-
-.top-nav-wrap .navbar-brand img {
-    height: 50px; /* Adjust logo size */
-}
-
-.search-wrap{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 340px;
-    height: 46px;
-    padding: 0 25px 0 20px;
-    border-radius: 30px;
-    border: 2px solid #ffcb31;
-    box-sizing: border-box;
-}
-.search-form .input-group {
-        display: block;
-    width: 100%;
-    height: 100%;
-    color: #999;
-    font-size: 15px;
-    line-height: 42px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-/* Member menu styling */
-.member-menu {
-    display: flex;
-    gap: 20px;
-}
-
-.member-menu .nav-link {
-    font-size: 14px;
-    color: #007bff;
-}
-
-/* Category navigation bar styling */
-.category-nav {
-    background-color: #343a40;
-    padding: 10px 0;
-}
-
-.category-nav .navbar-nav {
-    display: flex;
-    justify-content: space-between;
-}
-
-.category-nav .nav-item {
-    position: relative;
-        display: block;
-        padding: 20px 15px;
-        font-family: "pr-font-regular";
-        font-size: 17px;
-        color: #555;
-        line-height: 1;
-}
-
-/* Dropdown Menu styling */
-.nav-item.dropdown .dropdown-menu {
-    background-color: #f8f9fa;
-    border: none;
-}
-
-.nav-item.dropdown .dropdown-item {
-    color: #333333;
-    padding: 8px 20px;
-}
-
-/* Hover Effects */
-.nav-item.dropdown .nav-link:hover {
-    color: #ff7f50; /* Customize hover color */
-}
-
-.nav-item.dropdown .dropdown-item:hover {
-    background-color: #f1f1f1;
-}
-
-        .navbar-nav{
-            display: flex;
-            width: 1200px;
-            margin: 0 auto;
-        }
-        .utile-links{
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-    </style>
-</head>
-<header>
-<div th:fragment="header" class="travel-header">
-        <div class="gnb">
-            <!-- 상단 네비게이션 -->
-            <div class="top-nav-wrap">
-                <!-- 로고 -->
-                <div>
-                    <h1>
-                        <a class="navbar-brand" href="/">
-                            <img src="/images/travel-logo.png" alt="Travel Logo">
-                        </a>
-                    </h1>
                 <!-- 검색창 -->
-                <form class="search-wrap">
-                    <div class="input-group">
-                        <input class="form-control" type="search" placeholder="어디로 떠나시나요?" aria-label="Search">
-                        <button class="btn-search" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-                <!-- 회원 메뉴 -->
-                <div class="utile-links">
-                    <div sec:authorize="isAnonymous()">
-                        <a class="nav-link" href="/member/login">로그인</a>
-                        <a class="nav-link" href="/member/new">회원가입</a>
-                    </div>
-                    <div sec:authorize="isAuthenticated()">
-                        <a class="nav-link" href="/member/myPage">마이페이지</a>
-                        <a class="nav-link" href="/member/reservations">예약내역</a>
-                        <a class="nav-link" href="/member/logout">로그아웃</a>
-                    </div>
-                    <div sec:authorize="hasRole('ADMIN')">
-                        <a class="nav-link" th:href="@{/admin}">관리자</a>
-                    </div>
+                <div class="search-wrap">
+                    <form action="/search" method="get">
+                        <div class="search-bar-wrap">
+                            <input type="text" class="search-bar" name="searchQuery" placeholder="어디로 떠나시나요?">
+                            <button type="submit" class="btn-search">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- 하단 카테고리 메뉴 -->
-            <nav>
-                <ul class="navbar-nav">
-                    <!-- 국내여행 -->
-                    <li class="nav-item dropdown mx-2">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                            국내여행
-                        </a>
+            <!-- 상단 유틸리티 영역 -->
+            <div class="util-area">
+                <div class="util-inner">
+                    <div sec:authorize="isAnonymous()" class="login">
+                        <ul>
+                            <li><a href="/member/login">로그인</a></li>
+                            <li><a href="/member/new">회원가입</a></li>
+                        </ul>
+                    </div>
+                    <div sec:authorize="isAuthenticated()" class="logout">
+                        <ul>
+                            <li><a href="/member/myPage">마이페이지</a></li>
+                            <li><a href="/member/reservations">예약내역</a></li>
+                            <li><a href="/member/logout">로그아웃</a></li>
+                        </ul>
+                    </div>
+                    <div sec:authorize="hasRole('ADMIN')">
+                        <a href="/admin">관리자</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 네비게이션 영역 -->
+        <nav class="nav-area">
+            <div class="nav-inner">
+                <ul class="main-menu">
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">국내여행</a>
                         <div class="dropdown-menu">
                             <a th:each="category : ${T(com.soloProject.myTrip.constant.DomesticCategory).values()}"
-                               th:href="@{'/products/domestic/'+ ${category.link}}"
-                               th:text="${category.description}"
-                               class="dropdown-item"></a>
+                               th:href="@{'/category/'+ ${category.link}}"
+                               th:text="${category.description}"></a>
                         </div>
                     </li>
 
-                    <!-- 해외여행 (지역별) -->
                     <li th:each="region : ${T(com.soloProject.myTrip.constant.OverseasCategory).getUniqueRegions()}"
-                        class="nav-item dropdown mx-2">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown"
-                           th:text="${region}">
-                        </a>
+                        class="menu-item">
+                        <a href="#" class="menu-link" th:text="${region}"></a>
                         <div class="dropdown-menu">
                             <a th:each="category : ${T(com.soloProject.myTrip.constant.OverseasCategory).values()}"
                                th:if="${category.region == region}"
-                               th:href="@{'/products/overseas/'+${region}+'/'+${category.link}}"
-                               th:text="${category.description}"
-                               class="dropdown-item"></a>
+                               th:href="@{'/category/'+${category.link}}"
+                               th:text="${category.description}"></a>
                         </div>
                     </li>
 
-                    <!-- 테마여행 -->
-                    <li class="nav-item dropdown mx-2">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                            테마여행
-                        </a>
+                    <li class="menu-item">
+                        <a href="#" class="menu-link">테마여행</a>
                         <div class="dropdown-menu">
                             <a th:each="category : ${T(com.soloProject.myTrip.constant.ThemeCategory).values()}"
-                               th:href="@{'/products/theme/'+${category.link}}"
-                               th:text="${category.description}"
-                               class="dropdown-item"></a>
+                               th:href="@{'/category/'+${category.link}}"
+                               th:text="${category.description}"></a>
                         </div>
                     </li>
                 </ul>
-            </nav>
-        </div>
-</div>
+            </div>
+        </nav>
+    </div>
 </header>
     <!-- 필요한 JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

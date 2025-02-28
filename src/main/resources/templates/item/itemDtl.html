@@ -202,8 +202,9 @@
         .content-wrapper {
             display: flex;
             gap: 30px;
-            max-width: 1400px;
-            margin: 0 auto;
+            max-width: 1500px;
+            border-radius: 30px;
+            margin: 30px auto;
             padding: 30px;
             display: flex;
             background: #f8f9fa;
@@ -333,6 +334,77 @@
             font-size: 14px;
             display: none;
         }
+
+        .detail-image-section {
+            margin: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-image-container {
+            position: relative;
+            max-height: 800px; /* 초기 최대 높이 설정 */
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+
+        .detail-image-container.expanded {
+            max-height: none;
+        }
+
+        .detail-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .image-fade {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-fade.hidden {
+            opacity: 0;
+        }
+
+        .expand-button {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 8px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+
+        .expand-button:hover {
+            background: #f8f9fa;
+        }
+
+        .expand-button i {
+            transition: transform 0.3s ease;
+        }
+
+        .expand-button.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .section-title.detail {
+            margin-bottom: 30px;
+        }
     </style>
 </th:block>
 
@@ -347,7 +419,7 @@
                     <!-- 이미지 슬라이더 -->
                     <div id="itemImageCarousel" class="carousel slide" data-bs-ride="carousel">
                         <div class="carousel-inner">
-                            <div th:each="imageUrl, status : ${item.itemImageUrls}"
+                            <div th:each="imageUrl, status : ${item.thumbnailImageUrls}"
                                  th:class="${status.first} ? 'carousel-item active' : 'carousel-item'">
                                 <img th:src="${imageUrl}" class="d-block w-100" alt="상품 이미지">
                             </div>
@@ -496,14 +568,20 @@
                 </table>
             </div>
 
-            <!-- 상품 상세 설명 -->
-            <div class="row mb-5">
-                <div class="col-12">
-                    <h3 class="mb-4">상품 설명</h3>
-                    <div class="description-box p-4 bg-light rounded">
-                        <p th:text="${item.itemDetail}">상품 상세 설명</p>
-                    </div>
+            <!-- 상품 상세 설명 이미지 섹션 추가 (일정표 섹션 위에) -->
+            <div class="detail-image-section">
+                <h3 class="section-title detail">상품 상세 설명</h3>
+                <div class="detail-image-container">
+                    <img th:if="${item.itemDetailImageUrl != null}" 
+                         th:src="${item.itemDetailImageUrl}"
+                         class="detail-image"
+                         alt="상품 상세 설명">
+                    <div class="image-fade"></div>
                 </div>
+                <button type="button" class="expand-button">
+                    <span class="button-text">더보기</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
             </div>
 
             <!-- 참고/주의사항 -->
@@ -757,6 +835,40 @@
 
             // 초기 상태 설정
             updateButtons();
+
+            // 상세 이미지 확장 기능
+            const container = document.querySelector('.detail-image-container');
+            const button = document.querySelector('.expand-button');
+            const fade = document.querySelector('.image-fade');
+            const image = document.querySelector('.detail-image');
+
+            // 이미지 로드 완료 후 실행
+            image.onload = function() {
+                // 이미지 실제 높이가 컨테이너 최대 높이보다 작으면 버튼과 그라데이션 숨김
+                if (image.offsetHeight <= 800) {
+                    button.style.display = 'none';
+                    fade.style.display = 'none';
+                }
+            };
+
+            button.addEventListener('click', function() {
+                const isExpanded = container.classList.contains('expanded');
+                
+                if (!isExpanded) {
+                    container.classList.add('expanded');
+                    button.classList.add('expanded');
+                    fade.classList.add('hidden');
+                    button.querySelector('.button-text').textContent = '접기';
+                } else {
+                    container.classList.remove('expanded');
+                    button.classList.remove('expanded');
+                    fade.classList.remove('hidden');
+                    button.querySelector('.button-text').textContent = '더보기';
+                    
+                    // 상단으로 부드럽게 스크롤
+                    container.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
     </script>
 </th:block>

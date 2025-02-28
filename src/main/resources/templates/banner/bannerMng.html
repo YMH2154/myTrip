@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        function deleteBanner(bannerId) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                var token = $("meta[name='_csrf']").attr("content");
+                var header = $("meta[name='_csrf_header']").attr("content");
+
+                $.ajax({
+                    url: '/admin/banners/' + bannerId,
+                    type: 'DELETE',
+                    beforeSend: function(xhr) {
+                        xhr.setRequestHeader(header, token);
+                    },
+                    success: function(result) {
+                        alert("배너가 삭제되었습니다.");
+                        location.href = '/admin/banners';
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        alert("배너 삭제 중 오류가 발생했습니다.");
+                    }
+                });
+            }
+        }
+    </script>
+</th:block>
+
+<th:block layout:fragment="css">
+    <style>
+        .admin-container {
+            background-color: rgba(20, 20, 20, 0.9);
+            color: #ffffff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .admin-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+        }
+        .add-content-btn {
+            background-color: #6a0dad;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .add-content-btn:hover {
+            background-color: #8b00ff;
+            color: white;
+            text-decoration: none;
+        }
+        .content-table {
+            background-color: rgba(31, 31, 31, 0.7);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(106, 13, 173, 0.3);
+        }
+        .table {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0;
+        }
+        .table thead {
+            background-color: rgba(47, 47, 47, 0.9);
+        }
+        .table thead th {
+            border-bottom: 2px solid rgba(106, 13, 173, 0.3);
+            color: #fff;
+            font-weight: bold;
+            background-color: rgba(47, 47, 47, 0.95);
+        }
+        .table td, .table th {
+            border-color: rgba(106, 13, 173, 0.2);
+            vertical-align: middle;
+            text-align: center;
+            padding: 1rem;
+            background-color: rgba(20, 20, 20, 0.6);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .table tbody tr:hover {
+            background-color: rgba(106, 13, 173, 0.2) !important;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+        .action-btn img {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+            width: 24px;
+            height: 24px;
+        }
+        .action-btn:hover img {
+            opacity: 1;
+            filter: brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(230deg);
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content" class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">배너 관리</h1>
+        <a href="/admin/banners/new" class="add-content-btn">
+            <i class="fas fa-plus"></i> 새 배너 추가
+        </a>
+    </div>
+
+    <div class="content-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>이미지</th>
+                    <th>제목</th>
+                    <th>설명</th>
+                    <th>등록일</th>
+                    <th>수정일</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="banner : ${banners}">
+                    <td th:text="${banner.id}"></td>
+                    <td>
+                   
+                        <img th:if="${banner.bannerImgUrl != null}"
+                             th:src="${banner.bannerImgUrl}"
+                             width="100" height="130">
+                    </td>
+                    <td th:text="${banner.title}"></td>
+                    <td th:text="${banner.description}"></td>
+                    <td th:text="${#temporals.format(banner.regTime, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td th:text="${banner.regTime != banner.updateTime ? #temporals.format(banner.updateTime, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{'/admin/banners/' + ${banner.id} + '/modify'}" class="action-btn">
+                                <img src="/image/modification.png" alt="수정" title="수정">
+                            </a>
+                            <button type="button" class="action-btn" th:onclick="'deleteBanner(' + ${banner.id} + ')'">
+                                <img src="/images/delete.png" alt="삭제" title="삭제">
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</html> 

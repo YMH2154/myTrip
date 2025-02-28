@@ -1,24 +1,40 @@
 package com.soloProject.myTrip.controller;
 
+import com.soloProject.myTrip.dto.BannnerFormDto;
 import com.soloProject.myTrip.dto.ItemSearchDto;
+import com.soloProject.myTrip.entity.Banners;
 import com.soloProject.myTrip.entity.Item;
+import com.soloProject.myTrip.service.BannersService;
 import com.soloProject.myTrip.service.ItemService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
 public class AdminController{
 
     private final ItemService itemService;
+    private final BannersService bannersService;
 
     //상품 관리 페이지
     @GetMapping({"/admin", "/admin/items", "/admin/items/{page}"})
@@ -35,6 +51,68 @@ public class AdminController{
             return "item/itemMng";
         }
     }
+
+    // 배너 목록 페이지
+    @GetMapping("/admin/banners")
+    public String bannerList(Model model) {
+        List<Banners> banners = bannersService.getBannerList();
+        List<BannnerFormDto> bannerDtos = banners.stream()
+                .map(BannnerFormDto::of)
+                .collect(Collectors.toList());
+
+        model.addAttribute("banners", bannerDtos);
+        return "banner/bannerMng";
+    }
+
+
+    //액셀 다운로드
+//    @GetMapping("/admin/analytics/download")
+//    public ResponseEntity<InputStreamResource> downloadExcel() {
+//        try {
+//            ByteArrayInputStream in = excelService.generateExcelReport();
+//
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.add("Content-Disposition", "attachment; filename=content-analysis.xlsx");
+//
+//            return ResponseEntity
+//                    .ok()
+//                    .headers(headers)
+//                    .contentType(MediaType.parseMediaType("application/vnd.ms-excel"))
+//                    .body(new InputStreamResource(in));
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().build();
+//        }
+//    }
+
+    // 대시보드
+//    @GetMapping("/admin/dashboard")
+//    public String dashboard(Model model) {
+//        model.addAttribute("totalVisitors", visitorService.getTotalVisitorCount());
+//        model.addAttribute("monthlyVisitors", visitorService.getMonthlyStats());
+//        model.addAttribute("dailyVisitors", visitorService.getDailyStats());
+//        model.addAttribute("todayVisitors", visitorService.getTodayVisitorCount());
+//        model.addAttribute("recentDailyStats", visitorService.getRecentDailyStats());
+//        model.addAttribute("monthlyTrending", tmdbService.getMonthlyTrending());
+//        model.addAttribute("weeklyTrending", tmdbService.getWeeklyTrending());
+//        // Payment 데이터를 이용한 주간 매출 데이터
+//        Map<String, Long> weeklyRevenue = subscribeService.calculateWeeklyRevenue();
+//        model.addAttribute("weeklyRevenue", weeklyRevenue);
+//        // 총 매출 데이터 추가
+//        Long totalRevenue = subscribeService.calculateTotalRevenue();
+//        model.addAttribute("totalRevenue", totalRevenue);
+//        // 주간 총 매출 계산
+//        Long weeklyTotalRevenue = weeklyRevenue.values().stream().mapToLong(Long::longValue).sum();
+//        model.addAttribute("weeklyTotalRevenue", weeklyTotalRevenue);
+//
+//        // 일일 매출 데이터
+//        Map<String, Long> dailyRevenue = subscribeService.calculateDailyRevenue();
+//        model.addAttribute("dailyRevenue", dailyRevenue);
+//
+//        return "admin/dashboard";
+//    }
+
+
+
 
     //배너 등록
 

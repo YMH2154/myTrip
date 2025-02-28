@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .item-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+        }
+        .item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .item-info {
+            padding: 15px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container">
+        <div id="itemGrid" class="item-grid">
+            <!-- 아이템들이 여기에 동적으로 추가됨 -->
+        </div>
+        <div id="loading" class="loading">
+            Loading...
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        let page = 1; // 초기 페이지는 1로 설정 (0페이지는 서버에서 이미 로드)
+        let loading = false;
+        const pageSize = 12;
+        const link = window.location.pathname.split('/').pop();
+
+        function loadItems() {
+            if (loading) return;
+            loading = true;
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            fetch(`/api/category/${link}?page=${page}&pageSize=${pageSize}`)
+                .then(response => response.json())
+                .then(data => {
+                    const itemGrid = document.getElementById('itemGrid');
+                    
+                    data.forEach(item => {
+                        const card = createItemCard(item);
+                        itemGrid.appendChild(card);
+                    });
+                    
+                    loading = false;
+                    if (data.length === pageSize) {
+                        page++;
+                    }
+                    document.getElementById('loading').style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loading = false;
+                    document.getElementById('loading').style.display = 'none';
+                });
+        }
+
+        function createItemCard(item) {
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            card.innerHTML = `
+                <img src="${item.thumbnailImageUrls[0]}" class="item-image" alt="${item.itemName}">
+                <div class="item-info">
+                    <h5>${item.itemName}</h5>
+                    <p>가격: ${item.price.toLocaleString()}원</p>
+                    <p>최소 출발: ${item.minParticipants}명</p>
+                </div>
+            `;
+            card.onclick = () => {
+                window.location.href = `/item/${item.id}/calendar`;
+            };
+            return card;
+        }
+
+        // 무한 스크롤 구현
+        window.addEventListener('scroll', () => {
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+                loadItems();
+            }
+        });
+
+        // 초기 로드
+        loadItems();
+    </script>
+</th:block>
+</html>

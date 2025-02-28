@@ -34,8 +34,9 @@ public class Payment extends BaseTimeEntity {
    @Enumerated(EnumType.STRING)
    private PaymentMethod paymentMethod;
 
-   @OneToOne(fetch = FetchType.LAZY)
+   @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "member_reservation_id")
    private MemberReservation memberReservation; // 예약
 
+   private String refundReason;
 }

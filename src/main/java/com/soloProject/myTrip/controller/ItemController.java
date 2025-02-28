@@ -46,7 +46,8 @@ public class ItemController {
     // 상품 등록(POST)
     @PostMapping("/admin/item/new")
     public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
-            @RequestParam List<MultipartFile> itemImageFile,
+            @RequestParam List<MultipartFile> thumbnailImageFile,
+            @RequestParam MultipartFile itemDetailImageFile,
             Model model) {
 
         if (bindingResult.hasErrors()) {
@@ -55,15 +56,19 @@ public class ItemController {
         if (!itemFormDto.isValidCategory()) {
             model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
         }
-        if (itemImageFile.getFirst().isEmpty()) {
-            model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
+        if (itemDetailImageFile.isEmpty()) {
+            model.addAttribute("errorMessage", "상품 상세 설명 이미지는 필수입니다.");
+            return "item/itemForm";
+        }
+        if (thumbnailImageFile.getFirst().isEmpty()) {
+            model.addAttribute("errorMessage", "첫 번째 썸네일 이미지는 필수입니다.");
             return "item/itemForm";
         }
         if (itemFormDto.getMinParticipants() > itemFormDto.getMaxParticipants()) {
             model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
         }
         try {
-            itemService.saveItem(itemFormDto, itemImageFile);
+            itemService.saveItem(itemFormDto, itemDetailImageFile, thumbnailImageFile);
             return "redirect:/admin/items";
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,17 +93,18 @@ public class ItemController {
     // 상품 수정(POST)
     @PostMapping("/admin/item/{itemId}")
     public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
-            @RequestParam("itemImageFile") List<MultipartFile> itemImageFile,
+            @RequestParam("thumbnailImageFile") List<MultipartFile> thumbnailImageFile,
+            @RequestParam("itemDetailImageFile") MultipartFile itemDetailImageFile,
             Model model) {
         if (bindingResult.hasErrors()) { // 유효성 체크
             return "item/itemForm";
         }
-        if (itemImageFile.isEmpty() && itemFormDto.getId() == null) {
+        if (thumbnailImageFile.isEmpty() && itemFormDto.getId() == null) {
             model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
             return "item/itemForm";
         }
         try {
-            itemService.updateItem(itemFormDto, itemImageFile);
+            itemService.updateItem(itemFormDto, thumbnailImageFile, itemDetailImageFile);
             return "redirect:/admin/items";
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,7 +131,7 @@ public class ItemController {
     public ResponseEntity<String> deleteItemImage(@PathVariable("itemId") Long itemId,
             @PathVariable("index") int index) {
         try {
-            itemService.deleteItemImage(itemId, index);
+            itemService.deleteThumbnailImage(itemId, index);
             return new ResponseEntity<>("Success", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -141,7 +147,7 @@ public class ItemController {
 
             // 날짜별 잔여좌석 맵 생성
             Map<String, Integer> remainingSeats = new HashMap<>();
-            
+
             // 날짜별 가격 맵 생성
             Map<String, Integer> prices = new HashMap<>();
             int minPrice = Integer.MAX_VALUE;
@@ -158,8 +164,10 @@ public class ItemController {
                 int totalPrice = reservation.getTotalPrice();
                 prices.put(departureDate, totalPrice);
 
-                if (totalPrice < minPrice) minPrice = totalPrice;
-                if (totalPrice > maxPrice) maxPrice = totalPrice;
+                if (totalPrice < minPrice)
+                    minPrice = totalPrice;
+                if (totalPrice > maxPrice)
+                    maxPrice = totalPrice;
 
                 // 출발 항공편 정보
                 Map<String, String> departureFlightInfo = new HashMap<>();
@@ -174,7 +182,7 @@ public class ItemController {
                 returnFlightInfo.put("flightNumber", reservation.getReturnFlightNumber());
                 returnFlightInfo.put("dateTime", reservation.getReturnDateTime());
                 returnFlights.put(departureDate, returnFlightInfo);
-                
+
                 // 상태 정보
                 itemSellStatusMap.put(departureDate, reservation.getItemSellStatus());
             }
@@ -216,5 +224,4 @@ public class ItemController {
             return "redirect:/";
         }
     }
-
 }

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+<head>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<th:block layout:fragment="css">
+  <style>
+    .refund-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .info-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-group label {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .info-group p {
+      margin: 0;
+      color: #666;
+      font-size: 16px;
+    }
+
+    .refund-button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .refund-button:hover {
+      background-color: #c82333;
+    }
+
+    /* 모달 스타일 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: relative;
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .reason-group {
+      margin: 15px 0;
+    }
+
+    .reason-group label {
+      display: block;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .reason-textarea {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .modal-footer {
+      margin-top: 20px;
+      text-align: right;
+    }
+
+    .modal-footer button {
+      padding: 8px 15px;
+      margin-left: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .confirm-button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+    }
+
+    .cancel-button {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+    }
+  </style>
+</th:block>
+
+<div layout:fragment="content">
+  <div class="refund-container">
+    <div class="info-group">
+      <label>상품명</label>
+      <p th:text="${reservation.itemReservation.item.itemName}"></p>
+    </div>
+    <div class="info-group">
+      <label>환불 금액</label>
+      <p th:text="${#numbers.formatInteger(amount, 3, 'COMMA')} + '원'"></p>
+    </div>
+    <button class="refund-button" id="refundButton">
+      환불하기
+    </button>
+  </div>
+
+  <!-- 환불 사유 모달 -->
+  <div id="refundModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>환불 사유를 선택해주세요</h3>
+      <div class="reason-group">
+        <label>
+          <input type="radio" name="refundReason" value="SCHEDULE_CHANGE"> 
+          일정 변경
+        </label>
+        <label>
+          <input type="radio" name="refundReason" value="PERSONAL_REASON">
+          개인 사정
+        </label>
+        <label>
+          <input type="radio" name="refundReason" value="PRICE_ISSUE">
+          가격 문제
+        </label>
+        <label>
+          <input type="radio" name="refundReason" value="OTHER">
+          기타
+        </label>
+        <textarea id="otherReason" class="reason-textarea" 
+                 placeholder="환불 사유를 입력해주세요 (255자 이내)"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="cancel-button" id="cancelRefund">취소</button>
+        <button class="confirm-button" id="confirmRefund">환불 신청</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+    $(document).ready(function(){
+      const amount = [[${amount}]];
+      const reservationNumber = /*[[${reservation.reservationNumber}]]*/ '';
+      const modal = document.getElementById('refundModal');
+      const closeBtn = document.querySelector('.close');
+      const cancelBtn = document.getElementById('cancelRefund');
+      const confirmBtn = document.getElementById('confirmRefund');
+      const otherReasonTextarea = document.getElementById('otherReason');
+
+      // 환불하기 버튼 클릭 시 모달 표시
+      $('#refundButton').click(function(){
+        modal.style.display = "block";
+      });
+
+      // 모달 닫기 버튼
+      closeBtn.onclick = function() {
+        modal.style.display = "none";
+      }
+
+      // 취소 버튼
+      cancelBtn.onclick = function() {
+        modal.style.display = "none";
+      }
+
+      // 기타 사유 선택 시 텍스트영역 표시/숨김
+      $('input[name="refundReason"]').change(function() {
+        otherReasonTextarea.style.display = 
+          this.value === 'OTHER' ? 'block' : 'none';
+      });
+
+      // 환불 신청 버튼
+      confirmBtn.onclick = function() {
+        const selectedReason = document.querySelector('input[name="refundReason"]:checked');
+        
+        if (!selectedReason) {
+          alert('환불 사유를 선택해주세요.');
+          return;
+        }
+
+        if (selectedReason.value === 'OTHER' && !otherReasonTextarea.value.trim()) {
+          alert('기타 사유를 입력해주세요.');
+          return;
+        }
+
+        const refundReason = selectedReason.value === 'OTHER' ? 
+          otherReasonTextarea.value : selectedReason.value;
+
+        ajaxRequest("/payment/refund/prepare",
+          "POST",
+          {
+            reservationNumber: reservationNumber,
+            amount: amount.toString(),
+            reason: refundReason
+          },
+          function(response) {
+            console.log("환불 요청 성공");
+            location.href='/payment/refund/success';
+          });
+      }
+
+      // 모달 외부 클릭 시 닫기
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+    });
+  </script>
+</th:block>
+</html>

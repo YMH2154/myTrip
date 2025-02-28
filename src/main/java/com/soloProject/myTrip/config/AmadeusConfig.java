@@ -14,8 +14,11 @@ public class AmadeusConfig {
     private String apiSecret;
 
     @Bean
-    public Amadeus amadeus(){
-        return Amadeus.builder(apiKey, apiSecret)
+    public Amadeus amadeus() {
+        return Amadeus
+                .builder(apiKey, apiSecret)
+                .setLogLevel("debug")
+                .setHost("test.api.amadeus.com")
                 .build();
     }
 }

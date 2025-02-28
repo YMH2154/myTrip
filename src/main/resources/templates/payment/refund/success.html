@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .payment-result-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .result-title {
+            font-size: 24px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .result-message {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-home {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .btn-home:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="payment-result-container">
+        <div class="result-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="result-title">환불이 완료되었습니다</h2>
+        <p class="result-message">
+            환불이 정상적으로 처리되었습니다.<br>
+        </p>
+        <a href="/" class="btn-home">홈으로 돌아가기</a>
+        <a href="/member/reservations" class="btn">예약 내역</a>
+    </div>
+</div>
+</html> 

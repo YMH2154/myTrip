@@ -1,10 +1,16 @@
 package com.soloProject.myTrip.service;
 
-import com.soloProject.myTrip.dto.ApproveResponse;
-import com.soloProject.myTrip.dto.PaymentRequestDto;
-import com.soloProject.myTrip.dto.ReadyResponse;
+import com.soloProject.myTrip.constant.Age;
+import com.soloProject.myTrip.constant.PaymentMethod;
+import com.soloProject.myTrip.constant.ReservationStatus;
+import com.soloProject.myTrip.dto.*;
+import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.entity.MemberReservation;
+import com.soloProject.myTrip.entity.Participant;
+import com.soloProject.myTrip.entity.Payment;
+import com.soloProject.myTrip.repository.ItemReservationRepository;
 import com.soloProject.myTrip.repository.MemberReservationRepository;
+import com.soloProject.myTrip.repository.ParticipantRepository;
 import com.soloProject.myTrip.repository.PaymentRepository;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,14 +22,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +36,7 @@ import lombok.AllArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional
 public class PaymentService {
 
   @Value("${kakao.admin.key}")
@@ -49,6 +54,8 @@ public class PaymentService {
   private final PaymentRepository paymentRepository;
   private final RestTemplate restTemplate;
   private final MemberReservationRepository memberReservationRepository;
+  private final ItemReservationRepository itemReservationRepository;
+  private final ParticipantRepository participantRepository;
 
   // 결제 준비 정보를 저장할 Map
   private final Map<String, PaymentInfo> paymentInfoMap = new HashMap<>();
@@ -98,6 +105,24 @@ public class PaymentService {
         log.info("카카오페이 준비 성공 - TID: {}", response.getBody().getTid());
         // 결제 정보 저장
         paymentInfoMap.put(response.getBody().getTid(), new PaymentInfo(orderId, userId));
+
+        //Payment 데이터 저장
+        Payment payment = Payment.builder()
+                .itemName(reservation.getItemReservation().getItem().getItemName())
+                .paymentKey(response.getBody().getTid())
+                .memberReservation(reservation)
+                .merchantUid(orderId)
+                .price(requestDto.getAmount())
+                .paymentMethod(PaymentMethod.KAKAO)
+                .build();
+
+        //예약 상태 변경
+        if(reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
+            reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
+        }else{
+            reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+        }
+        paymentRepository.save(payment);
       }
 
       return response.getBody();
@@ -155,5 +180,45 @@ public class PaymentService {
     headers.set("Authorization", "KakaoAK " + kakaoAdminKey);
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     return headers;
+  }
+
+  // 카카오페이 결제 취소
+  public KakaoCancelResponse kakaoCancel(RefundRequestDto refundRequestDto) {
+
+      log.info("service kakaoCancel............................................");
+
+      MemberReservation reservation = memberReservationRepository.findByReservationNumber(refundRequestDto.getReservationNumber()).orElseThrow();
+      Payment payment = paymentRepository.findByPriceAndMemberReservationId(refundRequestDto.getAmount(), reservation.getId());
+
+      MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+      parameters.add("cid", "TC0ONETIME");
+      parameters.add("tid", payment.getPaymentKey());
+      parameters.add("cancel_amount", refundRequestDto.getAmount());
+      parameters.add("cancel_tax_free_amount", "0");
+      parameters.add("cancel_vat_amount", "0");
+
+      // MemberReservation 상태 업데이트
+      reservation.updateStatus(ReservationStatus.CANCELLED);
+      memberReservationRepository.save(reservation);
+
+      // ItemReservation 좌석 상태 업데이트
+      ItemReservation itemReservation = itemReservationRepository.findById(reservation.getItemReservation().getId()).orElseThrow(EntityNotFoundException::new);
+      List<Participant> adult = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.ADULT);
+      List<Participant> child = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.CHILD);
+      int cancelledSeat = adult.size() + child.size();
+      itemReservation.updateRemainingSeats(cancelledSeat);
+      itemReservationRepository.save(itemReservation);
+
+      // 환불 사유 등록
+      payment.setRefundReason(refundRequestDto.getReason());
+
+      HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
+
+      RestTemplate restTemplate = new RestTemplate();
+
+      return restTemplate.postForObject(
+              "https://kapi.kakao.com/v1/payment/cancel",
+              requestEntity,
+              KakaoCancelResponse.class);
   }
 }

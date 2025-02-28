@@ -1,6 +1,5 @@
 package com.soloProject.myTrip.entity;
 
-import com.soloProject.myTrip.constant.AirportCode;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
 import com.soloProject.myTrip.dto.MemberUpdateFormDto;
@@ -48,9 +47,8 @@ public class Member extends BaseTimeEntity {
         return member;
     }
 
-    public Member update(String name) {
+    public void update(String name) {
         this.name = name;
-        return this;
     }
 
     public void updateMember(MemberUpdateFormDto memberUpdateFormDto) {

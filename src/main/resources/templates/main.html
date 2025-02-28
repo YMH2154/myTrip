@@ -27,10 +27,16 @@
         }
         
         .section-title {
-            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
             margin: 50px 0 30px;
-            font-size: 2rem;
-            font-weight: bold;
+            text-align: center;
+            color: #333;
+        }
+        
+        .section-title .emoji {
+            font-size: 24px;
+            margin-left: 8px;
         }
         
         .swiper {
@@ -39,14 +45,18 @@
         }
         
         .item-card {
-            border-radius: 10px;
+            border: none;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
         }
         
         .item-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
         }
         
         .item-image {
@@ -55,39 +65,41 @@
         }
         
         .item-info {
-            padding: 15px;
+            padding: 20px;
+        }
+        
+        .item-info h5 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 12px;
         }
         
         .deadline-badge {
-            background-color: #ff4757;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            background: #ff6b6b;
         }
         
         .confirmed-badge {
-            background-color: #2ed573;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            background: #3498db;
         }
         
         .price {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2f3542;
+            font-size: 22px;
+            font-weight: 700;
+            color: #3498db;
+            margin-top: 10px;
         }
         
-        .day-price {
-            display: block;
-            font-size: 0.8em;
+        .price small {
+            font-size: 14px;
             color: #666;
-        }
-        
-        .flatpickr-day:hover .day-price {
-            color: #fff;
+            font-weight: normal;
         }
         
         .loading-overlay {
@@ -122,81 +134,450 @@
                 transform: translateX(100px);
             }
         }
+
+        /* 캐러셀 컨트롤 버튼 */
+        .carousel-control-prev,
+        .carousel-control-next {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* 캐러셀 스타일 */
+        #mainCarousel {
+            margin-top: -20px;
+        }
+
+        .carousel-inner {
+            height: 500px;
+        }
+
+        .carousel-item {
+            height: 500px;
+        }
+
+        .carousel-item img {
+            object-fit: cover;
+            height: 100%;
+        }
+
+        .carousel-caption {
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 40px;
+            text-align: left;
+        }
+        
+         /* 캐러셀 네비게이션 버튼 스타일 */
+        #mainCarousel .carousel-control-prev,
+        #mainCarousel .carousel-control-next {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #mainCarousel:hover .carousel-control-prev,
+        #mainCarousel:hover .carousel-control-next {
+            opacity: 1;
+        }
+
+        #mainCarousel .carousel-control-prev {
+            left: 20px;
+        }
+
+        #mainCarousel .carousel-control-next {
+            right: 20px;
+        }
+
+        /* 인디케이터 스타일 */
+        #mainCarousel .carousel-indicators {
+            margin-bottom: 20px;
+        }
+
+        #mainCarousel .carousel-indicators button.active {
+            background-color: #fff;
+        }
+
+        #mainCarousel .carousel-indicators button {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            margin: 0 5px;
+        }
+
+        /* Swiper 네비게이션 버튼 */
+        .swiper-button-next,
+        .swiper-button-prev {
+            background: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .swiper-button-next:after,
+        .swiper-button-prev:after {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .swiper-pagination-bullet-active {
+            background: #3498db;
+        }
+
+        /* 메인 검색 섹션 */
+        .search-section {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('/images/search-bg.jpg') no-repeat center;
+            background-size: cover;
+            padding: 100px 0;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .main-title {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-button:hover {
+            background: #2980b9;
+        }
+
+        /* 섹션 공통 스타일 */
+        section {
+            padding: 60px 0;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .emoji {
+            font-size: 28px;
+        }
+
+        /* 상품 카드 스타일 개선 */
+        .item-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .item-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+        }
+
+        .item-image {
+            height: 250px;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        .item-card:hover .item-image {
+            transform: scale(1.05);
+        }
+
+        .item-info {
+            padding: 25px;
+        }
+
+        .item-info h5 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        /* 뱃지 스타일 개선 */
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+
+        .deadline-badge {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .confirmed-badge {
+            background: #3498db;
+            color: white;
+        }
+
+        /* 가격 스타일 */
+        .price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3498db;
+            margin-top: 15px;
+        }
+
+        .price small {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: normal;
+        }
+
+        /* Swiper 네비게이션 버튼 개선 */
+        .swiper-button-next,
+        .swiper-button-prev {
+            background: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .swiper-button-next:after,
+        .swiper-button-prev:after {
+            font-size: 20px;
+            color: #2c3e50;
+        }
+
+        .swiper-pagination-bullet-active {
+            background: #3498db;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .search-section {
+                padding: 50px 0;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .item-image {
+                height: 200px;
+            }
+        }
     </style>
 </th:block>
 
 <div layout:fragment="content">
-    <!-- 메인 배너 -->
-    <div class="main-banner">
-        <div>
-            <h1>당신의 완벽한 여행을 시작하세요</h1>
-            <p>특별한 순간을 만드는 최고의 여행</p>
+    <!-- 메인 검색 섹션 추가 -->
+    <div class="search-section">
+        <div class="container">
+            <h1 class="main-title">당신의 완벽한 여행을 찾아보세요</h1>
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="어디로 떠나고 싶으신가요?">
+                <button class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- 로딩 오버레이 추가 -->
-    <div class="loading-overlay">
-        <div class="loading-content">
-            <div class="airplane">✈️</div>
-            <h3 class="mt-3">가격을 조회중입니다...</h3>
+    <!-- 캐러셀 섹션 -->
+    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+        <!-- 인디케이터 추가 -->
+        <div class="carousel-indicators">
+            <button th:each="item, stat : ${banners}"
+                    type="button"
+                    data-bs-target="#mainCarousel"
+                    th:data-bs-slide-to="${stat.index}"
+                    th:class="${stat.first ? 'active' : ''}"
+                    th:aria-current="${stat.first}">
+            </button>
         </div>
-    </div>
 
-    <!-- 추천 상품 -->
-    <h2>이런 상품 어때요?
-        <span class="emoji">✨</span>
-    </h2>
-    <div class="swiper confirmed-swiper">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide" th:each="item : ${recommendedItems}">
-                <a class="card item-card" th:href="@{'/item/'+ ${item.id} +'/calendar'}">
-                    <img th:src="${item.itemImageUrls[0]}" class="item-image" th:alt="${item.itemName}">
-                    <div class="item-info">
-                        <h5 class="card-title" th:text="${item.itemName}">상품명</h5>
-                        <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
-                        <p class="card-text">
-                            <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원
-                            <small>(항공권 포함)</small>
-                        </p>
-                    </div>
+        <div class="carousel-inner">
+            <!-- 배너 데이터가 없을 경우 기본 이미지 표시 -->
+            <div th:if="${#lists.isEmpty(banners)}" class="carousel-item active">
+                <a href="#" class="carousel-link">
+                    <img src="/images/default_banner.jpg"
+                         class="d-block w-100"
+                         alt="기본 배너">
+                </a>
+            </div>
+
+            <!-- 배너 데이터가 있을 경우 해당 데이터 표시 -->
+            <div th:if="${not #lists.isEmpty(banners)}"
+                 th:each="banner, stat : ${banners}"
+                 th:class="'carousel-item ' + ${stat.first ? 'active' : ''}">
+                <a th:href="${banner.mappingUrl}" class="carousel-link" target="_blank">
+                    <img th:if="${banner.bannerImgUrl != null}"
+                         th:src="${banner.bannerImgUrl}"
+                         class="d-block w-100"
+                         th:alt="${banner.title}">
                 </a>
             </div>
         </div>
-        <div class="swiper-pagination"></div>
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
+
+
+        <!-- 네비게이션 버튼 스타일 수정 -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
     </div>
 
-    <!-- 출발 확정 상품 -->
-    <h2 class="section-title">출발 확정 상품</h2>
-    <div class="swiper confirmed-swiper">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide" th:each="item : ${confirmedItems}">
-                <a class="card item-card" th:href="@{'/item/'+ ${item.id} +'/calendar'}">
-                    <div class="item-card">
-                        <img th:src="$item.itemImageUrls[0]}" class="item-image" th:alt="${item.itemName}">
-                        <div class="item-info">
-                            <h5 th:text="${item.itemName}">상품명</h5>
-                            <span class="confirmed-badge">출발 확정</span>
-                            <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
-                            <p class="card-text">
-                                <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원
-                                <small>(항공권 포함)</small>
-                            </p>
-                        </div>
+    <!-- 추천 상품 섹션 -->
+    <section class="recommended-section">
+        <div class="container">
+            <h2 class="section-title">이런 상품 어때요? <span class="emoji">✨</span></h2>
+            <div class="swiper confirmed-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" th:each="item : ${recommendedItems}">
+                        <a class="card item-card" th:href="@{'/item/'+ ${item.id} +'/calendar'}">
+                            <img th:src="${item.thumbnailImageUrls[0]}" class="item-image" th:alt="${item.itemName}">
+                            <div class="item-info">
+                                <h5 class="card-title" th:text="${item.itemName}">상품명</h5>
+                                <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
+                                <p class="card-text">
+                                    <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원
+                                    <small>(항공권 포함)</small>
+                                </p>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                </div>
+                <div class="swiper-pagination"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
             </div>
         </div>
-        <div class="swiper-pagination"></div>
-        <div class="swiper-button-next"></div>
-        <div class="swiper-button-prev"></div>
-    </div>
+    </section>
+
+    <!-- 출발 확정 상품 섹션 -->
+    <section class="confirmed-section">
+        <div class="container">
+            <h2 class="section-title">출발 확정 상품 <span class="emoji">🎉</span></h2>
+            <div class="swiper confirmed-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" th:each="item : ${confirmedItems}">
+                        <a class="card item-card" th:href="@{'/item/'+ ${item.id} +'/calendar'}">
+                            <div class="item-card">
+                                <img th:src="$item.thumbnailImageUrls[0]}" class="item-image" th:alt="${item.itemName}">
+                                <div class="item-info">
+                                    <h5 th:text="${item.itemName}">상품명</h5>
+                                    <span class="confirmed-badge">출발 확정</span>
+                                    <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
+                                    <p class="card-text">
+                                        <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원
+                                        <small>(항공권 포함)</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="swiper-pagination"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </section>
 </div>
 
 <th:block layout:fragment="script">
     <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
     <script th:inline="javascript">
+        const sliderStates = {
+            'banners': { currentIndex: 0 }
+        };
+
+        const itemsPerPage = 5;
+
+        function slideContent(sliderId, direction) {
+            const container = document.querySelector(`#${sliderId} .thumbnail-grid`);
+            const items = document.querySelectorAll(`#${sliderId} .thumbnail-card`);
+            const maxIndex = Math.ceil(items.length / itemsPerPage) - 1;
+
+            if (direction === 'next' && sliderStates[sliderId].currentIndex < maxIndex) {
+                sliderStates[sliderId].currentIndex++;
+            } else if (direction === 'prev' && sliderStates[sliderId].currentIndex > 0) {
+                sliderStates[sliderId].currentIndex--;
+            }
+
+            const translateX = -(sliderStates[sliderId].currentIndex * 100);
+            container.style.transform = `translateX(${translateX}%)`;
+
+            updateNavigationButtons(sliderId);
+        }
+
+        function updateNavigationButtons(sliderId) {
+            const container = document.getElementById(sliderId);
+            if (!container) return;  // 컨테이너가 없으면 함수 종료
+
+            const prevButton = container.querySelector('.carousel-control-prev');
+            const nextButton = container.querySelector('.carousel-control-next');
+
+            if (!prevButton || !nextButton) return;  // 버튼이 없으면 함수 종료
+
+            const items = container.querySelectorAll('.thumbnail-card');
+            const maxIndex = Math.ceil(items.length / itemsPerPage) - 1;
+
+            if (prevButton) {
+                prevButton.style.display = sliderStates[sliderId].currentIndex === 0 ? 'none' : 'block';
+            }
+            if (nextButton) {
+                nextButton.style.display = sliderStates[sliderId].currentIndex >= maxIndex ? 'none' : 'block';
+            }
+        }
     </script>
 </th:block>
 
