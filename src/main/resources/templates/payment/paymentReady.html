@@ -110,6 +110,7 @@
                 <select id="couponSelect" class="form-control">
                     <option value="">쿠폰을 선택해주세요</option>
                     <option th:each="coupon : ${availableCoupons}"
+                            th:if="coupon.couponStatus.name() == 'USABLE'"
                             th:value="${coupon.id}"
                             th:text="${coupon.description + ' (' + (coupon.couponType == 'AMOUNT' ? #numbers.formatInteger(coupon.discountAmount, 3, 'COMMA') + '원' : coupon.discountPercentage + '%') + ')'}"
                             th:data-min-amount="${coupon.minPurchaseAmount}"
@@ -175,7 +176,7 @@
 
             // 아임포트 초기화
             const IMP = window.IMP;
-            IMP.init("imp81251647"); // 실제 상점아이디로 변경 필요
+            IMP.init("imp81251647");
 
             // 쿠폰 선택 이벤트
             $('#couponSelect').change(function() {

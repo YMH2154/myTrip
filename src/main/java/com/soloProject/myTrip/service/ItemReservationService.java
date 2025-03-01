@@ -6,6 +6,7 @@ import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.repository.ItemRepository;
 import com.soloProject.myTrip.repository.ItemReservationRepository;
 import com.soloProject.myTrip.dto.FlightOfferDto;
+import com.soloProject.myTrip.dto.ItemReservationDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -35,9 +36,9 @@ public class ItemReservationService {
     List<ItemReservation> reservations = itemReservationRepository.findByItemId(item.getId());
     if (!reservations.isEmpty()) {
       int lowestPrice = reservations.stream()
-              .mapToInt(ItemReservation::getTotalPrice)
-              .min()
-              .getAsInt();
+          .mapToInt(ItemReservation::getTotalPrice)
+          .min()
+          .getAsInt();
       item.updateLowestPrice(lowestPrice);
     }
   }
@@ -82,10 +83,10 @@ public class ItemReservationService {
   protected ItemReservation createReservationForDate(Item item, LocalDate date) {
     try {
       List<FlightOfferDto> flightOffers = flightSearchService.searchFlights(
-              item.getOrigin().name(),
-              item.getDestination().name(),
-              date,
-              date.plusDays(item.getDuration() - 1));
+          item.getOrigin().name(),
+          item.getDestination().name(),
+          date,
+          date.plusDays(item.getDuration() - 1));
 
       if (flightOffers.isEmpty()) {
         log.error("항공권 정보를 찾을 수 없음 - 상품: {}, 날짜: {}", item.getId(), date);
@@ -96,17 +97,17 @@ public class ItemReservationService {
       int totalPrice = item.getPrice() + offer.getPrice().intValue();
 
       ItemReservation reservation = ItemReservation.builder()
-              .item(item)
-              .departureDateTime(offer.getDepartureDate())
-              .returnDateTime(offer.getReturnDate())
-              .totalPrice(totalPrice)
-              .departureCarrierCode(offer.getDepartureCarrierCode())
-              .departureCarrierName(AirlineCode.getCompanyNameByCode(offer.getDepartureCarrierCode()))
-              .departureFlightNumber(offer.getDepartureFlightNumber())
-              .returnCarrierCode(offer.getReturnCarrierCode())
-              .returnCarrierName(AirlineCode.getCompanyNameByCode(offer.getReturnCarrierCode()))
-              .returnFlightNumber(offer.getReturnFlightNumber())
-              .build();
+          .item(item)
+          .departureDateTime(offer.getDepartureDate())
+          .returnDateTime(offer.getReturnDate())
+          .totalPrice(totalPrice)
+          .departureCarrierCode(offer.getDepartureCarrierCode())
+          .departureCarrierName(AirlineCode.getCompanyNameByCode(offer.getDepartureCarrierCode()))
+          .departureFlightNumber(offer.getDepartureFlightNumber())
+          .returnCarrierCode(offer.getReturnCarrierCode())
+          .returnCarrierName(AirlineCode.getCompanyNameByCode(offer.getReturnCarrierCode()))
+          .returnFlightNumber(offer.getReturnFlightNumber())
+          .build();
 
       return itemReservationRepository.saveAndFlush(reservation);
     } catch (Exception e) {
@@ -130,5 +131,51 @@ public class ItemReservationService {
   @Transactional
   public List<ItemReservation> getReservationsForItem(Long itemId) {
     return itemReservationRepository.findByItemId(itemId);
+  }
+
+  public ItemReservationDto getItemReservationInfo(Long itemId) {
+    List<ItemReservation> reservations = getReservationsForItem(itemId);
+    ItemReservationDto dto = ItemReservationDto.createEmpty();
+
+    int minPrice = Integer.MAX_VALUE;
+    int maxPrice = 0;
+
+    for (ItemReservation reservation : reservations) {
+      String departureDate = reservation.getDepartureDateTime().split("T")[0];
+
+      // 잔여석, 가격, 상태 정보 설정
+      dto.getRemainingSeats().put(departureDate, reservation.getRemainingSeats());
+      dto.getPrices().put(departureDate, reservation.getTotalPrice());
+      dto.getItemSellStatus().put(departureDate, reservation.getItemSellStatus());
+
+      // 최소/최대 가격 업데이트
+      int totalPrice = reservation.getTotalPrice();
+      if (totalPrice < minPrice)
+        minPrice = totalPrice;
+      if (totalPrice > maxPrice)
+        maxPrice = totalPrice;
+
+      // 출발 항공편 정보
+      ItemReservationDto.FlightInfo departureFlight = ItemReservationDto.FlightInfo.builder()
+          .carrierName(reservation.getDepartureCarrierName())
+          .flightNumber(reservation.getDepartureFlightNumber())
+          .dateTime(reservation.getDepartureDateTime())
+          .build();
+
+      // 귀국 항공편 정보
+      ItemReservationDto.FlightInfo returnFlight = ItemReservationDto.FlightInfo.builder()
+          .carrierName(reservation.getReturnCarrierName())
+          .flightNumber(reservation.getReturnFlightNumber())
+          .dateTime(reservation.getReturnDateTime())
+          .build();
+
+      dto.getDepartureFlights().put(departureDate, departureFlight);
+      dto.getReturnFlights().put(departureDate, returnFlight);
+    }
+
+    dto.setMinPrice(minPrice != Integer.MAX_VALUE ? minPrice : 0);
+    dto.setMaxPrice(maxPrice);
+
+    return dto;
   }
 }

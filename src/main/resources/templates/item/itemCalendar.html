@@ -316,8 +316,8 @@
             <div class="price-info-container">
                 <div class="price-info">
                     <h2 th:text="${item.itemName}"></h2>
-                    <p>최저가: <span th:text="${#numbers.formatInteger(minPrice, 0, 'COMMA')}">0</span>원 ~
-                       최고가: <span th:text="${#numbers.formatInteger(maxPrice, 0, 'COMMA')}">0</span>원</p>
+                    <p>최저가: <span th:text="${#numbers.formatInteger(reservationInfo.minPrice, 0, 'COMMA')}">0</span>원 ~
+                       최고가: <span th:text="${#numbers.formatInteger(reservationInfo.maxPrice, 0, 'COMMA')}">0</span>원</p>
 
                     <div class="status-info">
                         <div class="status-item">
@@ -333,7 +333,6 @@
                             <p>예약 마감</p>
                         </div>
                     </div>
-
                 </div>
             </div>
             <div id='calendar'></div>
@@ -356,15 +355,17 @@
     
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            const remainingSeats = /*[[${remainingSeats}]]*/ {};
-            const prices = /*[[${prices}]]*/ {};
+            const reservationInfo = /*[[${reservationInfo}]]*/ {};
             const itemId = /*[[${item.id}]]*/ null;
             const itemName = /*[[${item.itemName}]]*/ '';
-            const itemSellStatus = /*[[${itemSellStatus}]]*/ {};
-            const departureFlights = /*[[${departureFlights}]]*/ {};
-            const returnFlights = /*[[${returnFlights}]]*/ {};
             const duration = /*[[${item.duration}]]*/ 0;
 
+            const remainingSeats = reservationInfo.remainingSeats;
+            const prices = reservationInfo.prices;
+            const itemSellStatus = reservationInfo.itemSellStatus;
+            const departureFlights = reservationInfo.departureFlights;
+            const returnFlights = reservationInfo.returnFlights;
+            
             let selectedCell = null;
 
             function formatDate(date) {

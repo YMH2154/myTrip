@@ -2,6 +2,7 @@ package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.constant.ItemSellStatus;
 import com.soloProject.myTrip.dto.ItemFormDto;
+import com.soloProject.myTrip.dto.ItemReservationDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.ItemReservation;
@@ -9,6 +10,8 @@ import com.soloProject.myTrip.service.ItemReservationService;
 import com.soloProject.myTrip.service.ItemService;
 import com.soloProject.myTrip.service.ScheduleService;
 import com.soloProject.myTrip.service.FlightSearchService;
+import com.soloProject.myTrip.service.RecentViewService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +37,7 @@ public class ItemController {
     private final ScheduleService scheduleService;
     private final FlightSearchService flightSearchService;
     private final ItemReservationService itemReservationService;
+    private final RecentViewService recentViewService;
     private static final Logger log = LoggerFactory.getLogger(ItemController.class);
 
     // 상품 등록(GET)
@@ -81,7 +85,7 @@ public class ItemController {
     @GetMapping("/admin/item/{itemId}")
     public String itemEdit(Model model, @PathVariable("itemId") Long itemId) {
         try {
-            ItemFormDto itemFormDto = itemService.getItemDtl(itemId);
+            ItemFormDto itemFormDto = itemService.getItem(itemId);
             model.addAttribute("itemFormDto", itemFormDto);
             return "item/itemForm";
         } catch (Exception e) {
@@ -143,58 +147,10 @@ public class ItemController {
     public String itemCalendar(@PathVariable("itemId") Long itemId, Model model) {
         try {
             ItemFormDto item = itemService.getItem(itemId);
-            List<ItemReservation> reservations = itemReservationService.getReservationsForItem(itemId);
-
-            // 날짜별 잔여좌석 맵 생성
-            Map<String, Integer> remainingSeats = new HashMap<>();
-
-            // 날짜별 가격 맵 생성
-            Map<String, Integer> prices = new HashMap<>();
-            int minPrice = Integer.MAX_VALUE;
-            int maxPrice = 0;
-
-            Map<String, Map<String, String>> departureFlights = new HashMap<>();
-            Map<String, Map<String, String>> returnFlights = new HashMap<>();
-            Map<String, ItemSellStatus> itemSellStatusMap = new HashMap<>();
-
-            for (ItemReservation reservation : reservations) {
-                String departureDate = reservation.getDepartureDateTime().split("T")[0];
-                remainingSeats.put(departureDate, reservation.getRemainingSeats());
-
-                int totalPrice = reservation.getTotalPrice();
-                prices.put(departureDate, totalPrice);
-
-                if (totalPrice < minPrice)
-                    minPrice = totalPrice;
-                if (totalPrice > maxPrice)
-                    maxPrice = totalPrice;
-
-                // 출발 항공편 정보
-                Map<String, String> departureFlightInfo = new HashMap<>();
-                departureFlightInfo.put("carrierName", reservation.getDepartureCarrierName());
-                departureFlightInfo.put("flightNumber", reservation.getDepartureFlightNumber());
-                departureFlightInfo.put("dateTime", reservation.getDepartureDateTime());
-                departureFlights.put(departureDate, departureFlightInfo);
-
-                // 귀국 항공편 정보
-                Map<String, String> returnFlightInfo = new HashMap<>();
-                returnFlightInfo.put("carrierName", reservation.getReturnCarrierName());
-                returnFlightInfo.put("flightNumber", reservation.getReturnFlightNumber());
-                returnFlightInfo.put("dateTime", reservation.getReturnDateTime());
-                returnFlights.put(departureDate, returnFlightInfo);
-
-                // 상태 정보
-                itemSellStatusMap.put(departureDate, reservation.getItemSellStatus());
-            }
+            ItemReservationDto reservationInfo = itemReservationService.getItemReservationInfo(itemId);
 
             model.addAttribute("item", item);
-            model.addAttribute("minPrice", minPrice != Integer.MAX_VALUE ? minPrice : 0);
-            model.addAttribute("maxPrice", maxPrice);
-            model.addAttribute("remainingSeats", remainingSeats);
-            model.addAttribute("prices", prices);
-            model.addAttribute("departureFlights", departureFlights);
-            model.addAttribute("returnFlights", returnFlights);
-            model.addAttribute("itemSellStatus", itemSellStatusMap);
+            model.addAttribute("reservationInfo", reservationInfo);
 
             return "item/itemCalendar";
         } catch (Exception e) {
@@ -207,6 +163,7 @@ public class ItemController {
     @GetMapping("/item/{itemId}/detail")
     public String itemDetail(@PathVariable("itemId") Long itemId,
             @RequestParam("departureDateTime") String departureDateTime,
+            HttpSession session,
             Model model) {
         try {
             ItemFormDto item = itemService.getItem(itemId);
@@ -214,9 +171,16 @@ public class ItemController {
                     itemId, departureDateTime);
             List<ScheduleDto> schedules = scheduleService.getScheduleDtl(itemId);
 
+            // 최근 본 상품 저장
+            recentViewService.addRecentView(session.getId(), itemId);
+
+            // 최근 본 다른 상품들 조회
+            List<ItemFormDto> recentItems = recentViewService.getRecentItems(session.getId(), itemId);
+
             model.addAttribute("item", item);
             model.addAttribute("reservation", reservation);
             model.addAttribute("schedules", schedules);
+            model.addAttribute("recentItems", recentItems);
 
             return "item/itemDtl";
         } catch (Exception e) {

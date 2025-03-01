@@ -44,23 +44,20 @@
 
         /* 입력 필드 공통 스타일 */
         .form-control, .form-select {
-            background-color: rgba(30, 30, 30, 0.9);
-            border: 1px solid rgba(106, 13, 173, 0.3);
-            color: #fff;
+            border: 1px solid rgba(13, 110, 253, 0.25);
+            color: #495057;
             height: 45px;
             transition: all 0.3s ease;
         }
 
         .form-control:focus, .form-select:focus {
-            background-color: rgba(30, 30, 30, 0.9);
-            border-color: rgba(106, 13, 173, 0.5);
-            color: #fff;
+            border-color: blue;
             box-shadow: 0 0 0 0.2rem rgba(106, 13, 173, 0.25);
         }
 
         /* 부가 항목 섹션 스타일 */
         .additional-items {
-            background: rgba(34, 34, 34, 0.8);
+            border: 1px solid rgba(13, 110, 253, 0.25);
             padding: 25px;
             border-radius: 12px;
             margin: 30px 0;
@@ -75,10 +72,10 @@
         }
 
         .item-group {
-            background: rgba(51, 51, 51, 0.6);
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
+            border: 1px solid rgba(13, 110, 253, 0.25);
         }
 
         .item-group:last-child {
@@ -86,7 +83,7 @@
         }
 
         .item-group label {
-            color: #fff;
+            color: black;
             font-weight: 500;
             margin-bottom: 12px;
             display: block;
@@ -104,7 +101,7 @@
         }
 
         .duration-inputs label {
-            color: #fff;
+            color: black;
             margin: 0 5px;
             display: inline;
         }
@@ -127,7 +124,7 @@
         }
 
         .radio-option label {
-            color: #fff;
+            color: black;
             margin: 0;
             font-weight: normal;
         }
@@ -187,6 +184,12 @@
                 flex-direction: column;
                 gap: 10px;
             }
+        }
+
+        .h2{
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
         }
     </style>
 </th:block>
@@ -276,6 +279,23 @@
             </div>
 
             <div class="form-group">
+                <label th:for="price">가격(항공권 제외)</label>
+                <input type="number" th:field="*{price}" class="form-control" placeholder="항공권을 제외한 가격을 입력해주세요">
+                <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError">Incorrect data</p>
+            </div>
+            <div class="form-group">
+                <label th:for="maxParticipants">최대 인원</label>
+                <input type="number" th:field="*{maxParticipants}" class="form-control" placeholder="최대 인원을 입력해주세요">
+                <p th:if="${#fields.hasErrors('maxParticipants')}" th:errors="*{maxParticipants}" class="fieldError">Incorrect data</p>
+            </div>
+
+            <div class="form-group">
+                <label th:for="minParticipants">최소 출발 인원</label>
+                <input type="number" th:field="*{minParticipants}" class="form-control" placeholder="최소 출발 인원을 입력해주세요">
+                <p th:if="${#fields.hasErrors('minParticipants')}" th:errors="*{minParticipants}" class="fieldError">Incorrect data</p>
+            </div>
+
+            <div class="form-group">
                 <label>부가항목</label>
                 <div class="additional-items">
                     <div class="item-group">
@@ -361,23 +381,6 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label th:for="price">가격(항공권 제외)</label>
-                <input type="number" th:field="*{price}" class="form-control" placeholder="항공권을 제외한 가격을 입력해주세요">
-                <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError">Incorrect data</p>
-            </div>
-            <div class="form-group">
-                <label th:for="maxParticipants">최대 인원</label>
-                <input type="number" th:field="*{maxParticipants}" class="form-control" placeholder="최대 인원을 입력해주세요">
-                <p th:if="${#fields.hasErrors('maxParticipants')}" th:errors="*{maxParticipants}" class="fieldError">Incorrect data</p>
-            </div>
-
-            <div class="form-group">
-                <label th:for="minParticipants">최소 출발 인원</label>
-                <input type="number" th:field="*{minParticipants}" class="form-control" placeholder="최소 출발 인원을 입력해주세요">
-                <p th:if="${#fields.hasErrors('minParticipants')}" th:errors="*{minParticipants}" class="fieldError">Incorrect data</p>
-            </div>
-
             <div class="form-group detail-image-container">
                 <label class="detail-image-label" th:for="itemDetailImage">상품 설명 이미지</label>
                 <p class="detail-image-description">* 상품의 상세 정보를 보여주는 이미지를 등록해주세요.</p>
@@ -420,7 +423,7 @@
                 <div class="form-group image-container" id="editImageContainer">
                     <div th:each="imageUrl, status : ${itemFormDto.thumbnailImageUrls}" class="image-item mb-3">
                         <div class="form-group">
-                            <label th:text="${status.index + 1} + '번째 썸네일 이미지'"></label>
+                            <label th:text="'썸네일 이미지('+${status.index + 1}+')'"></label>
                             <div class="border p-2">
                                 <img th:src="${imageUrl}" class="img-fluid mb-2" style="max-width: 300px;">
                                 <input type="file" class="form-control image-input" name="thumbnailImageFile">
@@ -455,13 +458,15 @@
             <div style="text-align: center" class="mt-4">
                 <button th:if="${#strings.isEmpty(itemFormDto.id)}" 
                         th:action="@{/admin/item/new}"
-                        type="submit" 
-                        class="btn btn-primary">등록</button>
+                        type="submit"
+                        style="background-color: #50bcdf;"
+                        class="btn btn-secondary">등록</button>
                 <button th:unless="${#strings.isEmpty(itemFormDto.id)}" 
                         th:action="@{'/admin/item/'+${itemFormDto.id}}"
-                        type="submit" 
-                        class="btn btn-primary">수정</button>
-                <button type="button" class="btn btn-secondary" 
+                        type="submit"
+                        style="background-color: #50bcdf;"
+                        class="btn btn-secondary">수정</button>
+                <button type="button" class="btn btn-secondary" style="background-color: firebrick;"
                         onclick=history.back()>취소</button>
             </div>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -576,7 +581,7 @@
             if (mode === 'edit') {
                 newItem.innerHTML = `
                     <div class="form-group">
-                        <label>${imageItems.length + 1}번째 상품 이미지</label>
+                        <label>썸네일 이미지(${imageItems.length + 1})</label>
                         <div class="border p-2">
                             <input type="file" class="form-control image-input" name="thumbnailImageFile">
                             <button type="button" class="btn btn-outline-danger mt-2" onclick="removeImageField(this)">삭제</button>
@@ -586,7 +591,7 @@
             } else {
                 newItem.innerHTML = `
                     <div class="form-group">
-                        <label>${imageItems.length + 1}번째 상품 이미지</label>
+                        <label>썸네일 이미지(${imageItems.length + 1})</label>
                         <input type="file" class="form-control" name="thumbnailImageFile">
                         <button type="button" class="btn btn-outline-danger mt-2" onclick="removeImageField(this)">삭제</button>
                     </div>

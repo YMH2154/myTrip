@@ -35,11 +35,9 @@
                         </ul>
                     </div>
                     <div sec:authorize="isAuthenticated()" class="logout">
-                        <ul>
-                            <li><a href="/member/myPage">마이페이지</a></li>
-                            <li><a href="/member/reservations">예약내역</a></li>
-                            <li><a href="/member/logout">로그아웃</a></li>
-                        </ul>
+                        <a href="/member/myPage">마이페이지</a>
+                        <a href="/member/reservations">예약내역</a>
+                        <a href="/member/logout">로그아웃</a>
                     </div>
                     <div sec:authorize="hasRole('ADMIN')">
                         <a href="/admin">관리자</a>

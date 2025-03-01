@@ -83,20 +83,13 @@ public class ItemService {
         // 상품 기본 정보 업데이트
         item.updateItem(itemFormDto);
         item.setThumbnailImageUrls(updateThumbnailImageFile(item.getId(), thumbnailImages));
-        item.setItemDetailImageUrl(fileService.updateImgFile(item.getId(), itemDetailImage,"detail"));
+        item.setItemDetailImageUrl(fileService.updateImgFile(item.getId(), itemDetailImage, "detail"));
     }
 
     // 상품 데이터 조회
     @Transactional(readOnly = true)
     public ItemFormDto getItem(Long itemId) {
         return ItemFormDto.of(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
-    }
-
-    // 상품 조회
-    @Transactional(readOnly = true)
-    public ItemFormDto getItemDtl(Long itemId) {
-        Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
-        return ItemFormDto.of(item);
     }
 
     // 썸네일 이미지 삭제
@@ -113,7 +106,6 @@ public class ItemService {
             item.setThumbnailImageUrls(imageUrls);
         }
     }
-
 
     // 여행 상품 삭제
     public void deleteItem(Long itemId) throws Exception {
@@ -218,7 +210,7 @@ public class ItemService {
 
         List<Item> items = (List<Item>) itemRepository.findAll(builder);
         List<ItemFormDto> itemFormDtoList = new ArrayList<>();
-        for(Item item : items){
+        for (Item item : items) {
             itemFormDtoList.add(ItemFormDto.of(item));
         }
         return itemFormDtoList;
@@ -229,7 +221,7 @@ public class ItemService {
     public List<ItemFormDto> getItemByCategory(String link, int page, int pageSize) {
         PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "regTime"));
         Page<Item> itemPage = itemRepository.findItemsByCategory(link, pageRequest);
-        
+
         return itemPage.getContent().stream()
                 .map(ItemFormDto::of)
                 .collect(Collectors.toList());

@@ -62,17 +62,21 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
     LocalDateTime dateTime = LocalDateTime.now();
 
     switch (searchDateType) {
-      case "1d":
-        dateTime = dateTime.minusDays(1);
-        break;
+
       case "1w":
         dateTime = dateTime.minusWeeks(1);
         break;
       case "1m":
         dateTime = dateTime.minusMonths(1);
         break;
+      case "3m":
+        dateTime = dateTime.minusMonths(3);
+        break;
       case "6m":
         dateTime = dateTime.minusMonths(6);
+        break;
+      case "1y":
+        dateTime = dateTime.minusYears(1);
         break;
     }
 

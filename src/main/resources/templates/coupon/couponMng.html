@@ -254,6 +254,16 @@
                 gap: 0.5rem;
             }
         }
+        .action-btn img {
+            filter: brightness(0.5) invert(0.5);
+            opacity: 0.9;
+            width: 24px;
+            height: 24px;
+        }
+        .action-btn:hover img {
+            opacity: 1;
+            filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
+        }
     </style>
 </th:block>
 
@@ -293,7 +303,7 @@
                         </div>
                         <div class="radio-option">
                             <input type="radio" name="searchDateType" id="date-1y" value="1y">
-                            <label for="date-1y">1일</label>
+                            <label for="date-1y">1년</label>
                         </div>
                     </div>
                 </div>
@@ -360,9 +370,9 @@
             </thead>
             <tbody>
             <tr th:if="${#lists.isEmpty(coupons)}">
-                <td colspan="8" class="text-center">등록된 쿠폰이 없습니다.</td>
+                <td colspan="8" class="text-center">해당하는 쿠폰이 없습니다.</td>
             </tr>
-            <tr th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
+            <tr th:if="coupon.couponType != null" th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
                 <td th:text="${coupon.id}"></td>
                 <td>
                     <span class="coupon-type" th:classappend="${coupon.couponType == 'AMOUNT' ? 'type-amount' : 'type-percentage'}"
@@ -370,8 +380,9 @@
                     </span>
                 </td>
                 <td>
-                    <span th:if="${coupon.couponType == 'AMOUNT'}" th:text="${#numbers.formatInteger(coupon.discountAmount, 0, 'COMMA') + '원'}"></span>
-                    <span th:if="${coupon.couponType == 'PERCENTAGE'}" th:text="${coupon.discountPercentage + '%'}"></span>
+                    <span th:text="${coupon.couponType.name() == 'AMOUNT'
+                    ? #numbers.formatInteger(coupon.discountAmount, 0, 'COMMA') + '원'
+                    : coupon.discountPercentage + '%'}"></span>
                 </td>
                 <td th:text="${#numbers.formatInteger(coupon.minPurchaseAmount, 0, 'COMMA') + '원'}"></td>
                 <td th:text="${coupon.description}"></td>

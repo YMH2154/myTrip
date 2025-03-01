@@ -46,7 +46,7 @@ public class Coupon extends BaseTimeEntity{
         userCoupon.setDescription(coupon.description);
         userCoupon.setDiscountAmount(coupon.discountAmount);
         userCoupon.setDiscountPercentage(coupon.discountPercentage);
-        userCoupon.setCouponType(coupon.couponType);
+        userCoupon.setMinPurchaseAmount(coupon.minPurchaseAmount);
 
         // 유효 기간 설정을 간단하게 리팩토링
         LocalDate startDate = LocalDate.now();
