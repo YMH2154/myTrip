@@ -10,48 +10,95 @@
   <style>
     .refund-container {
       max-width: 800px;
-      margin: 30px auto;
-      padding: 20px;
+      margin: 50px auto;
+      padding: 30px;
       background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    .refund-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .product-info {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 12px;
+    }
+
+    .product-image {
+      width: 200px;
+      height: 150px;
+      object-fit: cover;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(199, 21, 45, 0.1);
+    }
+
+    .product-details {
+      flex: 1;
+    }
+
+    .info-section {
+      margin-bottom: 30px;
+    }
+
+    .info-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #dee2e6;
     }
 
     .info-group {
-      margin-bottom: 20px;
-      padding: 15px;
-      border-bottom: 1px solid #eee;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      margin-bottom: 12px;
+      align-items: center;
     }
 
-    .info-group label {
-      font-weight: bold;
-      color: #333;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .info-group p {
-      margin: 0;
+    .info-label {
+      font-weight: 500;
       color: #666;
-      font-size: 16px;
+    }
+
+    .info-value {
+      color: #333;
+    }
+
+    .refund-amount {
+      font-size: 20px;
+      font-weight: 600;
+      color: #dc3545;
     }
 
     .refund-button {
       background-color: #dc3545;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
+      padding: 15px 30px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
       width: 100%;
+      transition: background-color 0.3s;
     }
 
     .refund-button:hover {
       background-color: #c82333;
     }
 
-    /* 모달 스타일 */
     .modal {
       display: none;
       position: fixed;
@@ -66,40 +113,48 @@
     .modal-content {
       position: relative;
       background-color: #fff;
-      margin: 15% auto;
-      padding: 20px;
-      width: 80%;
+      margin: 10% auto;
+      padding: 30px;
+      width: 90%;
       max-width: 500px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
 
     .close {
       position: absolute;
       right: 20px;
-      top: 10px;
+      top: 15px;
       font-size: 24px;
       cursor: pointer;
       color: #666;
     }
 
     .reason-group {
-      margin: 15px 0;
+      margin: 20px 0;
     }
 
     .reason-group label {
       display: block;
-      margin: 10px 0;
+      margin: 12px 0;
+      padding: 10px;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .reason-group label:hover {
+      background-color: #f8f9fa;
     }
 
     .reason-textarea {
       width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      min-height: 100px;
+      resize: vertical;
     }
 
     .modal-footer {
@@ -108,10 +163,12 @@
     }
 
     .modal-footer button {
-      padding: 8px 15px;
+      padding: 10px 20px;
       margin-left: 10px;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.3s;
     }
 
     .confirm-button {
@@ -120,26 +177,92 @@
       border: none;
     }
 
+    .confirm-button:hover {
+      background-color: #c82333;
+    }
+
     .cancel-button {
       background-color: #6c757d;
       color: white;
       border: none;
+    }
+
+    .cancel-button:hover {
+      background-color: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+      .product-info {
+        flex-direction: column;
+      }
+
+      .product-image {
+        width: 100%;
+        height: 200px;
+      }
+
+      .info-group {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+
+      .info-label {
+        margin-bottom: 4px;
+      }
     }
   </style>
 </th:block>
 
 <div layout:fragment="content">
   <div class="refund-container">
-    <div class="info-group">
-      <label>상품명</label>
-      <p th:text="${reservation.itemReservation.item.itemName}"></p>
+    <h2 class="refund-title">환불 신청</h2>
+    
+    <div class="product-info">
+      <img th:if="${payment.memberReservation.itemReservation.item.thumbnailImageUrls != null and not #lists.isEmpty(payment.memberReservation.itemReservation.item.thumbnailImageUrls)}"
+           th:src="${payment.memberReservation.itemReservation.item.thumbnailImageUrls[0]}"
+           class="product-image" alt="상품 이미지">
+      <div class="product-details">
+        <div class="info-group">
+          <span class="info-label">상품명</span>
+          <span class="info-value" th:text="${payment.memberReservation.itemReservation.item.itemName}"></span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">예약번호</span>
+          <span class="info-value" th:text="${payment.memberReservation.reservationNumber}"></span>
+        </div>
+      </div>
     </div>
-    <div class="info-group">
-      <label>환불 금액</label>
-      <p th:text="${#numbers.formatInteger(amount, 3, 'COMMA')} + '원'"></p>
+
+    <div class="info-section">
+      <h3 class="info-section-title">예약자 정보</h3>
+      <div class="info-group">
+        <span class="info-label">예약자명</span>
+        <span class="info-value" th:text="${payment.memberReservation.member.name}"></span>
+      </div>
+      <div class="info-group">
+        <span class="info-label">이메일</span>
+        <span class="info-value" th:text="${payment.memberReservation.member.email}"></span>
+      </div>
+      <div class="info-group">
+        <span class="info-label">연락처</span>
+        <span class="info-value" th:text="${payment.memberReservation.member.tel}"></span>
+      </div>
     </div>
+
+    <div class="info-section">
+      <h3 class="info-section-title">환불 정보</h3>
+      <div class="info-group">
+        <span class="info-label">결제 방법</span>
+        <span class="info-value" th:text="${payment.paymentMethod.getDescription()}"></span>
+      </div>
+      <div class="info-group">
+        <span class="info-label">환불 금액</span>
+        <span class="info-value refund-amount" th:text="${#numbers.formatInteger(payment.amount, 3, 'COMMA')} + '원'"></span>
+      </div>
+    </div>
+
     <button class="refund-button" id="refundButton">
-      환불하기
+      환불 신청하기
     </button>
   </div>
 
@@ -179,8 +302,8 @@
 <th:block layout:fragment="script">
   <script th:inline="javascript">
     $(document).ready(function(){
-      const amount = [[${amount}]];
-      const reservationNumber = /*[[${reservation.reservationNumber}]]*/ '';
+      const amount = [[${payment.amount}]];
+      const reservationNumber = /*[[${payment.memberReservation.reservationNumber}]]*/ '';
       const modal = document.getElementById('refundModal');
       const closeBtn = document.querySelector('.close');
       const cancelBtn = document.getElementById('cancelRefund');
@@ -225,9 +348,12 @@
         const refundReason = selectedReason.value === 'OTHER' ? 
           otherReasonTextarea.value : selectedReason.value;
 
+        const paymentId = /*[[${payment.id}]]*/ '';
+
         ajaxRequest("/payment/refund/prepare",
           "POST",
           {
+            paymentId: paymentId,
             reservationNumber: reservationNumber,
             amount: amount.toString(),
             reason: refundReason
@@ -235,7 +361,12 @@
           function(response) {
             console.log("환불 요청 성공");
             location.href='/payment/refund/success';
-          });
+          },
+          function(error) {
+            console.error("환불 요청 실패", error);
+            alert("환불 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+          }
+        );
       }
 
       // 모달 외부 클릭 시 닫기

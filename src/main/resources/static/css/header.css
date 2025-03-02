@@ -102,16 +102,19 @@
             padding: 5px;
         }
 
-        /* 네비게이션 */
+        /* 네비게이션 영역 수정 */
         .nav-area {
             background: #f8f9fa;
             border-top: 1px solid #eee;
+            position: relative;
+            z-index: 1000;
         }
 
         .nav-inner {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+            position: relative;
         }
 
         .main-menu {
@@ -119,48 +122,55 @@
             margin: 0;
             padding: 0;
             list-style: none;
-            justify-content: space-between;
         }
 
         .menu-item {
             position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .menu-link {
             display: block;
             padding: 20px 25px;
             color: #333;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             text-decoration: none;
-            transition: color 0.3s;
+            transition: all 0.3s;
+            width: 232px;
+            text-align: center;
         }
 
         .menu-item:hover .menu-link {
             color: #3498db;
+            background-color: #fff;
         }
 
-        /* 드롭다운 메뉴 */
+        /* 드롭다운 메뉴 수정 */
         .dropdown-menu {
             position: absolute;
             top: 100%;
             left: 0;
             background: #fff;
-            min-width: 220px;
-            padding: 15px 0;
-            border-radius: 8px;
+            min-width: 232px;
+            padding: 10px 0;
+            border-radius: 0 0 8px 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             opacity: 0;
             visibility: hidden;
-            transform: translateY(10px);
-            transition: all 0.3s;
-            z-index: 1000;
+            transform: translateY(-10px);
+            transition: all 0.2s ease-in-out;
+            z-index: 1001;
+            border: 1px solid #eee;
+            border-top: 3px solid #3498db;
         }
 
         .menu-item:hover .dropdown-menu {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
+            display: block;
         }
 
         .dropdown-menu a {
@@ -169,42 +179,67 @@
             color: #666;
             font-size: 15px;
             text-decoration: none;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .dropdown-menu a:hover {
             background: #f8f9fa;
             color: #3498db;
+            padding-left: 30px;
         }
 
-        /* 반응형 디자인 */
+        /* 드롭다운 메뉴 애니메이션 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .menu-item:hover .dropdown-menu {
+            animation: fadeInDown 0.3s ease-in-out forwards;
+        }
+
+        /* 반응형 디자인 수정 */
         @media (max-width: 1024px) {
-            .header-main {
+            .main-menu {
                 flex-wrap: wrap;
-                gap: 20px;
             }
             
-            .search-wrap {
-                order: 3;
-                max-width: 100%;
+            .menu-item {
+                flex: 1 1 auto;
             }
             
-            .util-area {
-                order: 2;
+            .menu-link {
+                text-align: center;
+                padding: 15px 10px;
+            }
+            
+            .dropdown-menu {
+                width: 100%;
+                position: absolute;
             }
         }
 
         @media (max-width: 768px) {
             .menu-link {
-                padding: 15px 15px;
                 font-size: 14px;
+                padding: 12px 8px;
             }
             
-            .util-inner {
-                gap: 15px;
-            }
-            
-            .util-inner a {
+            .dropdown-menu a {
                 font-size: 13px;
+                padding: 10px 15px;
             }
+        }
+
+        /* 캐러셀과의 충돌 방지를 위한 스타일 */
+        #mainCarousel {
+            position: relative;
+            z-index: 1;
         }

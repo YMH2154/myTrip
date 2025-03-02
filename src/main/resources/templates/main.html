@@ -234,69 +234,38 @@
             background: #3498db;
         }
 
-        /* 메인 검색 섹션 */
-        .search-section {
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
-                        url('/images/search-bg.jpg') no-repeat center;
-            background-size: cover;
-            padding: 100px 0;
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
         .main-title {
             color: #fff;
-            font-size: 2.5rem;
+            font-size: 3.5rem;
             margin-bottom: 30px;
             font-weight: 700;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .search-box {
-            max-width: 600px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 20px;
-            border-radius: 50px;
-            border: none;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        .search-button {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #3498db;
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-button:hover {
-            background: #2980b9;
+            animation: fadeInDown 1s ease-out;
         }
 
         /* 섹션 공통 스타일 */
         section {
-            padding: 60px 0;
+            padding: 80px 0;
             background: #f8f9fa;
         }
 
         .section-title {
-            font-size: 32px;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
             text-align: center;
             color: #2c3e50;
+            position: relative;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: #3498db;
+            margin: 20px auto;
+            border-radius: 2px;
         }
 
         .emoji {
@@ -310,7 +279,9 @@
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
+            margin: 15px;
             background: white;
+            text-decoration: none;
         }
 
         .item-card:hover {
@@ -321,11 +292,11 @@
         .item-image {
             height: 250px;
             object-fit: cover;
-            transition: all 0.3s ease;
+            transition: all 0.5s ease;
         }
 
         .item-card:hover .item-image {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
 
         .item-info {
@@ -333,10 +304,11 @@
         }
 
         .item-info h5 {
-            font-size: 20px;
+            font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 15px;
             color: #2c3e50;
+            line-height: 1.4;
         }
 
         /* 뱃지 스타일 개선 */
@@ -344,8 +316,9 @@
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: 500;
-            font-size: 13px;
+            font-size: 0.9rem;
             margin-right: 8px;
+            letter-spacing: 0.5px;
         }
 
         .deadline-badge {
@@ -360,73 +333,102 @@
 
         /* 가격 스타일 */
         .price {
-            font-size: 24px;
+            font-size: 1.5rem;
             font-weight: 700;
             color: #3498db;
             margin-top: 15px;
+            display: flex;
+            align-items: baseline;
         }
 
         .price small {
-            font-size: 14px;
+            font-size: 1rem;
             color: #7f8c8d;
-            font-weight: normal;
+            margin-left: 8px;
         }
 
         /* Swiper 네비게이션 버튼 개선 */
         .swiper-button-next,
         .swiper-button-prev {
             background: white;
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .swiper-button-next:hover,
+        .swiper-button-prev:hover {
+            background: #3498db;
         }
 
         .swiper-button-next:after,
         .swiper-button-prev:after {
             font-size: 20px;
             color: #2c3e50;
+            transition: color 0.3s ease;
+        }
+
+        .swiper-button-next:hover:after,
+        .swiper-button-prev:hover:after {
+            color: white;
+        }
+
+        .swiper-pagination-bullet {
+            width: 10px;
+            height: 10px;
+            background: #bdc3c7;
+            opacity: 1;
         }
 
         .swiper-pagination-bullet-active {
             background: #3498db;
+            transform: scale(1.2);
         }
 
         /* 반응형 디자인 */
         @media (max-width: 768px) {
-            .search-section {
-                padding: 50px 0;
-            }
-
-            .main-title {
-                font-size: 2rem;
+            .carousel-inner,
+            .carousel-item {
+                height: 400px;
             }
 
             .section-title {
-                font-size: 24px;
+                font-size: 2rem;
             }
 
             .item-image {
                 height: 200px;
             }
         }
+
+        /* 애니메이션 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </th:block>
 
 <div layout:fragment="content">
-    <!-- 메인 검색 섹션 추가 -->
-    <div class="search-section">
-        <div class="container">
-            <h1 class="main-title">당신의 완벽한 여행을 찾아보세요</h1>
-            <div class="search-box">
-                <input type="text" class="search-input" placeholder="어디로 떠나고 싶으신가요?">
-                <button class="search-button">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- 캐러셀 섹션 -->
     <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
         <!-- 인디케이터 추가 -->

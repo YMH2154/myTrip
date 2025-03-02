@@ -62,16 +62,21 @@ public class AdminController {
     public String couponMngPage(@PathVariable("page") Optional<Integer> page,
             CouponSearchDto couponSearchDto,
             Model model) {
-        Pageable pageable = PageRequest.of(page.orElse(0), 10);
-        Page<Coupon> coupons = couponService.getAdminCouponPage(couponSearchDto, pageable);
+        try {
+            Pageable pageable = PageRequest.of(page.orElse(0), 10);
+            Page<Coupon> coupons = couponService.getAdminCouponPage(couponSearchDto, pageable);
 
-        model.addAttribute("coupons", coupons);
-        model.addAttribute("couponSearchDto", couponSearchDto);
-        model.addAttribute("maxPage", 5);
+            model.addAttribute("coupons", coupons);
+            model.addAttribute("couponSearchDto", couponSearchDto);
+            model.addAttribute("maxPage", 5);
 
-        return "coupon/couponMng";
+            return "coupon/couponMng";
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "쿠폰 목록을 불러오는 중 오류가 발생했습니다.");
+            return "coupon/couponMng";
+        }
     }
-
 
     // 액셀 다운로드
     // @GetMapping("/admin/analytics/download")

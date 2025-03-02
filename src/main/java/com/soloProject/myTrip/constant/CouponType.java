@@ -8,4 +8,8 @@ public enum CouponType {
     PERCENTAGE("정률");
 
     private final String description;
+
+    public String getDescription(){
+        return this.description;
+    }
 }

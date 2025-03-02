@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-public class Coupon extends BaseTimeEntity{
+public class Coupon extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,13 +21,13 @@ public class Coupon extends BaseTimeEntity{
     @Enumerated(EnumType.STRING)
     private CouponType couponType;
 
-    private BigDecimal discountAmount; // 할인 금액(type amount)
-    private BigDecimal discountPercentage; // 할인 퍼센트(type percentage)
+    private int discountAmount; // 할인 금액(type amount)
+    private int discountPercentage; // 할인 퍼센트(type percentage)
 
     private LocalDate startDate;
     private LocalDate endDate;
 
-    private BigDecimal minPurchaseAmount; // 최소 구매 금액
+    private int minPurchaseAmount; // 최소 구매 금액
 
     private String description;
 
@@ -41,12 +41,18 @@ public class Coupon extends BaseTimeEntity{
     @JoinColumn(name = "coupon_wallet_id")
     private CouponWallet couponWallet;
 
-    public static Coupon giveCoupon(Coupon coupon){
+    @Column(name = "is_alpha_coupon")
+    private Boolean isAlphaCoupon;
+
+    public static Coupon giveCoupon(Coupon coupon) {
         Coupon userCoupon = new Coupon();
         userCoupon.setDescription(coupon.description);
         userCoupon.setDiscountAmount(coupon.discountAmount);
         userCoupon.setDiscountPercentage(coupon.discountPercentage);
         userCoupon.setMinPurchaseAmount(coupon.minPurchaseAmount);
+        userCoupon.setCouponType(coupon.getCouponType());
+        userCoupon.setCouponStatus(CouponStatus.USABLE);
+        userCoupon.setIsAlphaCoupon(false);
 
         // 유효 기간 설정을 간단하게 리팩토링
         LocalDate startDate = LocalDate.now();
@@ -64,7 +70,7 @@ public class Coupon extends BaseTimeEntity{
             case MONTH -> startDate.plusMonths(1);
             case THREE -> startDate.plusMonths(3);
             case SIX -> startDate.plusMonths(6);
-            default -> startDate.plusYears(1);  // 기본 1년
+            default -> startDate.plusYears(1); // 기본 1년
         };
     }
 }

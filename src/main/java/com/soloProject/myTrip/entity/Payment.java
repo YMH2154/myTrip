@@ -1,6 +1,7 @@
 package com.soloProject.myTrip.entity;
 
 import com.soloProject.myTrip.constant.PaymentMethod;
+import com.soloProject.myTrip.constant.PaymentType;
 import com.soloProject.myTrip.constant.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,5 +40,14 @@ public class Payment extends BaseTimeEntity {
    @JoinColumn(name = "member_reservation_id")
    private MemberReservation memberReservation; // 예약
 
-   private String refundReason;
+   private String cancelReason;
+
+   @OneToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "used_coupon_id")
+   private Coupon usedCoupon;
+
+   private Integer usedMileage;
+
+   @Enumerated(EnumType.STRING)
+   private PaymentType paymentType;
 }

@@ -1,10 +1,8 @@
 package com.soloProject.myTrip.controller;
 
-import com.soloProject.myTrip.constant.ItemSellStatus;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ItemReservationDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
-import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.service.ItemReservationService;
 import com.soloProject.myTrip.service.ItemService;
@@ -22,10 +20,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +53,6 @@ public class ItemController {
         if (bindingResult.hasErrors()) {
             return "item/itemForm";
         }
-        if (!itemFormDto.isValidCategory()) {
-            model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
-        }
         if (itemDetailImageFile.isEmpty()) {
             model.addAttribute("errorMessage", "상품 상세 설명 이미지는 필수입니다.");
             return "item/itemForm";
@@ -70,6 +63,15 @@ public class ItemController {
         }
         if (itemFormDto.getMinParticipants() > itemFormDto.getMaxParticipants()) {
             model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
+            return "item/itemForm";
+        }
+        if(itemFormDto.getNight() >= itemFormDto.getDuration()){
+            model.addAttribute("errorMessage", "여행 기간이 올바르지 않습니다.");
+            return "item/itemForm";
+        }
+        if (itemFormDto.isValidCategory()) {
+            model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
+            return "item/itemForm";
         }
         try {
             itemService.saveItem(itemFormDto, itemDetailImageFile, thumbnailImageFile);
@@ -103,10 +105,27 @@ public class ItemController {
         if (bindingResult.hasErrors()) { // 유효성 체크
             return "item/itemForm";
         }
-        if (thumbnailImageFile.isEmpty() && itemFormDto.getId() == null) {
+        if (itemDetailImageFile.isEmpty() && itemFormDto.getId() != null) {
+            model.addAttribute("errorMessage", "상품 상세 설명 이미지는 필수입니다.");
+            return "item/itemForm";
+        }
+        if (thumbnailImageFile.isEmpty() && itemFormDto.getId() != null) {
             model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
             return "item/itemForm";
         }
+        if (itemFormDto.getMinParticipants() > itemFormDto.getMaxParticipants()) {
+            model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
+            return "item/itemForm";
+        }
+        if(itemFormDto.getNight() >= itemFormDto.getDuration()){
+            model.addAttribute("errorMessage", "여행 기간이 올바르지 않습니다.");
+            return "item/itemForm";
+        }
+        if (itemFormDto.isValidCategory()) {
+            model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
+            return "item/itemForm";
+        }
+
         try {
             itemService.updateItem(itemFormDto, thumbnailImageFile, itemDetailImageFile);
             return "redirect:/admin/items";

@@ -1,12 +1,15 @@
 package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.config.SessionUtils;
+import com.soloProject.myTrip.constant.CouponStatus;
 import com.soloProject.myTrip.constant.PaymentMethod;
 import com.soloProject.myTrip.constant.ReservationStatus;
 import com.soloProject.myTrip.dto.*;
+import com.soloProject.myTrip.entity.Coupon;
+import com.soloProject.myTrip.entity.CouponWallet;
 import com.soloProject.myTrip.entity.MemberReservation;
 import com.soloProject.myTrip.entity.Payment;
-import com.soloProject.myTrip.repository.MemberReservationRepository;
+import com.soloProject.myTrip.repository.*;
 import com.soloProject.myTrip.service.PaymentService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.Principal;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,13 +30,36 @@ public class PaymentController {
 
   private final PaymentService paymentService;
   private final MemberReservationRepository memberReservationRepository;
+  private final PaymentRepository paymentRepository;
+  private final CouponRepository couponRepository;
+  private final MemberRepository memberRepository;
+  private final CouponWalletRepository couponWalletRepository;
 
   @GetMapping("/payment/ready/{reservationNumber}")
-  public String paymentReady(@PathVariable String reservationNumber, Model model) {
+  public String paymentReady(@PathVariable String reservationNumber, Model model, Principal principal) {
     try {
       MemberReservation reservation = memberReservationRepository.findByReservationNumber(reservationNumber)
           .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
 
+      CouponWallet couponWallet = couponWalletRepository.findByMemberId(
+              memberRepository.findByEmail(principal.getName())
+                      .orElseThrow(EntityNotFoundException::new)
+                      .getId()
+      );
+
+      List<Coupon> coupons = couponRepository.findByCouponWalletIdAndCouponStatus(
+              couponWallet.getId(),
+              CouponStatus.USABLE
+      );
+      log.info("쿠폰 지갑 아이디 : {}", couponWallet.getId());
+      log.info("쿠폰 갯수 : {}", coupons.size());
+
+      int memberMilegae =  memberRepository.findByEmail(principal.getName())
+              .orElseThrow(EntityNotFoundException::new)
+              .getMileage();
+
+      model.addAttribute("availableCoupons", coupons);
+      model.addAttribute("memberMileage", memberMilegae);
       model.addAttribute("reservation", reservation);
       model.addAttribute("paymentMethods", PaymentMethod.values());
       return "payment/paymentReady";
@@ -106,6 +133,7 @@ public class PaymentController {
     try {
       MemberReservation reservation = memberReservationRepository.findByReservationNumber(reservationNumber)
           .orElseThrow(() -> new EntityNotFoundException("예약번호 " + reservationNumber + "에 해당하는 예약을 찾을 수 없습니다."));
+      Payment payment = paymentService.getPayment(reservationNumber);
 
       if (reservation == null) {
         log.error("예약을 찾을 수 없습니다. 예약번호: {}", reservationNumber);
@@ -125,7 +153,7 @@ public class PaymentController {
 
       log.info("환불 페이지 호출 - 예약번호: {}, 금액: {}", reservationNumber, amount);
 
-      model.addAttribute("reservation", reservation);
+      model.addAttribute("payment", payment);
       model.addAttribute("amount", amount);
       return "payment/refund/refund";
 
@@ -142,12 +170,25 @@ public class PaymentController {
 
   @PostMapping("/payment/refund/prepare")
   public @ResponseBody ResponseEntity<?> refund(@RequestBody RefundRequestDto refundRequestDto) {
-    log.info("controller refund - reservationNumber: {}, amount: {}",
-        refundRequestDto.getReservationNumber(), refundRequestDto.getAmount());
+    log.info("controller refund - paymentId: {}, amount: {}",
+        refundRequestDto.getPaymentId(), refundRequestDto.getAmount());
 
-    KakaoCancelResponse kakaoCancelResponse = paymentService.kakaoCancel(refundRequestDto);
+    try {
+      Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId()).orElseThrow(EntityNotFoundException::new);
 
-    return new ResponseEntity<>(kakaoCancelResponse, HttpStatus.OK);
+      if (payment.getPaymentMethod() == PaymentMethod.KAKAO) {
+        KakaoCancelResponse kakaoCancelResponse = paymentService.kakaoCancel(refundRequestDto);
+        return new ResponseEntity<>(kakaoCancelResponse, HttpStatus.OK);
+      } else if (payment.getPaymentMethod() == PaymentMethod.CARD) {
+        IamportResponse iamportResponse = paymentService.cancelIamportPayment(refundRequestDto);
+        return new ResponseEntity<>(iamportResponse, HttpStatus.OK);
+      } else {
+        return ResponseEntity.badRequest().body(new ErrorResponse("지원하지 않는 결제 방식입니다."));
+      }
+    } catch (Exception e) {
+      log.error("결제 취소 실패", e);
+      return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+    }
   }
 
   @GetMapping("/payment/refund/success")

@@ -343,8 +343,7 @@
 </th:block>
 <div layout:fragment="content">
     <div class="container">
-        <form role="form" method="post" th:object="${itemFormDto}">
-            <input type="hidden" th:field="*{id}">
+        <form role="form" method="post" th:object="${couponForm}">
             <p class="h2">쿠폰 생성</p>
             <div class="form-group">
                 <label th:for="description">쿠폰 설명</label>

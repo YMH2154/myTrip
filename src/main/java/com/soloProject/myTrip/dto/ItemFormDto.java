@@ -2,8 +2,6 @@ package com.soloProject.myTrip.dto;
 
 import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.entity.Item;
-import com.soloProject.myTrip.entity.Schedule;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -11,7 +9,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.modelmapper.ModelMapper;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -67,20 +64,20 @@ public class ItemFormDto {
 
     public boolean isValidCategory() {
         if (travelType == null)
-            return false;
+            return true;
 
         switch (travelType) {
             case DOMESTIC -> {
-                return domesticCategory != null;
+                return domesticCategory == null;
             }
             case OVERSEAS -> {
-                return overseasCategory != null;
+                return overseasCategory == null;
             }
             case THEME -> {
-                return themeCategory != null;
+                return themeCategory == null;
             }
             default -> {
-                return false;
+                return true;
             }
         }
     }

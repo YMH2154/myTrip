@@ -204,16 +204,26 @@ public class ItemService {
     @Transactional(readOnly = true)
     public List<ItemFormDto> getSearchItemPage(String searchQuery, int page, int pageSize) {
         QItem qItem = QItem.item;
-        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "regTime"));
         BooleanBuilder builder = new BooleanBuilder();
-        builder.or(qItem.itemName.containsIgnoreCase(searchQuery));
 
-        List<Item> items = (List<Item>) itemRepository.findAll(builder);
-        List<ItemFormDto> itemFormDtoList = new ArrayList<>();
-        for (Item item : items) {
-            itemFormDtoList.add(ItemFormDto.of(item));
+        // 검색어가 비어있지 않은 경우에만 검색 조건 추가
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            builder.and(qItem.itemName.containsIgnoreCase(searchQuery)
+                    .or(qItem.domesticCategory.stringValue().containsIgnoreCase(searchQuery))
+                    .or(qItem.overseasCategory.stringValue().containsIgnoreCase(searchQuery))
+                    .or(qItem.themeCategory.stringValue().containsIgnoreCase(searchQuery)));
         }
-        return itemFormDtoList;
+
+        // 페이징 처리
+        PageRequest pageRequest = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "regTime"));
+
+        // QuerydslPredicateExecutor를 사용하여 검색 실행
+        Page<Item> itemPage = itemRepository.findAll(builder, pageRequest);
+
+        // Entity를 DTO로 변환
+        return itemPage.getContent().stream()
+                .map(ItemFormDto::of)
+                .collect(Collectors.toList());
     }
 
     // 메인 상품 (카테고리) 페이지 조회

@@ -26,9 +26,10 @@ public class InitCoupon implements CommandLineRunner {
       Coupon welcomeCoupon = new Coupon();
       welcomeCoupon.setCouponType(CouponType.AMOUNT);
       welcomeCoupon.setDescription("가입 축하 쿠폰");
-      welcomeCoupon.setDiscountAmount(new BigDecimal("2000"));
+      welcomeCoupon.setDiscountAmount(2000);
       welcomeCoupon.setCouponDuration(CouponDuration.MONTH);
-      welcomeCoupon.setMinPurchaseAmount(new BigDecimal("100000"));
+      welcomeCoupon.setMinPurchaseAmount(100000);
+      welcomeCoupon.setIsAlphaCoupon(true);
 
       couponRepository.save(welcomeCoupon);
       System.out.println("가입 축하 쿠폰 생성 완료");

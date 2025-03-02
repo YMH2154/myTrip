@@ -29,6 +29,10 @@
             pointer-events: none;
         }
 
+        label{
+            margin-bottom: 10px;
+        }
+
         /* 컨테이너 스타일 */
         .container {
             max-width: 900px;
@@ -60,7 +64,7 @@
             border: 1px solid rgba(13, 110, 253, 0.25);
             padding: 25px;
             border-radius: 12px;
-            margin: 30px 0;
+            margin: 2px 0;
         }
 
         .additional-items h4 {
@@ -141,7 +145,7 @@
         }
 
         /* 버튼 스타일 */
-        .btn-primary {
+        .btn-primary, .btn-secondary {
             background: #007bff;
             border: none;
             padding: 12px 40px;
@@ -152,10 +156,33 @@
             box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
         }
 
-        .btn-primary:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+        .btn-primary:disabled, .btn-secondary:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-secondary.loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-secondary.loading::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin: -10px 0 0 -10px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* 애니메이션 */
@@ -190,6 +217,53 @@
             text-align: center;
             padding: 20px;
             font-weight: bold;
+        }
+
+        .form-group{
+            padding: 20px 0;
+        }
+        .form-group detail-image-container{
+            margin-bottom: 20px;
+        }
+
+        /* 로딩 오버레이 스타일 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .plane-icon {
+            font-size: 3rem;
+            color: #00aaff;
+            margin-bottom: 1rem;
+            animation: fly 2s infinite;
+        }
+
+        .loading-text {
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        @keyframes fly {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
         }
     </style>
 </th:block>
@@ -296,7 +370,7 @@
             </div>
 
             <div class="form-group">
-                <label>부가항목</label>
+                <label class="h4">부가항목</label>
                 <div class="additional-items">
                     <div class="item-group">
                         <label>여행 기간</label>
@@ -381,7 +455,7 @@
                 </div>
             </div>
 
-            <div class="form-group detail-image-container">
+            <div class="additional-items">
                 <label class="detail-image-label" th:for="itemDetailImage">상품 설명 이미지</label>
                 <p class="detail-image-description">* 상품의 상세 정보를 보여주는 이미지를 등록해주세요.</p>
                 
@@ -420,7 +494,7 @@
 
             <!-- 썸네일 이미지 수정 영역 -->
             <div th:if="${not #lists.isEmpty(itemFormDto.thumbnailImageUrls)}">
-                <div class="form-group image-container" id="editImageContainer">
+                <div class="additional-items" id="editImageContainer">
                     <div th:each="imageUrl, status : ${itemFormDto.thumbnailImageUrls}" class="image-item mb-3">
                         <div class="form-group">
                             <label th:text="'썸네일 이미지('+${status.index + 1}+')'"></label>
@@ -441,7 +515,7 @@
 
             <!-- 썸네일 이미지 등록 영역 -->
             <div th:if="${#lists.isEmpty(itemFormDto.thumbnailImageUrls)}">
-                <div class="form-group image-container" id="newImageContainer">
+                <div class="additional-items" id="newImageContainer">
                     <div class="image-item mb-3">
                         <div class="form-group">
                             <label>썸네일 이미지 (최대 5개)</label>
@@ -457,15 +531,15 @@
 
             <div style="text-align: center" class="mt-4">
                 <button th:if="${#strings.isEmpty(itemFormDto.id)}" 
-                        th:action="@{/admin/item/new}"
                         type="submit"
                         style="background-color: #50bcdf;"
-                        class="btn btn-secondary">등록</button>
+                        class="btn btn-secondary submit-btn"
+                        data-action="register">등록</button>
                 <button th:unless="${#strings.isEmpty(itemFormDto.id)}" 
-                        th:action="@{'/admin/item/'+${itemFormDto.id}}"
                         type="submit"
                         style="background-color: #50bcdf;"
-                        class="btn btn-secondary">수정</button>
+                        class="btn btn-secondary submit-btn"
+                        data-action="modify">수정</button>
                 <button type="button" class="btn btn-secondary" style="background-color: firebrick;"
                         onclick=history.back()>취소</button>
             </div>
@@ -478,6 +552,7 @@
     <script th:inline="javascript">
         $(document).ready(function() {
             const errorMessage = [[${errorMessage}]];
+            let isSubmitting = false;
 
             const travelTypeSelect = document.getElementById('travelType');
             const domesticDiv = document.getElementById('domesticDiv');
@@ -532,6 +607,52 @@
                 if (overseasSelect.disabled) overseasSelect.value = '';
                 if (themeSelect.disabled) themeSelect.value = '';
             }
+
+            // 폼 제출 이벤트 처리
+            $('form').on('submit', function(e) {
+                e.preventDefault();
+                
+                if (isSubmitting) {
+                    return;
+                }
+
+                const submitBtn = $('.submit-btn');
+                const action = submitBtn.data('action');
+                const confirmMessage = action === 'register' ? '상품을 등록하시겠습니까?' : '상품을 수정하시겠습니까?';
+                
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+
+                // 상세 이미지 유효성 검사
+                const detailImageInput = document.querySelector('input[name="itemDetailImageFile"]');
+                const originalDetailImageUrl = document.querySelector('input[name="originalDetailImageUrl"]');
+                
+                if (!originalDetailImageUrl && !detailImageInput.files[0]) {
+                    alert('상품 상세 설명 이미지는 필수입니다.');
+                    detailImageInput.focus();
+                    return;
+                }
+
+                isSubmitting = true;
+                submitBtn.prop('disabled', true)
+                         .addClass('loading');
+                
+                // 로딩 오버레이 표시
+                $('.loading-overlay').css('display', 'flex');
+
+                // 폼 제출
+                const form = this;
+                setTimeout(() => {
+                    form.submit();
+                }, 100);
+            });
+
+            // 페이지 로드 완료 시 로딩 인디케이터 숨기기
+            $(window).on('load', function() {
+                $('.loading-overlay').hide();
+            });
+
         });
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -637,19 +758,6 @@
             
             if (hasGuideFee) toggleGuideFee(hasGuideFee);
             if (hasShopping) toggleShopping(hasShopping);
-        });
-
-        // form submit 이벤트 핸들러 추가
-        document.querySelector('form').addEventListener('submit', function(e) {
-            // 폼 유효성 검사
-            if (this.checkValidity()) {
-                document.querySelector('.loading-overlay').style.display = 'block';
-            }
-        });
-
-        // 페이지 로드 완료 시 로딩 인디케이터 숨기기
-        window.addEventListener('load', function() {
-            document.querySelector('.loading-overlay').style.display = 'none';
         });
 
         // 상세 이미지 미리보기

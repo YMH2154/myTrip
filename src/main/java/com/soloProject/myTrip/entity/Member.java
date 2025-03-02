@@ -48,7 +48,7 @@ public class Member extends BaseTimeEntity {
         String password = passwordEncoder.encode(memberFormDto.getPassword());
         member.setPassword(password);
         member.setTel(memberFormDto.getTel());
-        member.setMileage(0);
+        member.setMileage(1000); //테스트 용 마일리지
         member.setRole(Role.ADMIN);
         member.setProvider("local"); //로컬 가입자
 
@@ -61,5 +61,13 @@ public class Member extends BaseTimeEntity {
 
     public void updateMember(MemberUpdateFormDto memberUpdateFormDto) {
         this.tel = memberUpdateFormDto.getTel();
+    }
+
+    public void useMileage(Integer usedMileage){
+        this.mileage -= usedMileage;
+    }
+
+    public void cancelMileage(Integer usedMileage){
+        this.mileage += usedMileage;
     }
 }

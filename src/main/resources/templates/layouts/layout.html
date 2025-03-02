@@ -36,6 +36,18 @@
   <th:block layout:fragment="css"></th:block>
   <th:block layout:fragment="page-css"></th:block>
 
+  <style>
+    .page-wrapper {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .header {
+        position: relative;
+        z-index: 1000;
+    }
+  </style>
+
 </head>
 <body>
     <div th:replace="~{fragments/header::header}"></div>

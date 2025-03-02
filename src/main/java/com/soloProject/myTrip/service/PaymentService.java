@@ -1,17 +1,9 @@
 package com.soloProject.myTrip.service;
 
-import com.soloProject.myTrip.constant.Age;
-import com.soloProject.myTrip.constant.PaymentMethod;
-import com.soloProject.myTrip.constant.ReservationStatus;
+import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.dto.*;
-import com.soloProject.myTrip.entity.ItemReservation;
-import com.soloProject.myTrip.entity.MemberReservation;
-import com.soloProject.myTrip.entity.Participant;
-import com.soloProject.myTrip.entity.Payment;
-import com.soloProject.myTrip.repository.ItemReservationRepository;
-import com.soloProject.myTrip.repository.MemberReservationRepository;
-import com.soloProject.myTrip.repository.ParticipantRepository;
-import com.soloProject.myTrip.repository.PaymentRepository;
+import com.soloProject.myTrip.entity.*;
+import com.soloProject.myTrip.repository.*;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +46,7 @@ public class PaymentService {
   private final MemberReservationRepository memberReservationRepository;
   private final ItemReservationRepository itemReservationRepository;
   private final ParticipantRepository participantRepository;
+  private final CouponRepository couponRepository;
 
   // 결제 준비 정보를 저장할 Map
   private final Map<String, PaymentInfo> paymentInfoMap = new HashMap<>();
@@ -111,13 +104,33 @@ public class PaymentService {
             .merchantUid(orderId)
             .amount(requestDto.getAmount())
             .paymentMethod(PaymentMethod.KAKAO)
+            .usedMileage(0)
+            .usedCoupon(null)
+            .paymentType(null)
             .build();
+
+        // 쿠폰 처리
+        if (requestDto.getCouponId() != null) {
+          Coupon coupon = couponRepository.findById(requestDto.getCouponId())
+                  .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
+          payment.setUsedCoupon(coupon);
+          coupon.setCouponStatus(CouponStatus.USED);
+        }
+
+        // 마일리지 처리
+        Integer usedMileage = requestDto.getUsedMileage();
+        if (usedMileage != null && usedMileage > 0) {
+          payment.setUsedMileage(usedMileage);
+          payment.getMemberReservation().getMember().useMileage(usedMileage);
+        }
 
         // 예약 상태 변경
         if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
           reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
+          payment.setPaymentType(PaymentType.DEPOSIT);
         } else {
           reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+          payment.setPaymentType(PaymentType.BALANCE);
         }
         paymentRepository.save(payment);
       }
@@ -179,13 +192,10 @@ public class PaymentService {
 
   // 카카오페이 결제 취소
   public KakaoCancelResponse kakaoCancel(RefundRequestDto refundRequestDto) {
-
     log.info("service kakaoCancel............................................");
 
-    MemberReservation reservation = memberReservationRepository
-        .findByReservationNumber(refundRequestDto.getReservationNumber()).orElseThrow();
-    Payment payment = paymentRepository.findByAmountAndMemberReservationId(refundRequestDto.getAmount(),
-        reservation.getId());
+    Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
+        .orElseThrow(EntityNotFoundException::new);
 
     MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
     parameters.add("cid", "TC0ONETIME");
@@ -194,21 +204,7 @@ public class PaymentService {
     parameters.add("cancel_tax_free_amount", "0");
     parameters.add("cancel_vat_amount", "0");
 
-    // MemberReservation 상태 업데이트
-    reservation.updateStatus(ReservationStatus.CANCELLED);
-    memberReservationRepository.save(reservation);
-
-    // ItemReservation 좌석 상태 업데이트
-    ItemReservation itemReservation = itemReservationRepository.findById(reservation.getItemReservation().getId())
-        .orElseThrow(EntityNotFoundException::new);
-    List<Participant> adult = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.ADULT);
-    List<Participant> child = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.CHILD);
-    int cancelledSeat = adult.size() + child.size();
-    itemReservation.updateRemainingSeats(cancelledSeat);
-    itemReservationRepository.save(itemReservation);
-
-    // 환불 사유 등록
-    payment.setRefundReason(refundRequestDto.getReason());
+    cancelPayment(payment, refundRequestDto);
 
     HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
@@ -218,6 +214,52 @@ public class PaymentService {
         "https://kapi.kakao.com/v1/payment/cancel",
         requestEntity,
         KakaoCancelResponse.class);
+  }
+
+  // 포트원 결제 취소
+  public IamportResponse cancelIamportPayment(RefundRequestDto refundRequestDto) {
+    try {
+      log.info("포트원 결제 취소 시작 - paymentId: {}", refundRequestDto.getPaymentId());
+
+      Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
+          .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
+
+      // 아임포트 API 토큰 발급
+      String token = getIamportToken();
+      log.debug("아임포트 토큰 발급 완료");
+
+      // 결제 취소 요청 데이터 준비
+      Map<String, Object> cancelData = new HashMap<>();
+      cancelData.put("imp_uid", payment.getPaymentKey());
+      cancelData.put("amount", refundRequestDto.getAmount());
+      cancelData.put("reason", refundRequestDto.getReason());
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setBearerAuth(token);
+      headers.setContentType(MediaType.APPLICATION_JSON);
+
+      HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(cancelData, headers);
+
+      ResponseEntity<IamportResponse> response = restTemplate.exchange(
+          "https://api.iamport.kr/payments/cancel",
+          org.springframework.http.HttpMethod.POST,
+          requestEntity,
+          IamportResponse.class);
+
+      if (response.getBody() == null || response.getBody().getResponse() == null) {
+        throw new RuntimeException("결제 취소에 실패했습니다.");
+      }
+
+      // 결제 취소 후 데이터 업데이트
+      cancelPayment(payment, refundRequestDto);
+      log.info("포트원 결제 취소 완료 - impUid: {}", payment.getPaymentKey());
+
+      return response.getBody();
+
+    } catch (Exception e) {
+      log.error("포트원 결제 취소 실패", e);
+      throw new RuntimeException("결제 취소 중 오류가 발생했습니다: " + e.getMessage());
+    }
   }
 
   // 카드결제 준비
@@ -239,7 +281,24 @@ public class PaymentService {
           .memberReservation(reservation)
           .amount(requestDto.getAmount())
           .paymentMethod(PaymentMethod.CARD)
+          .usedMileage(0)
+          .usedCoupon(null)
           .build();
+
+      // 쿠폰 처리
+      if (requestDto.getCouponId() != null) {
+        Coupon coupon = couponRepository.findById(requestDto.getCouponId())
+                .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
+        payment.setUsedCoupon(coupon);
+        coupon.setCouponStatus(CouponStatus.USED);
+      }
+
+      // 마일리지 처리
+      Integer usedMileage = requestDto.getUsedMileage();
+      if (usedMileage != null && usedMileage > 0) {
+        payment.setUsedMileage(usedMileage);
+        payment.getMemberReservation().getMember().useMileage(usedMileage);
+      }
 
       paymentRepository.save(payment);
       log.info("결제 정보 저장 완료 - merchantUid: {}", merchantUid);
@@ -345,5 +404,48 @@ public class PaymentService {
       log.error("아임포트 토큰 발급 실패", e);
       throw new RuntimeException("아임포트 토큰 발급 중 오류가 발생했습니다: " + e.getMessage());
     }
+  }
+
+  // 결제 취소 시 데이터 업데이트 메서드
+  private void cancelPayment(Payment payment, RefundRequestDto refundRequestDto) {
+    Integer usedMileage = payment.getUsedMileage();
+    Coupon usedCoupon = couponRepository.findById(payment.getUsedCoupon().getId())
+        .orElseThrow(EntityNotFoundException::new);
+    MemberReservation reservation = payment.getMemberReservation();
+
+    // MemberReservation 상태 업데이트
+    reservation.updateStatus(ReservationStatus.CANCELLED);
+
+    // ItemReservation 좌석 상태 업데이트
+    ItemReservation itemReservation = itemReservationRepository.findById(reservation.getItemReservation().getId())
+        .orElseThrow(EntityNotFoundException::new);
+    List<Participant> adult = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.ADULT);
+    List<Participant> child = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.CHILD);
+    int cancelledSeat = adult.size() + child.size();
+    itemReservation.updateRemainingSeats(cancelledSeat);
+
+    // 취소 사유 등록
+    payment.setCancelReason(refundRequestDto.getReason());
+
+    // 사용한 쿠폰 및 마일리지 반환
+    payment.getMemberReservation().getMember().cancelMileage(usedMileage);
+    if (usedCoupon != null) {
+      usedCoupon.setCouponStatus(CouponStatus.USABLE);
+    }
+  }
+
+  public Payment getPayment(String reservationNumber) {
+    MemberReservation reservation = memberReservationRepository.findByReservationNumber(reservationNumber)
+        .orElseThrow(EntityNotFoundException::new);
+    Payment payment;
+
+    if (reservation.getReservationStatus().equals(ReservationStatus.DEPOSIT_PAID)) {
+      payment = paymentRepository.findByMemberReservationIdAndPaymentType(reservation.getId(), PaymentType.DEPOSIT);
+    } else {
+      payment = paymentRepository.findByMemberReservationIdAndPaymentType(reservation.getId(), PaymentType.BALANCE);
+    }
+
+    return payment;
+
   }
 }

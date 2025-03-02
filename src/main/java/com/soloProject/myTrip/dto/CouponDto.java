@@ -18,12 +18,12 @@ public class CouponDto {
     private CouponDuration couponDuration; //쿠폰 유효 기간
     private CouponType couponType;
     @NotNull(message = "할인 금액을 입력해주세요")
-    private BigDecimal discountAmount;
+    private int discountAmount;
     @NotNull(message = "할인 비율을 입력해주세요")
-    private BigDecimal discountPercentage;
+    private int discountPercentage;
     private String description;
     @NotNull(message = "사용 가능 금액을 입력해주세요")
-    private BigDecimal minPurchaseAmount;
+    private Integer minPurchaseAmount;
 
     //사용자용 쿠폰 상태 (미사용, 사용)
     private CouponStatus couponStatus;
@@ -35,6 +35,7 @@ public class CouponDto {
         coupon.setCouponDuration(this.couponDuration);
         coupon.setMinPurchaseAmount(this.minPurchaseAmount);
         coupon.setCouponStatus(CouponStatus.USABLE);
+        coupon.setIsAlphaCoupon(true);
         if(this.couponType.equals(CouponType.AMOUNT)){
             coupon.setDiscountAmount(this.discountAmount);
         }else{

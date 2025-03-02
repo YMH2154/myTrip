@@ -15,19 +15,14 @@
             background-color: #f2f8ff;
             color: #333;
             min-height: 100vh;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            padding: 30px;
         }
 
         .admin-title {
             font-size: 2rem;
             font-weight: bold;
             color: #00aaff;
+            margin-bottom: 32px;
         }
 
         .add-content-btn {
@@ -38,6 +33,13 @@
             border-radius: 8px;
             font-weight: bold;
             transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-content-btn i {
+            font-size: 1.1rem;
         }
 
         .add-content-btn:hover {
@@ -48,10 +50,75 @@
 
         .search-section {
             background-color: #e8f5ff;
-            padding: 1.5rem;
+            padding: 2rem;
             border-radius: 8px;
             margin-bottom: 2rem;
             border: 1px solid #b3e0ff;
+        }
+
+        .search-form-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .search-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .search-group label {
+            font-weight: bold;
+            color: #005f99;
+            margin-bottom: 0.3rem;
+        }
+
+        .search-group select,
+        .search-group input {
+            height: 42px;
+            border-radius: 6px;
+            border: 1px solid #b3e0ff;
+            padding: 0.5rem;
+            width: 100%;
+        }
+
+        .search-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .search-btn {
+            background-color: #00aaff;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .search-btn:hover {
+            background-color: #008ecc;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .search-form-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-buttons {
+                justify-content: center;
+            }
         }
 
         .content-table {
@@ -188,14 +255,6 @@
             box-shadow: 0 0 0 0.2rem rgba(0, 170, 255, 0.25);
         }
 
-        .genre-badge {
-            background-color: #00aaff;
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -263,9 +322,10 @@
 
     <div class="search-section">
         <form th:action="@{'/admin/items/' + ${items.number}}" role="form" method="get" th:object="${itemSearchDto}">
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <select th:field="*{searchDateType}" class="form-control">
+            <div class="search-form-container">
+                <div class="search-group">
+                    <label for="searchDateType">기간 선택</label>
+                    <select th:field="*{searchDateType}" class="form-control" id="searchDateType">
                         <option value="all">전체기간</option>
                         <option value="1d">1일</option>
                         <option value="1w">1주</option>
@@ -273,63 +333,75 @@
                         <option value="6m">6개월</option>
                     </select>
                 </div>
-                <div class="col-auto">
-                    <div class="form-group">
-                        <select th:field="*{travelType}" class="form-control" id="travelType">
-                            <option value="">여행 타입</option>
-                            <option th:each="type : ${T(com.soloProject.myTrip.constant.TravelType).values()}"
-                                    th:value="${type}"
-                                    th:text="${type.description}">
-                            </option>
-                        </select>
-                    </div>
 
-                    <div class="form-group" id="domesticDiv" style="display: none;">
-                        <select th:field="*{domesticCategory}" class="form-control" id="domesticSel">
-                            <option value="">여행 지역</option>
-                            <option th:each="category : ${T(com.soloProject.myTrip.constant.DomesticCategory).values()}"
+                <div class="search-group">
+                    <label for="travelType">여행 타입</label>
+                    <select th:field="*{travelType}" class="form-control" id="travelType">
+                        <option value="">여행 타입</option>
+                        <option th:each="type : ${T(com.soloProject.myTrip.constant.TravelType).values()}"
+                                th:value="${type}"
+                                th:text="${type.description}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="search-group" id="domesticDiv" style="display: none;">
+                    <label for="domesticSel">국내 여행 지역</label>
+                    <select th:field="*{domesticCategory}" class="form-control" id="domesticSel">
+                        <option value="">여행 지역</option>
+                        <option th:each="category : ${T(com.soloProject.myTrip.constant.DomesticCategory).values()}"
+                                th:value="${category}"
+                                th:text="${category.description}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="search-group" id="overseasDiv" style="display: none;">
+                    <label for="overseasSel">해외 여행 지역</label>
+                    <select th:field="*{overseasCategory}" class="form-control" id="overseasSel">
+                        <option value="">여행 지역</option>
+                        <optgroup th:each="region : ${T(com.soloProject.myTrip.constant.OverseasCategory).getUniqueRegions()}"
+                                  th:label="${region}">
+                            <option th:each="category : ${T(com.soloProject.myTrip.constant.OverseasCategory).values()}"
+                                    th:if="${category.region == region}"
                                     th:value="${category}"
                                     th:text="${category.description}">
                             </option>
-                        </select>
-                    </div>
+                        </optgroup>
+                    </select>
+                </div>
 
-                    <div class="form-group" id="overseasDiv" style="display: none;">
-                        <select th:field="*{overseasCategory}" class="form-control" id="overseasSel">
-                            <option value="">여행 지역</option>
-                            <optgroup th:each="region : ${T(com.soloProject.myTrip.constant.OverseasCategory).getUniqueRegions()}"
-                                      th:label="${region}">
-                                <option th:each="category : ${T(com.soloProject.myTrip.constant.OverseasCategory).values()}"
-                                        th:if="${category.region == region}"
-                                        th:value="${category}"
-                                        th:text="${category.description}">
-                                </option>
-                            </optgroup>
-                        </select>
-                    </div>
+                <div class="search-group" id="themeDiv" style="display: none;">
+                    <label for="themeSel">여행 테마</label>
+                    <select th:field="*{themeCategory}" class="form-control" id="themeSel">
+                        <option value="">여행 테마</option>
+                        <option th:each="category : ${T(com.soloProject.myTrip.constant.ThemeCategory).values()}"
+                                th:value="${category}"
+                                th:text="${category.description}">
+                        </option>
+                    </select>
+                </div>
 
-                    <div id="themeDiv" style="display: none;">
-                        <select th:field="*{themeCategory}" class="form-control" id="themeSel">
-                            <option value="">여행 테마</option>
-                            <option th:each="category : ${T(com.soloProject.myTrip.constant.ThemeCategory).values()}"
-                                    th:value="${category}"
-                                    th:text="${category.description}">
-                            </option>
-                        </select>
-                    </div>
-                    <select th:field="*{searchBy}" class="form-control" style="width:auto;">
+                <div class="search-group">
+                    <label for="searchBy">검색 조건</label>
+                    <select th:field="*{searchBy}" class="form-control" id="searchBy">
                         <option value="itemName">상품명</option>
                         <option value="createBy">등록자</option>
                     </select>
-                    <div class="col-auto">
-                        <input th:field="*{searchQuery}" type="text" class="form-control" placeholder="검색어를 입력하세요">
-                    </div>
-                    <div class="col-auto">
-                        <button id="searchBtn" type="submit" class="add-content-btn">
-                            <i class="fas fa-search"></i> 검색
-                        </button>
-                    </div>
                 </div>
+
+                <div class="search-group">
+                    <label for="searchQuery">검색어</label>
+                    <input th:field="*{searchQuery}" type="text" class="form-control" id="searchQuery" 
+                           placeholder="검색어를 입력하세요">
+                </div>
+            </div>
+
+            <div class="search-buttons">
+                <button id="searchBtn" type="submit" class="search-btn">
+                    <i class="fas fa-search"></i>
+                    검색
+                </button>
             </div>
         </form>
     </div>

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class RefundRequestDto {
-    private String reservationNumber;
+    private Long paymentId;
     private BigDecimal amount;
     private String reason;
 } 

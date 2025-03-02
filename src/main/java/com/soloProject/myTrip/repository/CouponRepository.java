@@ -17,12 +17,5 @@ public interface CouponRepository extends JpaRepository<Coupon, Long>, CouponRep
 
     Optional<Coupon> findByDescription(String description);
 
-    List<Coupon> findByEndDateBeforeAndCouponStatus(LocalDate endDate, CouponStatus status);
-
-    @Query("SELECT c FROM Coupon c " +
-            "WHERE c.couponStatus = 'ACTIVE' " +
-            "AND c.startDate <= CURRENT_DATE " +
-            "AND c.endDate >= CURRENT_DATE " +
-            "AND c.minPurchaseAmount <= :minAmount")
-    List<Coupon> findAvailableCoupons(@Param("minAmount") Long minAmount, @Param("now") LocalDateTime now);
+    List<Coupon> findByCouponWalletIdAndCouponStatus(Long couponWalletId, CouponStatus couponStatus);
 }

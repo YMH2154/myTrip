@@ -44,12 +44,17 @@ public class MainController {
     // 검색 결과 페이지
     @GetMapping("/search")
     public String searchPage(@RequestParam(value = "page", defaultValue = "0") int page,
-                             @RequestParam("searchQuery") String searchQuery,
-                             Model model) {
+            @RequestParam("searchQuery") String searchQuery,
+            Model model) {
         try {
-            List<ItemFormDto> items = itemService.getSearchItemPage(searchQuery, page, 12);
+            int pageSize = 12;
+            List<ItemFormDto> items = itemService.getSearchItemPage(searchQuery, page, pageSize);
+
             model.addAttribute("items", items);
             model.addAttribute("searchQuery", searchQuery);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("hasNext", items.size() == pageSize);
+
             return "item/itemSearchPage";
         } catch (Exception e) {
             log.error("검색 중 에러 발생", e);
@@ -60,8 +65,8 @@ public class MainController {
     // 카테고리 페이지
     @GetMapping("/category/{link}")
     public String categoryPage(@PathVariable("link") String link,
-                               @RequestParam(value = "page", defaultValue = "0") int page,
-                               Model model) {
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            Model model) {
         try {
             List<ItemFormDto> items = itemService.getItemByCategory(link, page, 12);
             model.addAttribute("items", items);
@@ -77,7 +82,7 @@ public class MainController {
     @GetMapping("/api/category/{link}")
     @ResponseBody
     public ResponseEntity<?> getCategoryItems(@PathVariable("link") String link,
-                                              @RequestParam(value = "page", defaultValue = "0") int page) {
+            @RequestParam(value = "page", defaultValue = "0") int page) {
         try {
             List<ItemFormDto> items = itemService.getItemByCategory(link, page, 12);
             return ResponseEntity.ok(items);

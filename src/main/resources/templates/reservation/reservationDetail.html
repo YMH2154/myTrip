@@ -236,8 +236,7 @@
             </button>
             <button type="button" class="btn btn-success btn-edit"
                     th:onclick="|window.location.href='@{/payment/ready/{id}(id=${reservation.reservationNumber})}'|">
-                <span th:if="${reservation.reservationStatus.name == 'RESERVED'}">예약금 결제</span>
-                <span th:if="${reservation.reservationStatus.name == 'DEPOSIT_PAID'}">잔금 결제</span>
+                <span th:text="${reservation.reservationStatus.name == 'RESERVED'} ? '예약금 결제' : '잔금 결제'"></span>
             </button>
             </div>
             <div th:if="${reservation.reservationStatus.name == 'BALANCE_PAID'}">

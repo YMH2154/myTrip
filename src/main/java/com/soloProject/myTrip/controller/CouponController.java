@@ -17,6 +17,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -24,26 +27,26 @@ public class CouponController {
     private final CouponService couponService;
 
     @GetMapping("/admin/coupon/new")
-    public String newCoupon(Model model){
+    public String newCoupon(Model model) {
         model.addAttribute("couponForm", new CouponDto());
-        return "coupon/new";
+        return "coupon/couponForm";
     }
 
     @PostMapping("/admin/coupon/new")
     public String newCoupon(@Valid CouponDto couponDto,
-                            BindingResult bindingResult,
-                            Model model){
+            BindingResult bindingResult,
+            Model model) {
 
-        if(bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             return "coupon/new";
         }
-        try{
+        try {
             couponService.saveCoupon(couponDto);
             return "redirect:/admin/coupons";
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "쿠폰 생성 중 에러 발생");
-            return "coupon/new";
+            return "coupon/couponForm";
         }
     }
 
@@ -61,22 +64,33 @@ public class CouponController {
     // 쿠폰 검색 API
     @GetMapping("/admin/coupons/search")
     @ResponseBody
-    public ResponseEntity<Page<Coupon>> searchCoupons(
+    public ResponseEntity<Map<String, Object>> searchCoupons(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "searchDateType", defaultValue = "all") String searchDateType,
             @RequestParam(value = "couponType", required = false) String couponType,
-            @RequestParam(value = "minAmount", defaultValue = "0") Long minAmount,
+            @RequestParam(value = "minAmount", defaultValue = "0") int minAmount,
             @RequestParam(value = "searchQuery", required = false) String searchQuery) {
 
-        CouponSearchDto searchDto = new CouponSearchDto();
-        searchDto.setSearchDateType(searchDateType);
-        searchDto.setCouponType(couponType);
-        searchDto.setMinAmount(minAmount);
-        searchDto.setSearchQuery(searchQuery);
+        try {
+            CouponSearchDto searchDto = new CouponSearchDto();
+            searchDto.setSearchDateType(searchDateType);
+            searchDto.setCouponType(couponType);
+            searchDto.setMinAmount(minAmount);
+            searchDto.setSearchQuery(searchQuery);
 
-        Pageable pageable = PageRequest.of(page, 10);
-        Page<Coupon> coupons = couponService.getAdminCouponPage(searchDto, pageable);
+            Pageable pageable = PageRequest.of(page, 10);
+            Page<Coupon> coupons = couponService.getAdminCouponPage(searchDto, pageable);
 
-        return ResponseEntity.ok(coupons);
+            Map<String, Object> response = new HashMap<>();
+            response.put("coupons", coupons.getContent());
+            response.put("currentPage", coupons.getNumber());
+            response.put("totalPages", coupons.getTotalPages());
+            response.put("totalElements", coupons.getTotalElements());
+            response.put("size", coupons.getSize());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 }

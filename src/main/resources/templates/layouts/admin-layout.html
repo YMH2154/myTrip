@@ -29,6 +29,7 @@
         .text-white{
             font-size: 2.0em;
             font-weight: bold;
+            padding:10px;
         }
 
         .text-center{
@@ -46,6 +47,26 @@
             position: fixed; /* 사이드바 고정 */
             width: 16.666667%; /* col-md-2에 해당하는 너비 */
             z-index: 100; /* 다른 요소들 위에 표시 */
+            overflow-y: auto; /* 세로 스크롤 추가 */
+            max-height: 100vh; /* 최대 높이 설정 */
+        }
+
+        /* 스크롤바 스타일링 */
+        .admin-sidebar::-webkit-scrollbar-track {
+            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+            border-radius: 10px;
+            background-color: #F5F5F5;
+        }
+
+        .admin-sidebar::-webkit-scrollbar {
+            width: 5px;
+            background-color: #F5F5F5;
+        }
+
+        .admin-sidebar::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+            background-color: #555;
         }
 
         .admin-sidebar .nav-link {
@@ -53,7 +74,7 @@
             padding: 40px 20px;
             border-radius: 0;
             transition: all 0.3s;
-            font-size: 1.2em; /* 글자 크기 증가 */
+            font-size: 1.5em;
         }
         
         .admin-sidebar .nav-link:hover,
@@ -81,12 +102,6 @@
         /* main 컨텐츠 영역 여백 조정 */
         .col-md-10.ms-sm-auto {
             margin-left: 16.666667%; /* admin-sidebar 너비만큼 여백 추가 */
-        }
-        @media (min-width: 768px){
-            {
-                padding-right: 0 !important;
-                padding-left: 0 !important;
-            }
         }
         .row>* {
             padding-right: 0;
@@ -143,7 +158,7 @@
             </nav>
 
             <!-- Main Content -->
-            <main class="col-md-10 ms-sm-auto px-md-4">
+            <main class="col-md-10 ms-sm-auto">
                 
                 <!-- Content -->
                 <div class="admin-content">

@@ -51,7 +51,7 @@
             <div class="nav-inner">
                 <ul class="main-menu">
                     <li class="menu-item">
-                        <a href="#" class="menu-link">국내여행</a>
+                        <a href="/category/domestic" class="menu-link">국내여행</a>
                         <div class="dropdown-menu">
                             <a th:each="category : ${T(com.soloProject.myTrip.constant.DomesticCategory).values()}"
                                th:href="@{'/category/'+ ${category.link}}"
@@ -61,7 +61,9 @@
 
                     <li th:each="region : ${T(com.soloProject.myTrip.constant.OverseasCategory).getUniqueRegions()}"
                         class="menu-item">
-                        <a href="#" class="menu-link" th:text="${region}"></a>
+                        <a th:href="@{'/category/overseas/' + ${#strings.toLowerCase(region)}}" 
+                           class="menu-link" 
+                           th:text="${region}"></a>
                         <div class="dropdown-menu">
                             <a th:each="category : ${T(com.soloProject.myTrip.constant.OverseasCategory).values()}"
                                th:if="${category.region == region}"
@@ -71,7 +73,7 @@
                     </li>
 
                     <li class="menu-item">
-                        <a href="#" class="menu-link">테마여행</a>
+                        <a href="/category/theme" class="menu-link">테마여행</a>
                         <div class="dropdown-menu">
                             <a th:each="category : ${T(com.soloProject.myTrip.constant.ThemeCategory).values()}"
                                th:href="@{'/category/'+${category.link}}"

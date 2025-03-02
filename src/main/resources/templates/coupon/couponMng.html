@@ -12,15 +12,8 @@
         .admin-container {
             background-color: #f2f8ff;
             color: #333;
-            padding: 2rem;
+            padding: 30px;
             min-height: 100vh;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
         }
 
         .admin-title {
@@ -95,6 +88,11 @@
             font-weight: bold;
         }
 
+        .type-duration{
+            background-color: #dc3545;
+            color: white;
+        }
+
         .type-amount {
             background-color: #4CAF50;
             color: white;
@@ -132,23 +130,6 @@
             display: flex;
             gap: 10px;
             justify-content: center;
-        }
-
-        .action-btn {
-            padding: 5px 15px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .delete-btn {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .delete-btn:hover {
-            background-color: #d32f2f;
         }
 
         /* 모달 스타일 */
@@ -254,16 +235,106 @@
                 gap: 0.5rem;
             }
         }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
         .action-btn img {
             filter: brightness(0.5) invert(0.5);
             opacity: 0.9;
             width: 24px;
             height: 24px;
         }
+
         .action-btn:hover img {
             opacity: 1;
             filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
         }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2rem;
+            gap: 5px;
+        }
+
+        .page-item {
+            list-style: none;
+        }
+
+        .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0.5rem;
+            background-color: #e8f5ff;
+            border: 1px solid #b3e0ff;
+            color: #005f99;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .page-link:hover {
+            background-color: #ccefff;
+            border-color: #99d6ff;
+            color: #005f99;
+        }
+
+        .page-item.active .page-link {
+            background-color: #00aaff;
+            border-color: #008ecc;
+            color: #fff;
+        }
+
+        .page-item.disabled .page-link {
+            background-color: #f0f8ff;
+            border-color: #b3e0ff;
+            color: #99cce6;
+            cursor: not-allowed;
+        }
+
+        .page-link img {
+            filter: brightness(0.5) invert(0.5);
+            opacity: 0.9;
+            width: 20px;
+            height: 20px;
+        }
+
+        .page-link:hover img {
+            opacity: 1;
+            filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .pagination {
+                gap: 3px;
+            }
+            .page-link {
+                min-width: 35px;
+                height: 35px;
+                padding: 0.3rem;
+            }
+            .page-link img {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
     </style>
 </th:block>
 
@@ -282,27 +353,27 @@
                     <h5 class="filter-title">유효 기간</h5>
                     <div class="radio-options">
                         <div class="radio-option">
-                            <input type="radio" name="searchDateType" id="date-all" value="all" checked>
+                            <input type="radio" th:field="*{searchDateType}" id="date-all" value="all">
                             <label for="date-all">전체</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="searchDateType" id="date-1w" value="1w">
+                            <input type="radio" th:field="*{searchDateType}" id="date-1w" value="1w">
                             <label for="date-1w">1주일</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="searchDateType" id="date-1m" value="1m">
+                            <input type="radio" th:field="*{searchDateType}" id="date-1m" value="1m">
                             <label for="date-1m">1개월</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="searchDateType" id="date-3m" value="3m">
+                            <input type="radio" th:field="*{searchDateType}" id="date-3m" value="3m">
                             <label for="date-3m">3개월</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="searchDateType" id="date-6m" value="6m">
+                            <input type="radio" th:field="*{searchDateType}" id="date-6m" value="6m">
                             <label for="date-6m">6개월</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="searchDateType" id="date-1y" value="1y">
+                            <input type="radio" th:field="*{searchDateType}" id="date-1y" value="1y">
                             <label for="date-1y">1년</label>
                         </div>
                     </div>
@@ -312,15 +383,15 @@
                     <h5 class="filter-title">쿠폰 타입</h5>
                     <div class="radio-options">
                         <div class="radio-option">
-                            <input type="radio" name="couponType" id="type-all" value="" checked>
+                            <input type="radio" th:field="*{couponType}" id="type-all" value="">
                             <label for="type-all">전체</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="couponType" id="type-amount" value="AMOUNT">
+                            <input type="radio" th:field="*{couponType}" id="type-amount" value="AMOUNT">
                             <label for="type-amount">정액</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="couponType" id="type-percentage" value="PERCENTAGE">
+                            <input type="radio" th:field="*{couponType}" id="type-percentage" value="PERCENTAGE">
                             <label for="type-percentage">정률</label>
                         </div>
                     </div>
@@ -330,19 +401,19 @@
                     <h5 class="filter-title">사용 가능 금액</h5>
                     <div class="radio-options">
                         <div class="radio-option">
-                            <input type="radio" name="minAmount" id="amount-all" value="0" checked>
+                            <input type="radio" th:field="*{minAmount}" id="amount-all" value="0">
                             <label for="amount-all">제한 없음</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="minAmount" id="amount-200k" value="200000">
+                            <input type="radio" th:field="*{minAmount}" id="amount-200k" value="200000">
                             <label for="amount-200k">20만원 이상</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="minAmount" id="amount-500k" value="500000">
+                            <input type="radio" th:field="*{minAmount}" id="amount-500k" value="500000">
                             <label for="amount-500k">50만원 이상</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="minAmount" id="amount-1m" value="1000000">
+                            <input type="radio" th:field="*{minAmount}" id="amount-1m" value="1000000">
                             <label for="amount-1m">100만원 이상</label>
                         </div>
                     </div>
@@ -350,7 +421,7 @@
 
                 <div class="search-input-group">
                     <input type="text" class="form-control" name="searchQuery" id="searchQuery" 
-                           placeholder="쿠폰 설명 검색" th:field="*{searchQuery}">
+                           placeholder="쿠폰 설명 검색" th:field="*{searchQuery}" autofocus>
                 </div>
             </div>
         </form>
@@ -361,6 +432,7 @@
             <thead>
             <tr>
                 <th>쿠폰 ID</th>
+                <th>유효기간</th>
                 <th>쿠폰 타입</th>
                 <th>할인 금액/비율</th>
                 <th>최소 구매 금액</th>
@@ -372,11 +444,14 @@
             <tr th:if="${#lists.isEmpty(coupons)}">
                 <td colspan="8" class="text-center">해당하는 쿠폰이 없습니다.</td>
             </tr>
-            <tr th:if="coupon.couponType != null" th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
+            <tr th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
                 <td th:text="${coupon.id}"></td>
                 <td>
-                    <span class="coupon-type" th:classappend="${coupon.couponType == 'AMOUNT' ? 'type-amount' : 'type-percentage'}"
-                          th:text="${coupon.couponType == 'AMOUNT' ? '정액' : '정률'}">
+                    <span class="coupon-type type-duration" th:text="${coupon.couponDuration.getDescription()}"></span>
+                </td>
+                <td>
+                    <span class="coupon-type" th:classappend="${coupon.couponType.name() == 'AMOUNT' ? 'type-amount' : 'type-percentage'}"
+                          th:text="${coupon.couponType.name() == 'AMOUNT' ? '정액' : '정률'}">
                     </span>
                 </td>
                 <td>
@@ -398,94 +473,70 @@
         </table>
     </div>
 
-
+    <div th:with="start=${(coupons.number/maxPage)*maxPage + 1},
+        end=(${(coupons.totalPages == 0) ? 1 : (start + (maxPage-1) < coupons.totalPages ? start + (maxPage-1) : coupons.totalPages)})">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${coupons.first} ? 'disabled'">
+                <a th:onclick="page([[${coupons.number - 1}]])" aria-label="Previous"
+                   class="page-link" th:classappend="${coupons.first} ? 'disabled'">
+                    <img src="/images/left_btn.png" alt="이전">
+                </a>
+            </li>
+            <li class="page-item" th:each="page: ${#numbers.sequence(start, end)}"
+                th:classappend="${coupons.number eq page-1}?'active':''">
+                <a th:onclick="page([[${page-1}]])" th:inline="text" class="page-link">[[${page}]]</a>
+            </li>
+            <li class="page-item" th:classappend="${coupons.last} ? 'disabled'">
+                <a th:onclick="page([[${coupons.number + 1}]])" aria-label="Next"
+                   class="page-link" th:classappend="${coupons.last} ? 'disabled'">
+                    <img src="/images/right_btn.png" alt="다음">
+                </a>
+            </li>
+        </ul>
+    </div>
 </div>
 
 <th:block layout:fragment="script">
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
+            // 검색 버튼 클릭 이벤트
+            $("#searchBtn").on("click", function(e) {
+                e.preventDefault();
+                page(0);
+            });
 
             // 라디오 버튼 변경 이벤트 처리
             const searchForm = document.getElementById('searchForm');
             const radioInputs = searchForm.querySelectorAll('input[type="radio"]');
             const searchQuery = document.getElementById('searchQuery');
 
-            function performSearch() {
-                const formData = new FormData(searchForm);
-                const searchParams = new URLSearchParams();
-
-                formData.forEach((value, key) => {
-                    searchParams.append(key, value);
-                });
-
-                ajaxRequest(
-                    `/admin/coupons/search?${searchParams.toString()}`,
-                    'GET',
-                    null,
-                    function(response) {
-                        updateCouponTable(response);
-                    }
-                );
-            }
-
             // 라디오 버튼 변경 이벤트
             radioInputs.forEach(radio => {
-                radio.addEventListener('change', performSearch);
+                radio.addEventListener('change', function() {
+                    page(0);
+                });
             });
 
             // 검색어 입력 이벤트 (디바운싱 적용)
             let searchTimeout;
             searchQuery.addEventListener('input', function() {
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(performSearch, 300);
+                searchTimeout = setTimeout(() => page(0), 300);
             });
-
-            function updateCouponTable(coupons) {
-                const tbody = document.querySelector('.table tbody');
-                if (!coupons || coupons.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="8" class="text-center">검색 조건에 맞는 쿠폰이 없습니다.</td>
-                        </tr>
-                    `;
-                    return;
-                }
-
-                tbody.innerHTML = coupons.map(coupon => `
-                    <tr>
-                        <td>${coupon.id}</td>
-                        <td>
-                            <span class="coupon-type ${coupon.couponType === 'AMOUNT' ? 'type-amount' : 'type-percentage'}">
-                                ${coupon.couponType === 'AMOUNT' ? '정액' : '정률'}
-                            </span>
-                        </td>
-                        <td>
-                            ${coupon.couponType === 'AMOUNT' ? 
-                                new Intl.NumberFormat('ko-KR').format(coupon.discountAmount) + '원' : 
-                                coupon.discountPercentage + '%'}
-                        </td>
-                        <td>${new Intl.NumberFormat('ko-KR').format(coupon.minPurchaseAmount)}원</td>
-                        <td>${formatDate(coupon.startDate)} ~ ${formatDate(coupon.endDate)}</td>
-                        <td>${coupon.description}</td>
-                        <td>
-                            <span class="coupon-status ${getStatusClass(coupon.couponStatus)}">
-                                ${getStatusText(coupon.couponStatus)}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <button type="button" class="action-btn delete-btn" 
-                                        onclick="deleteCoupon(${coupon.id})">삭제</button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-
-            function formatDate(dateString) {
-                return new Date(dateString).toLocaleDateString('ko-KR');
-            }
         });
+
+        function page(page) {
+            const searchDateType = $("input[name='searchDateType']:checked").val() || 'all';
+            const couponType = $("input[name='couponType']:checked").val() || '';
+            const minAmount = $("input[name='minAmount']:checked").val() || '0';
+            const searchQuery = $("#searchQuery").val() || '';
+
+            location.href = "/admin/coupons/" + page
+                + "?searchDateType=" + searchDateType
+                + "&couponType=" + couponType
+                + "&minAmount=" + minAmount
+                + "&searchQuery=" + searchQuery;
+        }
 
         function deleteCoupon(couponId) {
             if (!confirm('이 쿠폰을 삭제하시겠습니까?')) {
@@ -493,7 +544,7 @@
             }
 
             ajaxRequest(
-                `/admin/coupons/${couponId}`,
+                `/admin/coupon/${couponId}`,
                 'DELETE',
                 {},
                 function(response) {

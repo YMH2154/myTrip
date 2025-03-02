@@ -2,6 +2,7 @@ package com.soloProject.myTrip.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.soloProject.myTrip.constant.CouponDuration;
 import com.soloProject.myTrip.constant.CouponType;
 import com.soloProject.myTrip.dto.CouponSearchDto;
 import com.soloProject.myTrip.entity.Coupon;
@@ -32,6 +33,7 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
     List<Coupon> content = queryFactory
         .selectFrom(coupon)
         .where(
+            coupon.isAlphaCoupon.isTrue(),
             searchDateTypeEq(searchDto.getSearchDateType()),
             couponTypeEq(searchDto.getCouponType()),
             minAmountLoe(searchDto.getMinAmount()),
@@ -45,6 +47,7 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
         .select(coupon.count())
         .from(coupon)
         .where(
+            coupon.isAlphaCoupon.isTrue(),
             searchDateTypeEq(searchDto.getSearchDateType()),
             couponTypeEq(searchDto.getCouponType()),
             minAmountLoe(searchDto.getMinAmount()),
@@ -59,28 +62,20 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
       return null;
     }
 
-    LocalDateTime dateTime = LocalDateTime.now();
-
     switch (searchDateType) {
-
       case "1w":
-        dateTime = dateTime.minusWeeks(1);
-        break;
+        return QCoupon.coupon.couponDuration.eq(CouponDuration.WEEK);
       case "1m":
-        dateTime = dateTime.minusMonths(1);
-        break;
+        return QCoupon.coupon.couponDuration.eq(CouponDuration.MONTH);
       case "3m":
-        dateTime = dateTime.minusMonths(3);
-        break;
+        return QCoupon.coupon.couponDuration.eq(CouponDuration.THREE);
       case "6m":
-        dateTime = dateTime.minusMonths(6);
-        break;
+        return QCoupon.coupon.couponDuration.eq(CouponDuration.SIX);
       case "1y":
-        dateTime = dateTime.minusYears(1);
-        break;
+        return QCoupon.coupon.couponDuration.eq(CouponDuration.YEAR);
+      default:
+        return null;
     }
-
-    return QCoupon.coupon.startDate.goe(dateTime.toLocalDate());
   }
 
   private BooleanExpression couponTypeEq(String couponType) {
@@ -90,11 +85,11 @@ public class CouponRepositoryCustomImpl implements CouponRepositoryCustom {
     return QCoupon.coupon.couponType.eq(CouponType.valueOf(couponType));
   }
 
-  private BooleanExpression minAmountLoe(Long minAmount) {
+  private BooleanExpression minAmountLoe(Integer minAmount) {
     if (minAmount == null || minAmount == 0) {
       return null;
     }
-    return QCoupon.coupon.minPurchaseAmount.loe(new java.math.BigDecimal(minAmount));
+    return QCoupon.coupon.minPurchaseAmount.goe(minAmount);
   }
 
   private BooleanExpression searchByLike(String searchQuery) {
