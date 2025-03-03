@@ -12,6 +12,7 @@ import com.soloProject.myTrip.service.RecentViewService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class ItemController {
 
     private final ItemService itemService;
@@ -34,7 +36,6 @@ public class ItemController {
     private final FlightSearchService flightSearchService;
     private final ItemReservationService itemReservationService;
     private final RecentViewService recentViewService;
-    private static final Logger log = LoggerFactory.getLogger(ItemController.class);
 
     // 상품 등록(GET)
     @GetMapping("/admin/item/new")

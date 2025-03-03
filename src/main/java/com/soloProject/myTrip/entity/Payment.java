@@ -29,7 +29,7 @@ public class Payment extends BaseTimeEntity {
    private String merchantUid; // 주문 번호
 
    @Column(name = "amount", nullable = false)
-   private BigDecimal amount; // 결제된 금액
+   private Integer amount; // 결제된 금액
 
    private String paymentKey;
 

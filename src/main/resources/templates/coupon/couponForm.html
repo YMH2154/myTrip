@@ -353,7 +353,7 @@
             <div class="form-group">
                 <label th:for="CouponDuration">쿠폰 유효 기간</label>
                 <select th:field="*{CouponDuration}" class="form-control" id="CouponDuration">
-                    <option th:each="duration : ${T(com.soloProject.myTrip.constant.CouponDuration.values()}"
+                    <option th:each="duration : ${T(com.soloProject.myTrip.constant.CouponDuration).values()}"
                             th:value="${duration}"
                             th:text="${duration.description}">
                     </option>

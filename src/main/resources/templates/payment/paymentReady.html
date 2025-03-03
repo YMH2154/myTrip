@@ -229,7 +229,7 @@
                 </div>
                 <div class="price-row final-price">
                     <span>최종 결제 금액</span>
-                    <span><span id="finalAmount" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA')}">0</span>원</span>
+                    <span><span id="finalAmount" th:text="${#numbers.formatInteger(reservation.totalPrice - reservation.totalDeposit, 3, 'COMMA')}">0</span>원</span>
                 </div>
             </div>
         </div>
@@ -398,6 +398,8 @@
             });
 
             function requestCardPayment(prepareResponse) {
+                console.log('결제 요청 시작:', prepareResponse);
+                
                 IMP.request_pay({
                     pg: "danal_tpay",
                     pay_method: "card",
@@ -409,7 +411,11 @@
                     buyer_tel: prepareResponse.buyerTel,
                     card_quota: [2,3,4,5,6]
                 }, function(rsp) {
+                    console.log('결제 응답:', rsp);
+                    
                     if (rsp.success) {
+                        console.log('결제 성공, 검증 시작');
+                        
                         $.ajax({
                             url: '/payment/card/verify',
                             type: 'POST',
@@ -419,21 +425,26 @@
                                 merchantUid: rsp.merchant_uid,
                                 amount: finalAmount,
                                 couponId: selectedCouponId,
-                                usedMileage: mileageAmount
+                                usedMileage: parseInt($('#mileageInput').val()) || 0
                             }),
                             beforeSend: function(xhr) {
                                 xhr.setRequestHeader($("meta[name='_csrf_header']").attr("content"), 
                                                   $("meta[name='_csrf']").attr("content"));
                             },
                             success: function(response) {
+                                console.log('결제 검증 성공:', response);
                                 alert('결제가 완료되었습니다.');
                                 window.location.href = '/payment/completed';
                             },
                             error: function(xhr, status, error) {
+                                console.error('결제 검증 실패:', error);
+                                console.error('상태:', status);
+                                console.error('응답:', xhr.responseText);
                                 alert('결제 검증 중 오류가 발생했습니다.');
                             }
                         });
                     } else {
+                        console.error('결제 실패:', rsp.error_msg);
                         alert('결제에 실패했습니다.\n' + rsp.error_msg);
                     }
                 });

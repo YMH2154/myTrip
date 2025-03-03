@@ -10,5 +10,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IamportResponse {
+  private int code;
+  private String message;
   private IamportPayment response;
 }

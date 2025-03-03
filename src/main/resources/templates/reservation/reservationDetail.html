@@ -32,7 +32,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
         }
 
         .reservation-number {
@@ -239,16 +238,18 @@
                 <span th:text="${reservation.reservationStatus.name == 'RESERVED'} ? '예약금 결제' : '잔금 결제'"></span>
             </button>
             </div>
-            <div th:if="${reservation.reservationStatus.name == 'BALANCE_PAID'}">
-                <button type="button" class="btn btn-primary btn-edit"
-                        th:onclick="@{'|window.location.href='@{/member/reservations/passport/{id}(id=${reservation.reservationNumber})}'|}">
-                    여권 정보 등록
-                </button>
-                <button type="button" class="btn btn-success btn-edit"
-                        th:onclick="|window.location.href='@{/payment/cancel/request/{id}(id=${reservation.reservationNumber})}'|">
-                    환불 신청
-                </button>
-            </div>
+
+            <button type="button" class="btn btn-primary btn-edit"
+                    th:if="${reservation.reservationStatus.name == 'BALANCE_PAID'}"
+                    th:onclick="@{'|window.location.href='@{/member/reservations/passport/{id}(id=${reservation.reservationNumber})}'|}">
+                여권 정보 등록
+            </button>
+            <button type="button" class="btn btn-success btn-edit"
+                    th:if="${reservation.reservationStatus.name() == 'BALANCE_PAID' || reservation.reservationStatus.name() == 'DEPOSIT_PAID'}"
+                    th:onclick="|window.location.href='@{/refund/{id}(id=${reservation.reservationNumber})}'|">
+                환불 신청
+            </button>
+
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         </div>
     </div>

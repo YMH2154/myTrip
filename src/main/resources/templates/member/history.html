@@ -160,6 +160,10 @@
                     <span class="info-value" th:text="${#numbers.formatInteger(reservation.totalDeposit, 3, 'COMMA')} + '원'"></span>
                 </div>
                 <div class="info-item">
+                    <span class="info-label">전체 금액</span>
+                    <span class="info-value" th:text="${#numbers.formatInteger(reservation.totalDeposit, 3, 'COMMA')} + '원'"></span>
+                </div>
+                <div class="info-item">
                     <span class="info-label">인원</span>
                     <span class="info-value" th:text="${reservation.participants.size() + '명'}"></span>
                 </div>
@@ -170,7 +174,7 @@
                    class="btn btn-primary btn-detail">상세보기</a>
             </div>
             <div class="action-buttons" th:if="${reservation.reservationStatus.name() == 'DEPOSIT_PAID' || reservation.reservationStatus.name() == 'BALANCE_PAID'}">
-                <a th:href="@{'/payment/refund/' + ${reservation.reservationNumber}}"
+                <a th:href="@{'/refund/' + ${reservation.reservationNumber}}"
                     class="btn btn-primary btn-detail">환불 신청</a>
             </div>
         </div>

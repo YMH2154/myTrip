@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -36,37 +37,41 @@ public class PaymentService {
   private String kakaoAdminKey;
 
   @Value("${iamport.api.key}")
-  private String iamportApiKey;
+  private String impKey;
 
   @Value("${iamport.api.secret}")
-  private String iamportApiSecret;
+  private String impSecret;
 
   private final PaymentRepository paymentRepository;
   private final RestTemplate restTemplate;
   private final MemberReservationRepository memberReservationRepository;
-  private final ItemReservationRepository itemReservationRepository;
-  private final ParticipantRepository participantRepository;
   private final CouponRepository couponRepository;
 
   // 결제 준비 정보를 저장할 Map
-  private final Map<String, PaymentInfo> paymentInfoMap = new HashMap<>();
+  private final Map<String, PaymentDto> paymentInfoMap = new HashMap<>();
 
-  @Getter
-  @Setter
-  @AllArgsConstructor
-  private static class PaymentInfo {
-    private String orderId;
-    private String userId;
-  }
-
-  public ReadyResponse prepareKakaoPayment(PaymentRequestDto requestDto) {
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public ReadyResponse prepareKakaoPayment(PaymentDto paymentDto) {
     try {
       String orderId = UUID.randomUUID().toString();
       log.info("카카오페이 결제 준비 시작 - 주문번호: {}", orderId);
 
       MemberReservation reservation = memberReservationRepository
-          .findByReservationNumber(requestDto.getReservationNumber())
+          .findByReservationNumber(paymentDto.getReservationNumber())
           .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
+
+      PaymentType paymentType = reservation.getReservationStatus().equals(ReservationStatus.RESERVED)
+          ? PaymentType.DEPOSIT
+          : PaymentType.BALANCE;
+
+      // 이미 처리된 결제가 있는지 확인
+      synchronized (this) {
+        if (paymentRepository.existsByMemberReservationIdAndPaymentType(
+            reservation.getId(),
+            paymentType)) {
+          throw new RuntimeException("이미 처리된 결제가 있습니다.");
+        }
+      }
 
       String userId = reservation.getMember().getEmail();
 
@@ -76,13 +81,11 @@ public class PaymentService {
       parameters.add("partner_user_id", userId);
       parameters.add("item_name", reservation.getItemReservation().getItem().getItemName());
       parameters.add("quantity", "1");
-      parameters.add("total_amount", String.valueOf(requestDto.getAmount()));
+      parameters.add("total_amount", String.valueOf(paymentDto.getAmount()));
       parameters.add("tax_free_amount", "0");
       parameters.add("approval_url", "http://localhost:8080/payment/success");
       parameters.add("cancel_url", "http://localhost:8080/payment/cancel");
       parameters.add("fail_url", "http://localhost:8080/payment/fail");
-
-      log.debug("카카오페이 요청 파라미터: {}", parameters);
 
       HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
@@ -93,46 +96,10 @@ public class PaymentService {
 
       if (response.getBody() != null) {
         log.info("카카오페이 준비 성공 - TID: {}", response.getBody().getTid());
-        // 결제 정보 저장
-        paymentInfoMap.put(response.getBody().getTid(), new PaymentInfo(orderId, userId));
-
-        // Payment 데이터 저장
-        Payment payment = Payment.builder()
-            .itemName(reservation.getItemReservation().getItem().getItemName())
-            .paymentKey(response.getBody().getTid())
-            .memberReservation(reservation)
-            .merchantUid(orderId)
-            .amount(requestDto.getAmount())
-            .paymentMethod(PaymentMethod.KAKAO)
-            .usedMileage(0)
-            .usedCoupon(null)
-            .paymentType(null)
-            .build();
-
-        // 쿠폰 처리
-        if (requestDto.getCouponId() != null) {
-          Coupon coupon = couponRepository.findById(requestDto.getCouponId())
-                  .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
-          payment.setUsedCoupon(coupon);
-          coupon.setCouponStatus(CouponStatus.USED);
-        }
-
-        // 마일리지 처리
-        Integer usedMileage = requestDto.getUsedMileage();
-        if (usedMileage != null && usedMileage > 0) {
-          payment.setUsedMileage(usedMileage);
-          payment.getMemberReservation().getMember().useMileage(usedMileage);
-        }
-
-        // 예약 상태 변경
-        if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
-          reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
-          payment.setPaymentType(PaymentType.DEPOSIT);
-        } else {
-          reservation.updateStatus(ReservationStatus.BALANCE_PAID);
-          payment.setPaymentType(PaymentType.BALANCE);
-        }
-        paymentRepository.save(payment);
+        // 결제 정보 저장 (임시)
+        paymentDto.setMerchantUid(orderId);
+        paymentDto.setUserId(userId);
+        paymentInfoMap.put(response.getBody().getTid(), paymentDto);
       }
 
       return response.getBody();
@@ -142,24 +109,39 @@ public class PaymentService {
     }
   }
 
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public ApproveResponse payApprove(String tid, String pgToken) {
     try {
       log.info("결제 승인 요청 - TID: {}, PG Token: {}", tid, pgToken);
 
-      // 저장된 결제 정보 조회
-      PaymentInfo paymentInfo = paymentInfoMap.get(tid);
-      if (paymentInfo == null) {
+      PaymentDto paymentDto = paymentInfoMap.get(tid);
+      if (paymentDto == null) {
         throw new RuntimeException("결제 정보를 찾을 수 없습니다.");
+      }
+
+      // 결제 정보가 이미 처리되었는지 확인
+      synchronized (this) {
+        MemberReservation reservation = memberReservationRepository
+            .findByReservationNumber(paymentDto.getReservationNumber())
+            .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
+
+        PaymentType paymentType = reservation.getReservationStatus().equals(ReservationStatus.RESERVED)
+            ? PaymentType.DEPOSIT
+            : PaymentType.BALANCE;
+
+        if (paymentRepository.existsByMemberReservationIdAndPaymentType(
+            reservation.getId(),
+            paymentType)) {
+          throw new RuntimeException("이미 처리된 결제입니다.");
+        }
       }
 
       MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
       parameters.add("cid", "TC0ONETIME");
       parameters.add("tid", tid);
-      parameters.add("partner_order_id", paymentInfo.getOrderId());
-      parameters.add("partner_user_id", paymentInfo.getUserId());
+      parameters.add("partner_order_id", paymentDto.getMerchantUid());
+      parameters.add("partner_user_id", paymentDto.getUserId());
       parameters.add("pg_token", pgToken);
-
-      log.debug("카카오페이 승인 요청 파라미터: {}", parameters);
 
       HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
 
@@ -170,6 +152,10 @@ public class PaymentService {
 
       if (response.getBody() != null) {
         log.info("카카오페이 승인 성공 - 결제금액: {}", response.getBody().getAmount().getTotal());
+
+        // 결제 데이터 저장 및 예약 상태 변경
+        savePaymentAndUpdateStatus(paymentDto, response.getBody());
+
         // 사용한 결제 정보 제거
         paymentInfoMap.remove(tid);
         return response.getBody();
@@ -182,88 +168,59 @@ public class PaymentService {
     }
   }
 
+  private void savePaymentAndUpdateStatus(PaymentDto paymentDto, ApproveResponse approveResponse) {
+    MemberReservation reservation = memberReservationRepository
+        .findByReservationNumber(paymentDto.getReservationNumber())
+        .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
+
+    // Payment 데이터 저장
+    Payment payment = Payment.builder()
+        .itemName(reservation.getItemReservation().getItem().getItemName())
+        .paymentKey(approveResponse.getTid())
+        .memberReservation(reservation)
+        .merchantUid(paymentDto.getMerchantUid())
+        .amount(paymentDto.getAmount())
+        .paymentMethod(PaymentMethod.KAKAO)
+        .usedMileage(paymentDto.getUsedMileage())
+        .usedCoupon(null)
+        .build();
+
+    // 쿠폰 처리
+    if (paymentDto.getCouponId() != null) {
+      Coupon coupon = couponRepository.findById(paymentDto.getCouponId())
+          .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
+      payment.setUsedCoupon(coupon);
+      coupon.setCouponStatus(CouponStatus.USED);
+    }
+
+    // 마일리지 처리
+    if (paymentDto.getUsedMileage() != null && paymentDto.getUsedMileage() > 0) {
+      payment.getMemberReservation().getMember().useMileage(paymentDto.getUsedMileage());
+    }
+
+    // 예약 상태 변경
+    if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
+      reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
+      payment.setPaymentType(PaymentType.DEPOSIT);
+    } else {
+      reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+      payment.setPaymentType(PaymentType.BALANCE);
+    }
+
+    paymentRepository.save(payment);
+  }
+
   // 카카오페이 측에 요청 시 헤더부에 필요한 값
-  private HttpHeaders getHeaders() {
+  public HttpHeaders getHeaders() {
     HttpHeaders headers = new HttpHeaders();
     headers.set("Authorization", "KakaoAK " + kakaoAdminKey);
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     return headers;
   }
 
-  // 카카오페이 결제 취소
-  public KakaoCancelResponse kakaoCancel(RefundRequestDto refundRequestDto) {
-    log.info("service kakaoCancel............................................");
-
-    Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
-        .orElseThrow(EntityNotFoundException::new);
-
-    MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
-    parameters.add("cid", "TC0ONETIME");
-    parameters.add("tid", payment.getPaymentKey());
-    parameters.add("cancel_amount", String.valueOf(refundRequestDto.getAmount()));
-    parameters.add("cancel_tax_free_amount", "0");
-    parameters.add("cancel_vat_amount", "0");
-
-    cancelPayment(payment, refundRequestDto);
-
-    HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, getHeaders());
-
-    RestTemplate restTemplate = new RestTemplate();
-
-    return restTemplate.postForObject(
-        "https://kapi.kakao.com/v1/payment/cancel",
-        requestEntity,
-        KakaoCancelResponse.class);
-  }
-
-  // 포트원 결제 취소
-  public IamportResponse cancelIamportPayment(RefundRequestDto refundRequestDto) {
-    try {
-      log.info("포트원 결제 취소 시작 - paymentId: {}", refundRequestDto.getPaymentId());
-
-      Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
-          .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
-
-      // 아임포트 API 토큰 발급
-      String token = getIamportToken();
-      log.debug("아임포트 토큰 발급 완료");
-
-      // 결제 취소 요청 데이터 준비
-      Map<String, Object> cancelData = new HashMap<>();
-      cancelData.put("imp_uid", payment.getPaymentKey());
-      cancelData.put("amount", refundRequestDto.getAmount());
-      cancelData.put("reason", refundRequestDto.getReason());
-
-      HttpHeaders headers = new HttpHeaders();
-      headers.setBearerAuth(token);
-      headers.setContentType(MediaType.APPLICATION_JSON);
-
-      HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(cancelData, headers);
-
-      ResponseEntity<IamportResponse> response = restTemplate.exchange(
-          "https://api.iamport.kr/payments/cancel",
-          org.springframework.http.HttpMethod.POST,
-          requestEntity,
-          IamportResponse.class);
-
-      if (response.getBody() == null || response.getBody().getResponse() == null) {
-        throw new RuntimeException("결제 취소에 실패했습니다.");
-      }
-
-      // 결제 취소 후 데이터 업데이트
-      cancelPayment(payment, refundRequestDto);
-      log.info("포트원 결제 취소 완료 - impUid: {}", payment.getPaymentKey());
-
-      return response.getBody();
-
-    } catch (Exception e) {
-      log.error("포트원 결제 취소 실패", e);
-      throw new RuntimeException("결제 취소 중 오류가 발생했습니다: " + e.getMessage());
-    }
-  }
-
   // 카드결제 준비
-  public CardPaymentPrepareResponse prepareCardPayment(PaymentRequestDto requestDto, String userEmail) {
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public CardPaymentPrepareResponse prepareCardPayment(PaymentDto requestDto, String userEmail) {
     try {
       log.info("카드결제 준비 시작 - 예약번호: {}", requestDto.getReservationNumber());
 
@@ -271,37 +228,34 @@ public class PaymentService {
           .findByReservationNumber(requestDto.getReservationNumber())
           .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
 
+      PaymentType paymentType = reservation.getReservationStatus().equals(ReservationStatus.RESERVED)
+          ? PaymentType.DEPOSIT
+          : PaymentType.BALANCE;
+
+      // 이미 처리된 결제가 있는지 확인
+      synchronized (this) {
+        if (paymentRepository.existsByMemberReservationIdAndPaymentType(
+            reservation.getId(),
+            paymentType)) {
+          throw new RuntimeException("이미 처리된 결제가 있습니다.");
+        }
+      }
+
       String merchantUid = "ORDER-CARD-" + UUID.randomUUID().toString();
       log.debug("생성된 주문번호: {}", merchantUid);
 
-      // 결제 정보 저장
-      Payment payment = Payment.builder()
-          .itemName(reservation.getItemReservation().getItem().getItemName())
-          .merchantUid(merchantUid)
-          .memberReservation(reservation)
+      // 결제 정보를 임시로 저장 (메모리에만)
+      PaymentDto paymentDto = PaymentDto.builder()
+          .reservationNumber(requestDto.getReservationNumber())
           .amount(requestDto.getAmount())
-          .paymentMethod(PaymentMethod.CARD)
-          .usedMileage(0)
-          .usedCoupon(null)
+          .couponId(requestDto.getCouponId())
+          .usedMileage(requestDto.getUsedMileage())
+          .merchantUid(merchantUid)
           .build();
 
-      // 쿠폰 처리
-      if (requestDto.getCouponId() != null) {
-        Coupon coupon = couponRepository.findById(requestDto.getCouponId())
-                .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
-        payment.setUsedCoupon(coupon);
-        coupon.setCouponStatus(CouponStatus.USED);
-      }
-
-      // 마일리지 처리
-      Integer usedMileage = requestDto.getUsedMileage();
-      if (usedMileage != null && usedMileage > 0) {
-        payment.setUsedMileage(usedMileage);
-        payment.getMemberReservation().getMember().useMileage(usedMileage);
-      }
-
-      paymentRepository.save(payment);
-      log.info("결제 정보 저장 완료 - merchantUid: {}", merchantUid);
+      // 결제 정보를 Map에 임시 저장
+      paymentInfoMap.put(merchantUid, paymentDto);
+      log.info("결제 정보 저장 완료 - merchantUid: {}, amount: {}", merchantUid, paymentDto.getAmount());
 
       return CardPaymentPrepareResponse.builder()
           .merchantUid(merchantUid)
@@ -318,9 +272,17 @@ public class PaymentService {
   }
 
   // 카드결제 검증
+  @Transactional(isolation = Isolation.SERIALIZABLE)
   public CardPaymentVerifyResponse verifyCardPayment(CardPaymentVerifyRequest request) {
     try {
-      log.info("카드결제 검증 시작 - impUid: {}", request.getImpUid());
+      log.info("카드결제 검증 시작 - impUid: {}, merchantUid: {}", request.getImpUid(), request.getMerchantUid());
+
+      // 결제 준비 정보 조회
+      PaymentDto paymentDto = paymentInfoMap.get(request.getMerchantUid());
+      if (paymentDto == null) {
+        log.error("결제 정보를 찾을 수 없음 - merchantUid: {}", request.getMerchantUid());
+        throw new RuntimeException("결제 정보를 찾을 수 없습니다.");
+      }
 
       // 아임포트 API 토큰 발급 요청
       String token = getIamportToken();
@@ -350,27 +312,62 @@ public class PaymentService {
         throw new RuntimeException("결제 금액이 일치하지 않습니다.");
       }
 
-      // 결제 정보 업데이트
-      Payment payment = paymentRepository.findByMerchantUid(request.getMerchantUid())
-          .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
+      // 결제 상태 확인
+      if (iamportPayment.getStatus().equals("paid")) {
+        MemberReservation reservation = memberReservationRepository
+            .findByReservationNumber(paymentDto.getReservationNumber())
+            .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
 
-      payment.setPaymentKey(request.getImpUid());
-      paymentRepository.save(payment);
+        // 결제 정보 저장
+        Payment payment = Payment.builder()
+            .itemName(reservation.getItemReservation().getItem().getItemName())
+            .merchantUid(request.getMerchantUid())
+            .memberReservation(reservation)
+            .amount(paymentDto.getAmount())
+            .paymentMethod(PaymentMethod.CARD)
+            .paymentType(reservation.getReservationStatus().equals(ReservationStatus.RESERVED)
+                ? PaymentType.DEPOSIT
+                : PaymentType.BALANCE)
+            .paymentKey(request.getImpUid())
+            .usedMileage(paymentDto.getUsedMileage())
+            .usedCoupon(null)
+            .build();
 
-      // 예약 상태 업데이트
-      MemberReservation reservation = payment.getMemberReservation();
-      if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
-        reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
+        // 쿠폰 처리
+        if (paymentDto.getCouponId() != null) {
+          Coupon coupon = couponRepository.findById(paymentDto.getCouponId())
+              .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
+          payment.setUsedCoupon(coupon);
+          coupon.setCouponStatus(CouponStatus.USED);
+        }
+
+        // 마일리지 처리
+        if (paymentDto.getUsedMileage() != null && paymentDto.getUsedMileage() > 0) {
+          reservation.getMember().useMileage(paymentDto.getUsedMileage());
+        }
+
+        // 예약 상태 업데이트
+        if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
+          reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
+        } else {
+          reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+        }
+
+        // 모든 변경사항 저장
+        paymentRepository.save(payment);
+        memberReservationRepository.save(reservation);
+
+        // 임시 저장된 결제 정보 제거
+        paymentInfoMap.remove(request.getMerchantUid());
+
+        log.info("카드결제 검증 완료 - impUid: {}", request.getImpUid());
+
+        return CardPaymentVerifyResponse.builder()
+            .amount(iamportPayment.getAmount())
+            .build();
       } else {
-        reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+        throw new RuntimeException("결제가 완료되지 않았습니다. 상태: " + iamportPayment.getStatus());
       }
-      memberReservationRepository.save(reservation);
-
-      log.info("카드결제 검증 완료 - impUid: {}", request.getImpUid());
-
-      return CardPaymentVerifyResponse.builder()
-          .amount(iamportPayment.getAmount())
-          .build();
 
     } catch (Exception e) {
       log.error("카드결제 검증 실패", e);
@@ -379,73 +376,32 @@ public class PaymentService {
   }
 
   // 아임포트 토큰 발급
-  private String getIamportToken() {
+  public String getIamportToken() {
     try {
+      MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+      parameters.add("imp_key", impKey);
+      parameters.add("imp_secret", impSecret);
+
       HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_JSON);
+      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-      Map<String, String> bodyMap = new HashMap<>();
-      bodyMap.put("imp_key", iamportApiKey);
-      bodyMap.put("imp_secret", iamportApiSecret);
+      HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(parameters, headers);
 
-      HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(bodyMap, headers);
-
-      ResponseEntity<IamportTokenResponse> response = restTemplate.postForEntity(
+      ResponseEntity<Map> response = restTemplate.postForEntity(
           "https://api.iamport.kr/users/getToken",
           requestEntity,
-          IamportTokenResponse.class);
+          Map.class);
 
-      if (response.getBody() == null || response.getBody().getResponse() == null) {
-        throw new RuntimeException("토큰을 발급받을 수 없습니다.");
+      if (response.getBody() != null && response.getBody().get("response") != null) {
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody().get("response");
+        return (String) responseBody.get("access_token");
+      } else {
+        throw new RuntimeException("아임포트 토큰 발급 실패");
       }
-
-      return response.getBody().getResponse().getAccess_token();
     } catch (Exception e) {
       log.error("아임포트 토큰 발급 실패", e);
       throw new RuntimeException("아임포트 토큰 발급 중 오류가 발생했습니다: " + e.getMessage());
     }
   }
 
-  // 결제 취소 시 데이터 업데이트 메서드
-  private void cancelPayment(Payment payment, RefundRequestDto refundRequestDto) {
-    Integer usedMileage = payment.getUsedMileage();
-    Coupon usedCoupon = couponRepository.findById(payment.getUsedCoupon().getId())
-        .orElseThrow(EntityNotFoundException::new);
-    MemberReservation reservation = payment.getMemberReservation();
-
-    // MemberReservation 상태 업데이트
-    reservation.updateStatus(ReservationStatus.CANCELLED);
-
-    // ItemReservation 좌석 상태 업데이트
-    ItemReservation itemReservation = itemReservationRepository.findById(reservation.getItemReservation().getId())
-        .orElseThrow(EntityNotFoundException::new);
-    List<Participant> adult = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.ADULT);
-    List<Participant> child = participantRepository.findByMemberReservationIdAndAge(reservation.getId(), Age.CHILD);
-    int cancelledSeat = adult.size() + child.size();
-    itemReservation.updateRemainingSeats(cancelledSeat);
-
-    // 취소 사유 등록
-    payment.setCancelReason(refundRequestDto.getReason());
-
-    // 사용한 쿠폰 및 마일리지 반환
-    payment.getMemberReservation().getMember().cancelMileage(usedMileage);
-    if (usedCoupon != null) {
-      usedCoupon.setCouponStatus(CouponStatus.USABLE);
-    }
-  }
-
-  public Payment getPayment(String reservationNumber) {
-    MemberReservation reservation = memberReservationRepository.findByReservationNumber(reservationNumber)
-        .orElseThrow(EntityNotFoundException::new);
-    Payment payment;
-
-    if (reservation.getReservationStatus().equals(ReservationStatus.DEPOSIT_PAID)) {
-      payment = paymentRepository.findByMemberReservationIdAndPaymentType(reservation.getId(), PaymentType.DEPOSIT);
-    } else {
-      payment = paymentRepository.findByMemberReservationIdAndPaymentType(reservation.getId(), PaymentType.BALANCE);
-    }
-
-    return payment;
-
-  }
 }

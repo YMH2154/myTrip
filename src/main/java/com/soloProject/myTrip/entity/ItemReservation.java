@@ -63,7 +63,7 @@ public class ItemReservation {
     public void updateTotalPrice(int totalPrice) {
         this.totalPrice = totalPrice;
     }
-    public void updateRemainingSeats(int remainingSeats){
-        this.remainingSeats = remainingSeats;
+    public void updateRemainingSeats(int updatedSeats){
+        this.remainingSeats = updatedSeats;
     }
 }

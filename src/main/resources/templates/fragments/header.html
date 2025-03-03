@@ -29,10 +29,8 @@
             <div class="util-area">
                 <div class="util-inner">
                     <div sec:authorize="isAnonymous()" class="login">
-                        <ul>
-                            <li><a href="/member/login">로그인</a></li>
-                            <li><a href="/member/new">회원가입</a></li>
-                        </ul>
+                        <a href="/member/login">로그인</a>
+                        <a href="/member/new">회원가입</a>
                     </div>
                     <div sec:authorize="isAuthenticated()" class="logout">
                         <a href="/member/myPage">마이페이지</a>

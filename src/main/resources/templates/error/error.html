@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>오류 발생</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .container { max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; background: #f8d7da; color: #721c24; }
+        h1 { color: #d9534f; }
+    </style>
 </head>
 <body>
-  <h2>에러 발생</h2>
-<script>
-  $(document).ready(function(){
-    const errorMessage = [[${errorMessage}]];
-    if(errorMessage){
-      alert(errorMessage);
-    }
-  });
-</script>
+<div class="container">
+    <h1>오류가 발생했습니다</h1>
+    <p><strong>요청 URL:</strong> <span th:text="${url}"></span></p>
+    <p><strong>에러 메시지:</strong> <span th:text="${errorMessage}"></span></p>
+    <p><strong>에러 코드:</strong> <span th:text="${status}"></span></p>
+    <a href="/">홈으로 돌아가기</a>
+</div>
 </body>
 </html>

@@ -66,6 +66,11 @@
       grid-template-columns: 120px 1fr;
       margin-bottom: 12px;
       align-items: center;
+      gap: 4px;
+    }
+
+    .product-details div:last-child {
+      margin-bottom: 0;
     }
 
     .info-label {
@@ -81,6 +86,7 @@
       font-size: 20px;
       font-weight: 600;
       color: #dc3545;
+      text-align: right;
     }
 
     .refund-button {
@@ -191,6 +197,30 @@
       background-color: #5a6268;
     }
 
+    .refund-details {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .refund-detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .refund-detail-item span:first-child {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .refund-detail-item span:last-child {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
     @media (max-width: 768px) {
       .product-info {
         flex-direction: column;
@@ -200,15 +230,6 @@
         width: 100%;
         height: 200px;
       }
-
-      .info-group {
-        grid-template-columns: 1fr;
-        gap: 4px;
-      }
-
-      .info-label {
-        margin-bottom: 4px;
-      }
     }
   </style>
 </th:block>
@@ -216,19 +237,29 @@
 <div layout:fragment="content">
   <div class="refund-container">
     <h2 class="refund-title">환불 신청</h2>
-    
+
     <div class="product-info">
-      <img th:if="${payment.memberReservation.itemReservation.item.thumbnailImageUrls != null and not #lists.isEmpty(payment.memberReservation.itemReservation.item.thumbnailImageUrls)}"
-           th:src="${payment.memberReservation.itemReservation.item.thumbnailImageUrls[0]}"
+      <img th:if="${refundInfo.thumbnailImageUrls != null and not #lists.isEmpty(refundInfo.thumbnailImageUrls)}"
+           th:src="${refundInfo.thumbnailImageUrls[0]}"
            class="product-image" alt="상품 이미지">
       <div class="product-details">
         <div class="info-group">
           <span class="info-label">상품명</span>
-          <span class="info-value" th:text="${payment.memberReservation.itemReservation.item.itemName}"></span>
+          <span class="info-value" th:text="${refundInfo.itemName}"></span>
         </div>
         <div class="info-group">
           <span class="info-label">예약번호</span>
-          <span class="info-value" th:text="${payment.memberReservation.reservationNumber}"></span>
+          <span class="info-value" th:text="${refundInfo.reservationNumber}"></span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">출국 정보</span>
+          <span class="info-value" th:text="${#strings.substring(refundInfo.departureDateTime, 0, 10)} + ' '
+          + ${#strings.substring(refundInfo.departureDateTime, 11, 16)}"></span>
+        </div>
+        <div class="info-group">
+          <span class="info-label">귀국 정보</span>
+          <span class="info-value" th:text="${#strings.substring(refundInfo.returnDateTime, 0, 10)} + ' '
+          + ${#strings.substring(refundInfo.returnDateTime, 11, 16)}"></span>
         </div>
       </div>
     </div>
@@ -237,27 +268,40 @@
       <h3 class="info-section-title">예약자 정보</h3>
       <div class="info-group">
         <span class="info-label">예약자명</span>
-        <span class="info-value" th:text="${payment.memberReservation.member.name}"></span>
+        <span class="info-value" th:text="${refundInfo.memberName}"></span>
       </div>
       <div class="info-group">
         <span class="info-label">이메일</span>
-        <span class="info-value" th:text="${payment.memberReservation.member.email}"></span>
+        <span class="info-value" th:text="${refundInfo.memberEmail}"></span>
       </div>
       <div class="info-group">
         <span class="info-label">연락처</span>
-        <span class="info-value" th:text="${payment.memberReservation.member.tel}"></span>
+        <span class="info-value" th:text="${refundInfo.memberTel}"></span>
       </div>
     </div>
 
+
+
     <div class="info-section">
       <h3 class="info-section-title">환불 정보</h3>
-      <div class="info-group">
-        <span class="info-label">결제 방법</span>
-        <span class="info-value" th:text="${payment.paymentMethod.getDescription()}"></span>
+<!-- 예약금 환불-->
+      <div class="info-group" th:if="${refundInfo.reservationStatus.name() == 'DEPOSIT_PAID'}">
+        <span class="info-label">결제 수단</span>
+        <span class="info-value" th:text="${refundInfo.payments[0].paymentMethod.getDescription()}"></span>
       </div>
+
+<!-- 전액 환불-->
+      <div class="info-group" th:each="payment : ${refundInfo.payments}" th:if="${refundInfo.reservationStatus.name() == 'BALANCE_PAID'}">
+        <span class="info-label" th:text="${payment.paymentType.name() == 'DEPOSIT' ? '예약금' : '잔금'}"></span>
+        <div class="refund-details" th:each="payment : ${refundInfo.payments}">
+          <span class="refund-details-item" th:text="${payment.paymentMethod.getDescription()}"></span>
+          <span class="refund-details-item" th:text="${#numbers.formatInteger(payment.amount, 3, 'COMMA')} + '원'"></span>
+        </div>
+      </div>
+
       <div class="info-group">
-        <span class="info-label">환불 금액</span>
-        <span class="info-value refund-amount" th:text="${#numbers.formatInteger(payment.amount, 3, 'COMMA')} + '원'"></span>
+        <span class="info-label">환불 예정 금액</span>
+        <span class="info-value refund-amount" th:text="${#numbers.formatInteger(refundInfo.reservationStatus.name() == 'BALANCE_PAID' ? refundInfo.payments[0].amount + refundInfo.payments[1].amount : refundInfo.totalDeposit, 3, 'COMMA')} + '원'"></span>
       </div>
     </div>
 
@@ -302,8 +346,7 @@
 <th:block layout:fragment="script">
   <script th:inline="javascript">
     $(document).ready(function(){
-      const amount = [[${payment.amount}]];
-      const reservationNumber = /*[[${payment.memberReservation.reservationNumber}]]*/ '';
+      const refundInfo = /*[[${refundInfo}]]*/ {};
       const modal = document.getElementById('refundModal');
       const closeBtn = document.querySelector('.close');
       const cancelBtn = document.getElementById('cancelRefund');
@@ -327,14 +370,14 @@
 
       // 기타 사유 선택 시 텍스트영역 표시/숨김
       $('input[name="refundReason"]').change(function() {
-        otherReasonTextarea.style.display = 
+        otherReasonTextarea.style.display =
           this.value === 'OTHER' ? 'block' : 'none';
       });
 
       // 환불 신청 버튼
       confirmBtn.onclick = function() {
         const selectedReason = document.querySelector('input[name="refundReason"]:checked');
-        
+
         if (!selectedReason) {
           alert('환불 사유를 선택해주세요.');
           return;
@@ -345,28 +388,60 @@
           return;
         }
 
-        const refundReason = selectedReason.value === 'OTHER' ? 
+        const refundReason = selectedReason.value === 'OTHER' ?
           otherReasonTextarea.value : selectedReason.value;
 
-        const paymentId = /*[[${payment.id}]]*/ '';
+        // 잔금 결제를 먼저 찾아서 처리
+        const balancePayment = refundInfo.payments.find(p => p.paymentType === 'BALANCE');
+        const depositPayment = refundInfo.payments.find(p => p.paymentType === 'DEPOSIT');
 
-        ajaxRequest("/payment/refund/prepare",
-          "POST",
-          {
-            paymentId: paymentId,
-            reservationNumber: reservationNumber,
-            amount: amount.toString(),
-            reason: refundReason
-          },
-          function(response) {
-            console.log("환불 요청 성공");
-            location.href='/payment/refund/success';
-          },
-          function(error) {
-            console.error("환불 요청 실패", error);
+        // 순차적으로 처리하기 위한 함수
+        const processRefund = async (payment) => {
+          return new Promise((resolve, reject) => {
+            ajaxRequest("/refund/prepare",
+              "POST",
+              {
+                paymentId: payment.id,
+                reservationNumber: refundInfo.reservationNumber,
+                amount: payment.amount.toString(),
+                reason: refundReason,
+                flag: payment.paymentType === 'DEPOSIT'  // 예약금인 경우 flag를 true로 설정
+              },
+              function(response) {
+                resolve(response);
+              },
+              function(error) {
+                reject(error);
+              }
+            );
+          });
+        };
+
+        // 순차적으로 환불 처리
+        const processRefunds = async () => {
+          try {
+            // 1. 잔금 결제 취소
+            if (balancePayment) {
+              await processRefund(balancePayment);
+              console.log("잔금 결제 취소 완료");
+            }
+
+            // 2. 예약금 결제 취소
+            if (depositPayment) {
+              await processRefund(depositPayment);
+              console.log("예약금 결제 취소 완료");
+            }
+
+            // 모든 환불이 완료되면 성공 페이지로 이동
+            location.href = '/refund/success';
+          } catch (error) {
+            console.error("환불 처리 중 오류 발생", error);
             alert("환불 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
           }
-        );
+        };
+
+        // 환불 처리 시작
+        processRefunds();
       }
 
       // 모달 외부 클릭 시 닫기
