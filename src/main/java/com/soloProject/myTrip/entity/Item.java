@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "item")
@@ -61,20 +62,16 @@ public class Item extends BaseEntity {
     @Column(nullable = false)
     private int minParticipants; // 최소 출발 인원
 
-    @Column(nullable = false)
-    private int currentParticipants; // 현재 참가자 수
-
     @ElementCollection
     @CollectionTable(name = "thumbnail_image_urls", joinColumns = @JoinColumn(name = "item_id"))
     @Column(name = "thumbnail_image_url")
     private List<String> thumbnailImageUrls;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonBackReference
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Schedule> schedules;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemReservation> itemReservations;
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<ItemReservation> reservations;
 
     @Column(nullable = false)
     private int night;
@@ -94,14 +91,17 @@ public class Item extends BaseEntity {
     private int shoppingCount; // 쇼핑 횟수
     private boolean hasInsurance; // 여행자 보험 유무
 
-    // 잔여 좌석 수 계산 메소드
-    public int getRemainingSeats() {
-        return maxParticipants - currentParticipants;
-    }
+    @Column(columnDefinition = "integer default 0")
+    private Integer reservationCount;
 
-    // 출발 확정 여부 확인 메소드
-    public boolean isDepartureConfirmed() {
-        return currentParticipants >= minParticipants;
+    @Transient
+    private LocalDate earliestDepartureDate;
+
+    @Transient
+    private String airline;
+
+    public void plusReservationCount() {
+        this.reservationCount++;
     }
 
     public void updateItem(ItemFormDto itemFormDto) {

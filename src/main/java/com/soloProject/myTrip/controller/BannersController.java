@@ -23,25 +23,25 @@ public class BannersController {
     @GetMapping("/admin/banners/new")
     public String bannerForm(Model model) {
         model.addAttribute("bannnerFormDto", new BannnerFormDto());
-        return "admin/banner/bannerForm";
+        return "banner/bannerForm";
     }
 
     // 배너등록
     @PostMapping("/admin/banners/new")
     public String bannerNew(@Valid BannnerFormDto bannnerFormDto, BindingResult bindingResult, @RequestParam("bannerImgFile") MultipartFile bannerImgFile, Model model) {
         if (bindingResult.hasErrors()) {  // 유효성 체크
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         }
         if(bannerImgFile.isEmpty()&&bannnerFormDto.getId() == null) {
             model.addAttribute("errorMessage", "배너 이미지는 필수 입력 값입니다.");
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         }
         try {
             bannerService.saveBanner(bannnerFormDto, bannerImgFile);
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "배너 등록 중 오류가 발생했습니다.");
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         }
         return "redirect:/admin/banners";
     }
@@ -64,11 +64,11 @@ public class BannersController {
     @PostMapping("/admin/banners/{bannerId}/modify")
     public String bannerUpdate(@Valid BannnerFormDto bannnerFormDto, BindingResult bindingResult, @RequestParam("bannerImgFile") MultipartFile bannerImgFile, Model model){
         if(bindingResult.hasErrors()){
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         }
         if(bannerImgFile.isEmpty()&&bannnerFormDto.getId() == null){
             model.addAttribute("errorMessage", "배너 이미지는 필수 입력 값입니다.");
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         }
         try{
             bannerService.updateBanner(bannnerFormDto, bannerImgFile);
@@ -76,7 +76,7 @@ public class BannersController {
         catch(Exception e){
             e.printStackTrace();
             model.addAttribute("errorMessage", "배너 수정 중 오류가 발생했습니다.");
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         }
         return "redirect:/admin/banners";
     }
@@ -87,10 +87,10 @@ public class BannersController {
         try {
             BannnerFormDto bannnerFormDto = bannerService.getBannerDtl(bannerId);
             model.addAttribute("bannnerFormDto", bannnerFormDto);
-            return "admin/banner/bannerForm";
+            return "banner/bannerForm";
         } catch(EntityNotFoundException e) {
             model.addAttribute("errorMessage", "존재하지 않는 배너입니다.");
-            return "admin/banner/bannerList";
+            return "banner/bannerList";
         }
     }
 }

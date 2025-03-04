@@ -35,8 +35,6 @@ public class ItemFormDto {
 
     private String itemDetailImageUrl;
 
-    private ItemSellStatus itemSellStatus;
-
     @NotNull(message = "잔여 좌석(최대 인원)은 필수 입력 값입니다.")
     private Integer maxParticipants;
 
@@ -52,14 +50,16 @@ public class ItemFormDto {
     private Integer night;
     private Integer duration;
 
-    private boolean hasLeader;        // 인솔자 유무
-    private boolean hasGuideFee;      // 가이드 경비 유무
-    private Integer guideFee;         // 가이드 경비 금액
+    private boolean hasLeader; // 인솔자 유무
+    private boolean hasGuideFee; // 가이드 경비 유무
+    private Integer guideFee; // 가이드 경비 금액
     private CurrencyUnit guideFeeUnit; // 가이드 경비 통화 단위
-    private boolean hasShopping;      // 쇼핑 유무
-    private Integer shoppingCount;    // 쇼핑 횟수
-    private boolean hasInsurance;     // 여행자 보험 유무
-    
+    private boolean hasShopping; // 쇼핑 유무
+    private Integer shoppingCount; // 쇼핑 횟수
+    private boolean hasInsurance; // 여행자 보험 유무
+
+    private Integer reservationCount = 0;
+
     public static ModelMapper modelMapper = new ModelMapper();
 
     public boolean isValidCategory() {
@@ -85,7 +85,6 @@ public class ItemFormDto {
     // Item 엔티티로 변환하는 메소드
     public Item createItem() {
         Item item = modelMapper.map(this, Item.class);
-        item.setCurrentParticipants(0);
         return item;
     }
 

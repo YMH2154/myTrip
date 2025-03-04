@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -31,11 +33,13 @@ public class MainController {
     @GetMapping(value = "/")
     public String main(Model model) {
         List<Item> recommendedItems = mainService.getRecommendedItems();
-        List<Item> confirmedItems = mainService.getConfirmedItems();
+        List<Item> cheapItems = mainService.getMostCheapItems();
+        List<Item> reservationCountItems = mainService.getMostReservationCountItems();
         List<BannnerFormDto> banners = bannersService.getLatestContents().stream().limit(5).toList();
 
         model.addAttribute("recommendedItems", recommendedItems);
-        model.addAttribute("confirmedItems", confirmedItems);
+        model.addAttribute("cheapItems", cheapItems);
+        model.addAttribute("reservationCountItems", reservationCountItems);
         model.addAttribute("banners", banners);
 
         return "main";
@@ -54,6 +58,7 @@ public class MainController {
             model.addAttribute("searchQuery", searchQuery);
             model.addAttribute("currentPage", page);
             model.addAttribute("hasNext", items.size() == pageSize);
+            model.addAttribute("isSearch", true);
 
             return "item/itemSearchPage";
         } catch (Exception e) {
@@ -71,6 +76,9 @@ public class MainController {
             List<ItemFormDto> items = itemService.getItemByCategory(link, page, 12);
             model.addAttribute("items", items);
             model.addAttribute("categoryLink", link);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("hasNext", items.size() == 12);
+            model.addAttribute("isSearch", false);
             return "item/itemSearchPage";
         } catch (Exception e) {
             log.error("카테고리 결과 호출 중 에러 발생", e);
@@ -88,6 +96,20 @@ public class MainController {
             return ResponseEntity.ok(items);
         } catch (Exception e) {
             log.error("카테고리 아이템 로딩 중 에러 발생", e);
+            return ResponseEntity.badRequest().body(new ErrorResponse("요청 실패: " + e.getMessage()));
+        }
+    }
+
+    // 검색 API 엔드포인트
+    @GetMapping("/api/search")
+    @ResponseBody
+    public ResponseEntity<?> searchItems(@RequestParam("searchQuery") String searchQuery,
+            @RequestParam(value = "page", defaultValue = "0") int page) {
+        try {
+            List<ItemFormDto> items = itemService.getSearchItemPage(searchQuery, page, 12);
+            return ResponseEntity.ok(items);
+        } catch (Exception e) {
+            log.error("검색 아이템 로딩 중 에러 발생", e);
             return ResponseEntity.badRequest().body(new ErrorResponse("요청 실패: " + e.getMessage()));
         }
     }

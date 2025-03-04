@@ -51,7 +51,7 @@ public class FileService {
         }
         else if(value.equals("schedule")){
             location = activityImageLocation;
-            pathUrl = "/activityImages'";
+            pathUrl = "/activityImages/";
         }
         else{
             location = bannerImageLocation;

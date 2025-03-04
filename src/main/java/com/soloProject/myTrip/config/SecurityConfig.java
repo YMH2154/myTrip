@@ -27,8 +27,10 @@ public class SecurityConfig {
                 http.authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                                 .requestMatchers("/", "/member/**", "/item/**", "/images/**", "/itemDetailImages/**",
-                                                "/email/**", "/api/prices/status/**", "/thumbnailImages/**","/category/**",
-                                                "/banner/**").permitAll()
+                                                "/email/**", "/api/prices/status/**", "/thumbnailImages/**",
+                                                "/category/**",
+                                                "/banner/**")
+                                .permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/reservation/**", "/payment/**").authenticated()
                                 .anyRequest().authenticated()).formLogin(login -> login
@@ -46,8 +48,14 @@ public class SecurityConfig {
                                                 .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                                                                 .userService(customOAuth2UserService)))
                                 .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/api/**")
-                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
+                                                .ignoringRequestMatchers("/api/**", "/images/**",
+                                                                "/itemDetailImages/**", "/thumbnailImages/**")
+                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .requireCsrfProtectionMatcher(request -> {
+                                                        String method = request.getMethod();
+                                                        return !method.equals("GET") && !method.equals("HEAD")
+                                                                        && !method.equals("OPTIONS") && !method.equals("POST") && !method.equals("DELETE");
+                                                }));
 
                 http.exceptionHandling(exception -> exception
                                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint()));

@@ -1,10 +1,8 @@
 package com.soloProject.myTrip.service;
 
 import com.soloProject.myTrip.constant.ReservationStatus;
-import com.soloProject.myTrip.entity.ItemReservation;
-import com.soloProject.myTrip.entity.Member;
-import com.soloProject.myTrip.entity.MemberReservation;
-import com.soloProject.myTrip.entity.Participant;
+import com.soloProject.myTrip.entity.*;
+import com.soloProject.myTrip.repository.ItemRepository;
 import com.soloProject.myTrip.repository.ItemReservationRepository;
 import com.soloProject.myTrip.repository.MemberRepository;
 import com.soloProject.myTrip.repository.MemberReservationRepository;
@@ -29,6 +27,7 @@ public class ReservationService {
     private final ItemReservationRepository itemReservationRepository;
     private final MemberReservationRepository memberReservationRepository;
     private final MemberRepository memberRepository;
+    private final ItemRepository itemRepository;
 
     @Transactional
     public MemberReservation createReservation(Long itemId, String departureDateTime,
@@ -45,6 +44,9 @@ public class ReservationService {
 
         ItemReservation itemReservation = itemReservationRepository
                 .findByItemIdAndDepartureDateTime(itemId, departureDateTime);
+
+        Item item = itemRepository.findById(itemReservation.getItem().getId()).orElseThrow(EntityExistsException::new);
+        item.plusReservationCount();
 
         if (itemReservation == null) {
             throw new RuntimeException("해당 예약 정보를 찾을 수 없습니다.");

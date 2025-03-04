@@ -5,20 +5,40 @@
 
 <th:block layout:fragment="css">
     <style>
+        .search-header {
+            padding: 20px;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        .search-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .search-query {
+            color: #3498db;
+            font-weight: 500;
+        }
         .item-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
             padding: 20px;
         }
         .item-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: none;
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s;
+            background: white;
+            text-decoration: none;
+            color: inherit;
         }
         .item-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
         }
         .item-image {
             width: 100%;
@@ -26,41 +46,100 @@
             object-fit: cover;
         }
         .item-info {
-            padding: 15px;
+            padding: 20px;
+        }
+        .item-info h5 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .price {
+            font-size: 22px;
+            font-weight: 700;
+            color: #3498db;
+            margin-top: 10px;
+        }
+        .price small {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
         }
         .loading {
             text-align: center;
             padding: 20px;
             display: none;
         }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
     </style>
 </th:block>
 
 <div layout:fragment="content">
-    <div class="container">
-        <div id="itemGrid" class="item-grid">
-            <!-- 아이템들이 여기에 동적으로 추가됨 -->
+    <!-- 검색 헤더 -->
+    <div class="search-header">
+        <div class="container">
+            <h1 class="search-title">
+                <span th:if="${isSearch}">'<span class="search-query" th:text="${searchQuery}"></span>' 검색 결과</span>
+                <span th:unless="${isSearch}">'<span class="search-query" th:text="${categoryLink}"></span>' 카테고리 상품</span>
+            </h1>
         </div>
+    </div>
+
+    <div class="container">
+        <!-- 검색 결과가 없는 경우 -->
+        <div th:if="${#lists.isEmpty(items)}" class="no-results">
+            검색 결과가 없습니다.
+        </div>
+
+        <!-- 검색 결과 그리드 -->
+        <div th:unless="${#lists.isEmpty(items)}" id="itemGrid" class="item-grid">
+            <div th:each="item : ${items}" class="item-card" th:href="@{'/item/'+ ${item.id} +'/calendar'}">
+                <img th:src="${item.thumbnailImageUrls[0]}" class="item-image" th:alt="${item.itemName}">
+                <div class="item-info">
+                    <h5 th:text="${item.itemName}">상품명</h5>
+                    <span class="deadline-badge">잔여 [[${item.getRemainingSeats()}]]석</span>
+                    <p class="price">
+                        <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원
+                        <small>(항공권 포함)</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로딩 인디케이터 -->
         <div id="loading" class="loading">
-            Loading...
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
     </div>
 </div>
 
 <th:block layout:fragment="script">
     <script th:inline="javascript">
-        let page = 1; // 초기 페이지는 1로 설정 (0페이지는 서버에서 이미 로드)
+        let page = 1;
         let loading = false;
         const pageSize = 12;
-        const link = window.location.pathname.split('/').pop();
+        const isSearch = [[${isSearch}]];
+        const searchQuery = [[${searchQuery}]];
+        const categoryLink = [[${categoryLink}]];
+        const hasNext = [[${hasNext}]];
 
         function loadItems() {
-            if (loading) return;
+            if (loading || !hasNext) return;
             loading = true;
             
             document.getElementById('loading').style.display = 'block';
             
-            fetch(`/api/category/${link}?page=${page}&pageSize=${pageSize}`)
+            const url = isSearch 
+                ? `/api/search?searchQuery=${searchQuery}&page=${page}&pageSize=${pageSize}`
+                : `/api/category/${categoryLink}?page=${page}&pageSize=${pageSize}`;
+            
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     const itemGrid = document.getElementById('itemGrid');
@@ -90,8 +169,11 @@
                 <img src="${item.thumbnailImageUrls[0]}" class="item-image" alt="${item.itemName}">
                 <div class="item-info">
                     <h5>${item.itemName}</h5>
-                    <p>가격: ${item.price.toLocaleString()}원</p>
-                    <p>최소 출발: ${item.minParticipants}명</p>
+                    <span class="deadline-badge">잔여 ${item.remainingSeats}석</span>
+                    <p class="price">
+                        ${item.lowestPrice.toLocaleString()}원
+                        <small>(항공권 포함)</small>
+                    </p>
                 </div>
             `;
             card.onclick = () => {
@@ -108,7 +190,9 @@
         });
 
         // 초기 로드
-        loadItems();
+        if (hasNext) {
+            loadItems();
+        }
     </script>
 </th:block>
 </html>

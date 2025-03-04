@@ -578,7 +578,7 @@
                             <td>
                                 <div>
                                     <strong>현재 예약:</strong>
-                                    <span th:text="${item.currentParticipants + '명'}"></span>
+                                    <span th:text="${item.maxParticipants - reservation.remainingSeats + '명'}"></span>
                                 </div>
                                 <div>
                                     <strong>잔여 좌석:</strong>

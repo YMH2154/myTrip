@@ -4,6 +4,8 @@ import com.soloProject.myTrip.constant.ItemSellStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -21,6 +23,9 @@ public class ItemReservation {
     private int remainingSeats;
 
     private int totalPrice;
+
+    @OneToMany(mappedBy = "itemReservation", cascade = CascadeType.ALL)
+    private List<MemberReservation> memberReservations;
 
     // 출국편 정보
     private String departureDateTime; // 시간 포함 출발 일시
@@ -46,7 +51,7 @@ public class ItemReservation {
         this.departureDateTime = departureDateTime;
         this.returnDateTime = returnDateTime;
         this.itemSellStatus = ItemSellStatus.SELL;
-        this.remainingSeats = item.getRemainingSeats();
+        this.remainingSeats = item.getMaxParticipants();
         this.totalPrice = totalPrice;
 
         // 출국편 정보
@@ -65,5 +70,14 @@ public class ItemReservation {
     }
     public void updateRemainingSeats(int updatedSeats){
         this.remainingSeats = updatedSeats;
+        if(this.remainingSeats == 0){
+            this.itemSellStatus = ItemSellStatus.WAITING;
+        }else{
+            this.itemSellStatus = ItemSellStatus.SELL;
+        }
+    }
+
+    public void soldOutReservation(){
+        this.itemSellStatus = ItemSellStatus.SOLDOUT;
     }
 }

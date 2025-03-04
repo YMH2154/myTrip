@@ -46,6 +46,8 @@ public class PaymentService {
   private final RestTemplate restTemplate;
   private final MemberReservationRepository memberReservationRepository;
   private final CouponRepository couponRepository;
+  private final ItemReservationRepository itemReservationRepository;
+
 
   // 결제 준비 정보를 저장할 Map
   private final Map<String, PaymentDto> paymentInfoMap = new HashMap<>();
@@ -109,6 +111,7 @@ public class PaymentService {
     }
   }
 
+  // 결제 승인
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public ApproveResponse payApprove(String tid, String pgToken) {
     try {
@@ -173,6 +176,8 @@ public class PaymentService {
         .findByReservationNumber(paymentDto.getReservationNumber())
         .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
 
+    ItemReservation itemReservation = itemReservationRepository.findById(reservation.getItemReservation().getId()).orElseThrow(EntityNotFoundException::new);
+
     // Payment 데이터 저장
     Payment payment = Payment.builder()
         .itemName(reservation.getItemReservation().getItem().getItemName())
@@ -205,6 +210,18 @@ public class PaymentService {
     } else {
       reservation.updateStatus(ReservationStatus.BALANCE_PAID);
       payment.setPaymentType(PaymentType.BALANCE);
+
+      //해당 날짜의 예약이 모두 잔금 지불 상태라면 예약 마감
+      boolean flag = true;
+      for(MemberReservation memberReservation : itemReservation.getMemberReservations()){
+        if(!memberReservation.getReservationStatus().equals(ReservationStatus.BALANCE_PAID)){
+          flag = false;
+          break;
+        }
+      }
+      if(flag){
+        itemReservation.soldOutReservation();
+      }
     }
 
     paymentRepository.save(payment);
@@ -318,6 +335,8 @@ public class PaymentService {
             .findByReservationNumber(paymentDto.getReservationNumber())
             .orElseThrow(() -> new EntityNotFoundException("예약을 찾을 수 없습니다."));
 
+        ItemReservation itemReservation = itemReservationRepository.findById(reservation.getItemReservation().getId()).orElseThrow(EntityNotFoundException::new);
+
         // 결제 정보 저장
         Payment payment = Payment.builder()
             .itemName(reservation.getItemReservation().getItem().getItemName())
@@ -351,6 +370,16 @@ public class PaymentService {
           reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
         } else {
           reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+          boolean flag = true;
+          for(MemberReservation memberReservation : itemReservation.getMemberReservations()){
+            if(!memberReservation.getReservationStatus().equals(ReservationStatus.BALANCE_PAID)){
+              flag = false;
+              break;
+            }
+          }
+          if(flag){
+            itemReservation.soldOutReservation();
+          }
         }
 
         // 모든 변경사항 저장

@@ -89,7 +89,8 @@ public class ItemService {
     // 상품 데이터 조회
     @Transactional(readOnly = true)
     public ItemFormDto getItem(Long itemId) {
-        return ItemFormDto.of(itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new));
+        Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
+        return ItemFormDto.of(item);
     }
 
     // 썸네일 이미지 삭제
@@ -236,5 +237,7 @@ public class ItemService {
                 .map(ItemFormDto::of)
                 .collect(Collectors.toList());
     }
+
+    //해당 예약 날짜 남은 좌석 조회
 
 }

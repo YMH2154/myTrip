@@ -22,9 +22,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequiredArgsConstructor
@@ -49,9 +52,21 @@ public class ItemController {
     public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
             @RequestParam List<MultipartFile> thumbnailImageFile,
             @RequestParam MultipartFile itemDetailImageFile,
-            Model model) {
+            Model model,
+            HttpServletRequest request) {
+
+        // CSRF 토큰 디버깅
+        log.info("CSRF Token from Header: {}", request.getHeader("X-CSRF-TOKEN"));
+        log.info("CSRF Token from Parameter: {}", request.getParameter("_csrf"));
+        log.info("Request Method: {}", request.getMethod());
+        log.info("Request URI: {}", request.getRequestURI());
+        log.info("Request Headers: {}", Collections.list(request.getHeaderNames()).stream()
+                .collect(Collectors.toMap(
+                        headerName -> headerName,
+                        request::getHeader)));
 
         if (bindingResult.hasErrors()) {
+            log.error("Binding Result Errors: {}", bindingResult.getAllErrors());
             return "item/itemForm";
         }
         if (itemDetailImageFile.isEmpty()) {
@@ -66,7 +81,7 @@ public class ItemController {
             model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
             return "item/itemForm";
         }
-        if(itemFormDto.getNight() >= itemFormDto.getDuration()){
+        if (itemFormDto.getNight() >= itemFormDto.getDuration()) {
             model.addAttribute("errorMessage", "여행 기간이 올바르지 않습니다.");
             return "item/itemForm";
         }
@@ -118,7 +133,7 @@ public class ItemController {
             model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
             return "item/itemForm";
         }
-        if(itemFormDto.getNight() >= itemFormDto.getDuration()){
+        if (itemFormDto.getNight() >= itemFormDto.getDuration()) {
             model.addAttribute("errorMessage", "여행 기간이 올바르지 않습니다.");
             return "item/itemForm";
         }
