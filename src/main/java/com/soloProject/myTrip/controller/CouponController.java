@@ -26,12 +26,14 @@ import java.util.Map;
 public class CouponController {
     private final CouponService couponService;
 
+    // 쿠폰 생성 페이지
     @GetMapping("/admin/coupon/new")
     public String newCoupon(Model model) {
         model.addAttribute("couponForm", new CouponDto());
         return "coupon/couponForm";
     }
 
+    // 쿠폰 저장 요청
     @PostMapping("/admin/coupon/new")
     public String newCoupon(@Valid CouponDto couponDto,
             BindingResult bindingResult,
@@ -50,14 +52,16 @@ public class CouponController {
         }
     }
 
+    // 쿠폰 삭제 요청
     @DeleteMapping("/admin/coupon/{couponId}")
     @ResponseBody
     public ResponseEntity<String> deleteCoupon(@PathVariable("couponId") Long couponId) {
         try {
             couponService.deleteCoupon(couponId);
-            return new ResponseEntity<>("Success", HttpStatus.OK);
+            return ResponseEntity.ok("삭제 성공");
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("삭제 성공");
         }
     }
 
@@ -90,7 +94,21 @@ public class CouponController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    // 쿠폰 지급 요청
+    @PostMapping("/admin/coupon/give-coupon/{couponId}")
+    @ResponseBody
+    public ResponseEntity<String> giveCoupon(@PathVariable("couponId") Long couponId) {
+        try {
+            couponService.giveCouponForAllMembers(couponId);
+            return ResponseEntity.ok("지급 성공");
+        } catch (Exception e) {
+            log.error("쿠폰 지급 중 오류 발생", e);
+            return ResponseEntity.badRequest().body("지급 실패: " + e.getMessage());
         }
     }
 }

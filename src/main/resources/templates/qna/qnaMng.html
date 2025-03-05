@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .qna-mng-container {
+            padding: 30px;
+        }
+
+        .page-title {
+            color: #333;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a73e8;
+        }
+
+        .qna-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .qna-table th {
+            background-color: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+        }
+
+        .qna-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .qna-title {
+            color: #1a73e8;
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .qna-title:hover {
+            color: #1557b0;
+            text-decoration: underline;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .status-completed {
+            background-color: #e3f2fd;
+            color: #1a73e8;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .page-item {
+            list-style: none;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            color: #1a73e8;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .page-link:hover {
+            background-color: #e8f0fe;
+        }
+
+        .page-item.active .page-link {
+            background-color: #1a73e8;
+            color: white;
+            border-color: #1a73e8;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="qna-mng-container">
+        <h2 class="page-title">Q&A 관리</h2>
+
+        <table class="qna-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>제목</th>
+                    <th>등록자</th>
+                    <th>등록일</th>
+                    <th>답변상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="qna : ${qnAs}">
+                    <td th:text="${qna.id}"></td>
+                    <td>
+                        <a th:href="@{'/mypage/qna/' + ${qna.id}}"
+                           th:text="${qna.title}"
+                           class="qna-title"></a>
+                    </td>
+                    <td th:text="${qna.member.email}"></td>
+                    <td th:text="${#temporals.format(qna.regTime, 'yyyy-MM-dd HH:mm')}"></td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${qna.isAnswered ? 'status-completed' : 'status-pending'}"
+                              th:text="${qna.isAnswered ? '답변완료' : '미답변'}">
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이징 -->
+        <div th:if="${qnAs.totalPages > 0}" class="pagination">
+            <li class="page-item" 
+                th:each="pageNumber : ${#numbers.sequence(0, qnAs.totalPages - 1)}"
+                th:classappend="${pageNumber == qnAs.number} ? 'active'">
+                <a th:href="@{'/admin/qnas/' + ${pageNumber}}"
+                   th:text="${pageNumber + 1}"
+                   class="page-link">
+                </a>
+            </li>
+        </div>
+    </div>
+</div>
+</html>

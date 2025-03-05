@@ -32,7 +32,7 @@ public class SecurityConfig {
                                                 "/banner/**")
                                 .permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/reservation/**", "/payment/**").authenticated()
+                                .requestMatchers("/reservation/**", "/payment/**","/myPage/**").authenticated()
                                 .anyRequest().authenticated()).formLogin(login -> login
                                                 .loginPage("/member/login")
                                                 .defaultSuccessUrl("/member/login/success")

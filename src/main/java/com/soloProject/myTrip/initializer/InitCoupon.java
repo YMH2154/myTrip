@@ -29,7 +29,7 @@ public class InitCoupon implements CommandLineRunner {
       welcomeCoupon.setDiscountAmount(2000);
       welcomeCoupon.setCouponDuration(CouponDuration.MONTH);
       welcomeCoupon.setMinPurchaseAmount(100000);
-      welcomeCoupon.setIsAlphaCoupon(true);
+      welcomeCoupon.setAlphaCoupon(true);
 
       couponRepository.save(welcomeCoupon);
       System.out.println("가입 축하 쿠폰 생성 완료");

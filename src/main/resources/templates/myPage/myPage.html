@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/myPage-layout}">
+
+<th:block layout:fragment="css">
+  <style>
+    .mypage-welcome {
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #e1e8f5;
+    }
+
+    .welcome-title {
+      color: #1a73e8;
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-subtitle {
+      color: #5f6368;
+      font-size: 1.1rem;
+    }
+
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .info-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .info-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .info-card-icon {
+      width: 40px;
+      height: 40px;
+      background: #e8f0fe;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+    }
+
+    .info-card-icon i {
+      color: #1a73e8;
+      font-size: 1.2rem;
+    }
+
+    .info-card-title {
+      color: #202124;
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .info-card-content {
+      color: #5f6368;
+    }
+
+    .info-card-link {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #1a73e8;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .info-card-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</th:block>
+
+<div layout:fragment="content">
+  <div class="mypage-welcome">
+    <h1 class="welcome-title">환영합니다!</h1>
+    <p class="welcome-subtitle">마이페이지에서 회원님의 정보와 활동 내역을 확인하실 수 있습니다.</p>
+  </div>
+
+  <div class="info-cards">
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <i class="fas fa-user"></i>
+        </div>
+        <h2 class="info-card-title">회원 정보</h2>
+      </div>
+      <p class="info-card-content">회원님의 개인정보를 확인하고 수정할 수 있습니다.</p>
+      <a href="/mypage/info" class="info-card-link">자세히 보기 →</a>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <i class="fas fa-clock-rotate-left"></i>
+        </div>
+        <h2 class="info-card-title">최근 본 상품</h2>
+      </div>
+      <p class="info-card-content">최근에 살펴본 여행 상품들을 확인할 수 있습니다.</p>
+      <a href="/mypage/recent-items" class="info-card-link">자세히 보기 →</a>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <i class="fas fa-question-circle"></i>
+        </div>
+        <h2 class="info-card-title">Q&A</h2>
+      </div>
+      <p class="info-card-content">문의하신 내용과 답변을 확인할 수 있습니다.</p>
+      <a href="/mypage/qna" class="info-card-link">자세히 보기 →</a>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <h2 class="info-card-title">결제 내역</h2>
+      </div>
+      <p class="info-card-content">지금까지의 결제 내역을 확인할 수 있습니다.</p>
+      <a href="/mypage/payments" class="info-card-link">자세히 보기 →</a>
+    </div>
+  </div>
+</div>
+
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+  </script>
+</th:block>
+
+</html>

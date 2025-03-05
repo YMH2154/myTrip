@@ -42,7 +42,7 @@ public class Coupon extends BaseTimeEntity {
     private CouponWallet couponWallet;
 
     @Column(name = "is_alpha_coupon")
-    private Boolean isAlphaCoupon;
+    private boolean isAlphaCoupon;
 
     public static Coupon giveCoupon(Coupon coupon) {
         Coupon userCoupon = new Coupon();
@@ -52,7 +52,7 @@ public class Coupon extends BaseTimeEntity {
         userCoupon.setMinPurchaseAmount(coupon.minPurchaseAmount);
         userCoupon.setCouponType(coupon.getCouponType());
         userCoupon.setCouponStatus(CouponStatus.USABLE);
-        userCoupon.setIsAlphaCoupon(false);
+        userCoupon.setAlphaCoupon(false);
 
         // 유효 기간 설정을 간단하게 리팩토링
         LocalDate startDate = LocalDate.now();

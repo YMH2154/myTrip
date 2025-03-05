@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+
+    <!-- CSS only-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+
+    <!-- JS, Popper.js and Jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js"></script>
+
+    <!-- 그 다음 jQuery UI -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-themes/1.12.1/themes/dark-hive/jquery-ui.min.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+    <!-- 마지막으로 커스텀 js -->
+    <script th:src="@{/js/ajaxUtil.js}"></script>
+    
+    <!-- 공통 스타일 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        .mypage-container {
+            display: flex;
+            min-height: calc(100vh - 270px); /* 헤더(190px)와 푸터(80px) 높이 고려 */
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* 사이드바 스타일 */
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+            height: calc(100vh - 310px); /* 컨테이너 여백 고려 */
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px 0;
+            border-bottom: 2px solid #e1e8f5;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-title {
+            color: #1a73e8;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            max-height: calc(100% - 100px);
+        }
+
+        .sidebar-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: #1a73e8;
+            border-radius: 3px;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: #5f6368;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            min-width: 0;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .mypage-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+        }
+    </style>
+
+    <!-- Font Awesome 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 구글 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 레이아웃에서 사용할 추가 CSS -->
+    <th:block layout:fragment="css"></th:block>
+</head>
+<body>
+    <!-- 헤더 추가 -->
+    <div th:replace="fragments/header :: header"></div>
+
+    <div class="mypage-container">
+        <!-- 사이드바 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-title">마이페이지</h1>
+            </div>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="/mypage/info">
+                        <i class="fas fa-user"></i>회원 정보
+                    </a>
+                </li>
+                <li>
+                    <a href="/mypage/recent-items">
+                        <i class="fas fa-clock-rotate-left"></i>최근 본 상품
+                    </a>
+                </li>
+                <li>
+                    <a href="/mypage/qna">
+                        <i class="fas fa-question-circle"></i>Q&A
+                    </a>
+                </li>
+                <li>
+                    <a href="/mypage/payments">
+                        <i class="fas fa-credit-card"></i>결제 내역
+                    </a>
+                </li>
+                <li>
+                    <a href="/mypage/points">
+                        <i class="fas fa-gift"></i>쿠폰 및 마일리지
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 메인 컨텐츠 영역 -->
+        <div class="main-content" layout:fragment="content">
+            <!-- 각 페이지의 컨텐츠가 이 영역에 들어갑니다 -->
+        </div>
+    </div>
+
+    <!-- 푸터 추가 -->
+    <div th:replace="fragments/footer :: footer"></div>
+
+    <!-- 레이아웃에서 사용할 추가 스크립트 -->
+    <th:block layout:fragment="script"></th:block>
+</body>
+</html>

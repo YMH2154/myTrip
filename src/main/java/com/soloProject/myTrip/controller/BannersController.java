@@ -38,12 +38,12 @@ public class BannersController {
         }
         try {
             bannerService.saveBanner(bannnerFormDto, bannerImgFile);
+            return "redirect:/admin/banners";
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "배너 등록 중 오류가 발생했습니다.");
             return "banner/bannerForm";
         }
-        return "redirect:/admin/banners";
     }
 
     // 배너 삭제
@@ -52,12 +52,12 @@ public class BannersController {
     public ResponseEntity deleteBanner(@PathVariable("bannerId") Long bannerId){
         try{
             bannerService.deleteBanner(bannerId);
+            return new ResponseEntity<>("삭제 완료", HttpStatus.OK);
         }
         catch(Exception e){
             e.printStackTrace();
             return new ResponseEntity<>("삭제 중 오류가 발생했습니다.", HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>("삭제 완료", HttpStatus.OK);
     }
 
     // 배너 수정
@@ -72,13 +72,13 @@ public class BannersController {
         }
         try{
             bannerService.updateBanner(bannnerFormDto, bannerImgFile);
+            return "redirect:/admin/banners";
         }
         catch(Exception e){
             e.printStackTrace();
             model.addAttribute("errorMessage", "배너 수정 중 오류가 발생했습니다.");
             return "banner/bannerForm";
         }
-        return "redirect:/admin/banners";
     }
 
     // 배너 수정 페이지
@@ -87,10 +87,10 @@ public class BannersController {
         try {
             BannnerFormDto bannnerFormDto = bannerService.getBannerDtl(bannerId);
             model.addAttribute("bannnerFormDto", bannnerFormDto);
-            return "banner/bannerForm";
+            return "redirect:/admin/banners";
         } catch(EntityNotFoundException e) {
             model.addAttribute("errorMessage", "존재하지 않는 배너입니다.");
-            return "banner/bannerList";
+            return "redirect:/admin/banners";
         }
     }
 }

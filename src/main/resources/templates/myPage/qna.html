@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/myPage-layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .qna-container {
+            padding: 20px;
+        }
+
+        .notice-text {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .faq-section {
+            margin-bottom: 30px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .faq-title {
+            color: #1a73e8;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .new-qna-btn {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .new-qna-btn:hover {
+            background-color: #1557b0;
+        }
+
+        .qna-table {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .qna-table th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .qna-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .qna-title {
+            color: #1a73e8;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .qna-title:hover {
+            color: #1557b0;
+            text-decoration: underline;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .status-completed {
+            background-color: #e3f2fd;
+            color: #1a73e8;
+        }
+
+        .no-qna {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="qna-container">
+        <!-- 안내문 -->
+        <div class="notice-text">
+            <i class="fas fa-info-circle"></i>
+            Q&A는 최신 순으로 5개 까지 등록 및 조회 가능합니다.
+        </div>
+
+        <!-- FAQ 섹션 -->
+        <div class="faq-section">
+            <h2 class="faq-title">자주 묻는 질문</h2>
+            <!-- FAQ 내용은 추후 추가 -->
+        </div>
+
+        <!-- 새 Q&A 등록 버튼 -->
+        <a href="/member/mypage/qna/new" class="new-qna-btn">
+            <i class="fas fa-plus"></i> 새 문의하기
+        </a>
+
+        <!-- Q&A 테이블 -->
+        <table class="qna-table">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">등록일</th>
+                    <th style="width: 70%;">제목</th>
+                    <th style="width: 10%;">답변 상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(qnaDtos)}">
+                    <td colspan="3" class="no-qna">등록된 Q&A가 없습니다.</td>
+                </tr>
+                <tr th:each="qna : ${qnaDtos}" class="td">
+                    <td th:text="${#temporals.format(qna.regTime, 'yyyy-MM-dd')}" style="width: 20%;"></td>
+                    <td style="width: 70%;">
+                        <a th:href="@{'/mypage/qna/' + ${qna.id}}"
+                           th:text="${qna.title}"
+                           class="qna-title"></a>
+                    </td>
+                    <td style="width: 10%;">
+                        <span class="status" 
+                              th:classappend="${qna.isAnswered ? 'status-completed' : 'status-pending'}"
+                              th:text="${qna.isAnswered ? '답변완료' : '미답변'}">
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+    </script>
+</th:block>
+
+</html>

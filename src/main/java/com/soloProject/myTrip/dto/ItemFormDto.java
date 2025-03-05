@@ -84,8 +84,7 @@ public class ItemFormDto {
 
     // Item 엔티티로 변환하는 메소드
     public Item createItem() {
-        Item item = modelMapper.map(this, Item.class);
-        return item;
+        return modelMapper.map(this, Item.class);
     }
 
     // Dto로 변환하는 메소드

@@ -5,6 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <title>myTrip 쿠폰 관리 페이지</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
 </head>
 
 <th:block layout:fragment="css">
@@ -463,6 +465,9 @@
                 <td th:text="${coupon.description}"></td>
                 <td>
                     <div class="action-buttons">
+                        <button type="button" class="action-btn" th:onclick="'giveCoupon('+${coupon.id}+')'">
+                            <img src="/images/give_coupon.png" alt="쿠폰 지급" title="쿠폰 지급">
+                        </button>
                         <button type="button" class="action-btn" th:onclick="'deleteCoupon('+${coupon.id}+')'">
                             <img src="/images/delete.png" alt="삭제" title="삭제">
                         </button>
@@ -549,6 +554,22 @@
                 {},
                 function(response) {
                     alert('쿠폰이 삭제되었습니다.');
+                    location.reload();
+                }
+            );
+        }
+
+        function giveCoupon(couponId){
+            if (!confirm('해당 쿠폰을 모든 회원에게 지급하시겠습니까?')){
+                return;
+            }
+
+            ajaxRequest(
+                '/admin/coupon/give-coupon/' + couponId,
+                'POST',
+                {},
+                function(response){
+                    alert('쿠폰 지급이 완료되었습니다.');
                     location.reload();
                 }
             );

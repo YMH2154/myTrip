@@ -306,11 +306,11 @@
 
                     <div class="input-group">
                         <div class="input-group-prepend">
-                            <span class="input-group-text">아이템 아이디</span>
+                            <span class="input-group-text">배너 URL</span>
                         </div>
-                        <input type="text" th:field="*{itemId}" class="form-control" placeholder="배너 클릭 시 이동할 URL을 입력해주세요">
+                        <input type="text" th:field="*{mappingUrl}" class="form-control" placeholder="배너 클릭 시 이동할 URL을 입력해주세요">
                     </div>
-                    <p th:if="${#fields.hasErrors('itemId')}" th:errors="*{itemId}" class="fieldError">Incorrect data</p>
+                    <p th:if="${#fields.hasErrors('mappingUrl')}" th:errors="*{mappingUrl}" class="fieldError">Incorrect data</p>
 
                     <div th:if="${bannnerFormDto.bannerImgDto == null}">
                         <div class="input-group mb3">

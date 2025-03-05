@@ -1,18 +1,13 @@
 package com.soloProject.myTrip.controller;
 
-import com.soloProject.myTrip.dto.BannnerFormDto;
-import com.soloProject.myTrip.dto.ItemSearchDto;
-import com.soloProject.myTrip.dto.CouponSearchDto;
-import com.soloProject.myTrip.entity.Banners;
-import com.soloProject.myTrip.entity.Coupon;
-import com.soloProject.myTrip.entity.Item;
-import com.soloProject.myTrip.service.BannersService;
-import com.soloProject.myTrip.service.CouponService;
-import com.soloProject.myTrip.service.ItemService;
+import com.soloProject.myTrip.dto.*;
+import com.soloProject.myTrip.entity.*;
+import com.soloProject.myTrip.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +23,8 @@ public class AdminController {
     private final ItemService itemService;
     private final BannersService bannersService;
     private final CouponService couponService;
+    private final PaymentService paymentService;
+    private final QnAService qnAService;
 
     // 상품 관리 페이지
     @GetMapping({ "/admin", "/admin/items", "/admin/items/{page}" })
@@ -41,20 +38,25 @@ public class AdminController {
             return "item/itemMng";
         } catch (Exception e) {
             e.printStackTrace();
-            return "item/itemMng";
+            return "error/error";
         }
     }
 
     // 배너 관리 페이지
     @GetMapping("/admin/banners")
     public String bannerMngPage(Model model) {
-        List<Banners> banners = bannersService.getBannerList();
-        List<BannnerFormDto> bannerDtos = banners.stream()
-                .map(BannnerFormDto::of)
-                .collect(Collectors.toList());
+        try {
+            List<Banners> banners = bannersService.getBannerList();
+            List<BannnerFormDto> bannerDtos = banners.stream()
+                    .map(BannnerFormDto::of)
+                    .collect(Collectors.toList());
 
-        model.addAttribute("banners", bannerDtos);
-        return "banner/bannerMng";
+            model.addAttribute("banners", bannerDtos);
+            return "banner/bannerMng";
+        } catch (Exception e){
+            e.printStackTrace();
+            return "error/error";
+        }
     }
 
     // 쿠폰 관리 페이지
@@ -73,8 +75,42 @@ public class AdminController {
             return "coupon/couponMng";
         } catch (Exception e) {
             e.printStackTrace();
-            model.addAttribute("errorMessage", "쿠폰 목록을 불러오는 중 오류가 발생했습니다.");
-            return "coupon/couponMng";
+            return "error/error";
+        }
+    }
+
+    @GetMapping({ "/admin/payments", "/admin/payments/{page}" })
+    public String paymentMngPage(@PathVariable("page") Optional<Integer> page,
+            PaymentSearchDto paymentSearchDto,
+            Model model) {
+        try {
+            Pageable pageable = PageRequest.of(page.orElse(0), 10);
+            Page<Payment> payments = paymentService.getAdminPaymentPage(paymentSearchDto, pageable);
+
+            model.addAttribute("payments", payments);
+            model.addAttribute("paymentSearchDto", paymentSearchDto);
+            model.addAttribute("maxPage", 5);
+
+            return "payment/paymentMng";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error/error";
+        }
+    }
+
+    //
+    @GetMapping({"/admin/qnas", "/admin/qnas/{page}"})
+    public String qnaMngPage(@PathVariable("page") Optional<Integer> page, Model model){
+        try{
+            Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.by(Sort.Order.desc("regTime")));
+            Page<QnA> qnAs = qnAService.getAdminQnAPage(pageable);
+
+            model.addAttribute("qnAs",qnAs);
+            model.addAttribute("maxPage",5);
+            return "qna/qnaMng";
+        } catch (Exception e){
+            e.printStackTrace();
+            return "error/error";
         }
     }
 

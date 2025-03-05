@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.modelmapper.ModelMapper;
 
 import java.time.LocalDateTime;
 
@@ -20,30 +21,21 @@ public class BannnerFormDto {
     @NotEmpty(message = "설명은 필수 입력 값입니다.")
     private String description;
 
-    private String mappingUrl;
+    private String locationUrl;
 
     private String bannerImgUrl;
     private LocalDateTime regTime;
     private LocalDateTime updateTime;
+
+    public static ModelMapper modelMapper = new ModelMapper();
+
+
     
     public static BannnerFormDto of(Banners banners) {
-        BannnerFormDto bannnerFormDto = new BannnerFormDto();
-        bannnerFormDto.setId(banners.getId());
-        bannnerFormDto.setTitle(banners.getTitle());
-        bannnerFormDto.setDescription(banners.getDescription());
-        bannnerFormDto.setMappingUrl(banners.getMappingUrl());
-        bannnerFormDto.setBannerImgUrl(banners.getBannerImgUrl());
-        bannnerFormDto.setRegTime(banners.getRegTime());
-        bannnerFormDto.setUpdateTime(banners.getUpdateTime());
-        
-        return bannnerFormDto;
+        return modelMapper.map(banners, BannnerFormDto.class);
     }
     
     public Banners createBanner() {
-        Banners banners = new Banners();
-        banners.setTitle(this.title);
-        banners.setDescription(this.description);
-        banners.setMappingUrl(this.mappingUrl);
-        return banners;
+        return modelMapper.map(this, Banners.class);
     }
 }

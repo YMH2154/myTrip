@@ -49,11 +49,12 @@ public class ItemController {
 
     // 상품 등록(POST)
     @PostMapping("/admin/item/new")
-    public String itemNew(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
-            @RequestParam List<MultipartFile> thumbnailImageFile,
-            @RequestParam MultipartFile itemDetailImageFile,
-            Model model,
-            HttpServletRequest request) {
+    public String itemNew(@Valid ItemFormDto itemFormDto,
+                          BindingResult bindingResult,
+                          @RequestParam List<MultipartFile> thumbnailImageFile,
+                          @RequestParam MultipartFile itemDetailImageFile,
+                          Model model,
+                          HttpServletRequest request) {
 
         // CSRF 토큰 디버깅
         log.info("CSRF Token from Header: {}", request.getHeader("X-CSRF-TOKEN"));
@@ -114,10 +115,11 @@ public class ItemController {
 
     // 상품 수정(POST)
     @PostMapping("/admin/item/{itemId}")
-    public String itemUpdate(@Valid ItemFormDto itemFormDto, BindingResult bindingResult,
-            @RequestParam("thumbnailImageFile") List<MultipartFile> thumbnailImageFile,
-            @RequestParam("itemDetailImageFile") MultipartFile itemDetailImageFile,
-            Model model) {
+    public String itemUpdate(@Valid ItemFormDto itemFormDto,
+                             BindingResult bindingResult,
+                             @RequestParam("thumbnailImageFile") List<MultipartFile> thumbnailImageFile,
+                             @RequestParam("itemDetailImageFile") MultipartFile itemDetailImageFile,
+                             Model model) {
         if (bindingResult.hasErrors()) { // 유효성 체크
             return "item/itemForm";
         }

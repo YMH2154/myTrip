@@ -34,8 +34,7 @@ public class CouponDto {
         coupon.setDescription(this.description);
         coupon.setCouponDuration(this.couponDuration);
         coupon.setMinPurchaseAmount(this.minPurchaseAmount);
-        coupon.setCouponStatus(CouponStatus.USABLE);
-        coupon.setIsAlphaCoupon(true);
+        coupon.setAlphaCoupon(true);
         if(this.couponType.equals(CouponType.AMOUNT)){
             coupon.setDiscountAmount(this.discountAmount);
         }else{

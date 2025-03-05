@@ -18,13 +18,13 @@ public class Banners extends BaseEntity{
     
     private String title;  // 배너 제목
     private String description; // 배너 설명
-    private String mappingUrl;
+    private String locationUrl;
     private String bannerImgUrl;
     
     public void updateBanner(BannnerFormDto bannnerFormDto) {
         this.title = bannnerFormDto.getTitle();
         this.description = bannnerFormDto.getDescription();
-        this.mappingUrl = bannnerFormDto.getMappingUrl();
+        this.locationUrl = bannnerFormDto.getLocationUrl();
     }
     
     

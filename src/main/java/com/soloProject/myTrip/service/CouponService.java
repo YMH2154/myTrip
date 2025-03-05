@@ -1,6 +1,5 @@
 package com.soloProject.myTrip.service;
 
-import com.soloProject.myTrip.constant.CouponStatus;
 import com.soloProject.myTrip.dto.CouponDto;
 import com.soloProject.myTrip.dto.CouponSearchDto;
 import com.soloProject.myTrip.entity.Coupon;
@@ -15,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,5 +60,18 @@ public class CouponService {
     @Transactional(readOnly = true)
     public Page<Coupon> getAdminCouponPage(CouponSearchDto searchDto, Pageable pageable) {
         return couponRepository.getAdminCouponPage(searchDto, pageable);
+    }
+
+    public void giveCouponForAllMembers(Long couponId){
+        Coupon alphaCoupon = couponRepository.findById(couponId).orElseThrow(EntityNotFoundException::new);
+        List<CouponWallet> allCouponWallets = couponWalletRepository.findAll();
+        if(!allCouponWallets.isEmpty()){
+            for(CouponWallet couponWallet : allCouponWallets){
+                //모든 쿠폰지갑에 해당 쿠폰 추가
+                Coupon userCoupon = Coupon.giveCoupon(alphaCoupon);
+                couponWallet.getCoupons().add(userCoupon);
+                userCoupon.setCouponWallet(couponWallet);
+            }
+        }
     }
 }

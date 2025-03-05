@@ -344,8 +344,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label th:for="travelType">쿠폰 종류</label>
-                <select th:field="*{CouponType}" class="form-control" id="CouponType">
+                <label th:for="couponType">쿠폰 종류</label>
+                <select th:field="*{couponType}" class="form-control" id="couponType">
                     <option th:each="type : ${T(com.soloProject.myTrip.constant.CouponType).values()}"
                             th:value="${type}"
                             th:text="${type.description}">
@@ -353,12 +353,12 @@
                 </select>
             </div>
 
-            <div class="form-group" id="amountDiv">
+            <div class="form-group" id="amountDiv" style="display: none;">
                 <label th:for="discountAmount">할인 금액</label>
                 <input type="number" th:field="*{discountAmount}" class="form-control" id="amountInput" placeholder="할인 금액을 입력해주세요">
                 <p th:if="${#fields.hasErrors('discountAmount')}" th:errors="*{discountAmount}" class="fieldError">Incorrect data</p>
             </div>
-            <div class="form-group" id="percentageDiv">
+            <div class="form-group" id="percentageDiv" style="display: none;">
                 <label th:for="discountPercentage">할인 비율</label>
                 <input type="number" th:field="*{discountPercentage}" class="form-control" id="percentageInput" placeholder="할인 비율을 입력해주세요">
                 <p th:if="${#fields.hasErrors('discountPercentage')}" th:errors="*{discountPercentage}" class="fieldError">Incorrect data</p>
@@ -387,44 +387,54 @@
             const errorMessage = [[${errorMessage}]];
             const couponTypeSelect = document.getElementById('couponType');
             const amountDiv = document.getElementById('amountDiv');
+            const percentageDiv = document.getElementById('percentageDiv');
             const amountInput = document.getElementById('amountInput');
-            const percentageDiv = document.getElementById('percentageId');
             const percentageInput = document.getElementById('percentageInput');
 
             if(errorMessage != null){
                 alert(errorMessage);
             }
 
+            // 초기 상태 설정
             updateCouponType(couponTypeSelect.value);
 
-            travelTypeSelect.addEventListener('change', function() {
+            // 쿠폰 타입 변경 이벤트 리스너
+            couponTypeSelect.addEventListener('change', function() {
                 updateCouponType(this.value);
             });
 
             function updateCouponType(selectedType) {
+                // 모든 입력 필드 초기화
+                if(amountDiv) {
                     amountDiv.style.display = 'none';
-                    percentageDiv.style.display = 'none';
-
-                    amountInput.disabled = true;
-                    percentageInput.disabled = true;
-
-                    // 선택된 타입에 따라 해당 카테고리만 표시하고 활성화
-                    switch(selectedType) {
-                        case 'AMOUNT':
-                            amountDiv.style.display = 'block';
-                            amountInput.disabled = false;
-                            break;
-                        case 'PERCENTAGE':
-                            percentageDiv.style.display = 'block';
-                            percentageInput.disabled = false;
-                            break;
-                    }
-
-                    // 숨겨진 select들의 값을 초기화
-                    if (amountInput.disabled) domesticSelect.value = '0';
-                    if (percentageInput.disabled) overseasSelect.value = '0';
+                    if(amountInput) amountInput.disabled = true;
                 }
-            });
+                
+                if(percentageDiv) {
+                    percentageDiv.style.display = 'none';
+                    if(percentageInput) percentageInput.disabled = true;
+                }
+
+                // 선택된 타입에 따라 해당 입력 필드만 표시하고 활성화
+                switch(selectedType) {
+                    case 'AMOUNT':
+                        if(amountDiv) {
+                            amountDiv.style.display = 'block';
+                            if(amountInput) amountInput.disabled = false;
+                        }
+                        break;
+                    case 'PERCENTAGE':
+                        if(percentageDiv) {
+                            percentageDiv.style.display = 'block';
+                            if(percentageInput) percentageInput.disabled = false;
+                        }
+                        break;
+                }
+
+                // 비활성화된 입력 필드의 값 초기화
+                if(amountInput && amountInput.disabled) amountInput.value = '';
+                if(percentageInput && percentageInput.disabled) percentageInput.value = '';
+            }
         });
     </script>
 </th:block>
