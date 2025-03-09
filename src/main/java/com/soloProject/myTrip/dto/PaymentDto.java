@@ -39,35 +39,6 @@ public class PaymentDto {
   // 사용자 정보
   private String userId;
 
-  // DTO 변환 메서드
-  public static PaymentDto fromEntity(Payment payment) {
-    return PaymentDto.builder()
-        .id(payment.getId())
-        .amount(payment.getAmount())
-        .paymentType(payment.getPaymentType())
-        .paymentMethod(payment.getPaymentMethod())
-        .paymentKey(payment.getPaymentKey())
-        .merchantUid(payment.getMerchantUid())
-        .build();
-  }
-
-  public static List<PaymentDto> fromEntityList(List<Payment> payments) {
-    return payments.stream()
-        .map(PaymentDto::fromEntity)
-        .collect(Collectors.toList());
-  }
-
-  // 결제 준비용 DTO 생성 메서드
-  public static PaymentDto createPrepareDto(String reservationNumber, Integer amount,
-      Long couponId, Integer usedMileage) {
-    return PaymentDto.builder()
-        .reservationNumber(reservationNumber)
-        .amount(amount)
-        .couponId(couponId)
-        .usedMileage(usedMileage)
-        .build();
-  }
-
   public static List<PaymentDto> createDtoList(List<Payment> payments) {
     return payments.stream()
         .map(payment -> {
@@ -76,6 +47,8 @@ public class PaymentDto {
           dto.setAmount(payment.getAmount());
           dto.setPaymentType(payment.getPaymentType());
           dto.setPaymentMethod(payment.getPaymentMethod());
+          dto.setPaymentKey(payment.getPaymentKey());
+          dto.setMerchantUid(payment.getMerchantUid());
           return dto;
         })
         .collect(Collectors.toList());

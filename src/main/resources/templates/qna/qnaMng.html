@@ -5,40 +5,7 @@
 
 <th:block layout:fragment="css">
     <style>
-        .qna-mng-container {
-            padding: 30px;
-        }
-
-        .page-title {
-            color: #333;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #1a73e8;
-        }
-
-        .qna-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .qna-table th {
-            background-color: #f8f9fa;
-            padding: 15px;
-            text-align: center;
-            border-bottom: 2px solid #dee2e6;
-            font-weight: 600;
-        }
-
-        .qna-table td {
-            padding: 15px;
-            text-align: center;
-            border-bottom: 1px solid #dee2e6;
-            vertical-align: middle;
-        }
-
+        /* QnA 관리 페이지 고유 스타일 */
         .qna-title {
             color: #1a73e8;
             text-decoration: none;
@@ -68,43 +35,22 @@
             color: #1a73e8;
         }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 30px;
-            gap: 10px;
-        }
-
-        .page-item {
-            list-style: none;
-        }
-
-        .page-link {
-            padding: 8px 12px;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            color: #1a73e8;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-
-        .page-link:hover {
-            background-color: #e8f0fe;
-        }
-
-        .page-item.active .page-link {
-            background-color: #1a73e8;
-            color: white;
-            border-color: #1a73e8;
+        .no-results {
+            text-align: center;
+            padding: 2rem !important;
+            color: rgba(100, 100, 100, 0.7) !important;
+            font-size: 1.1rem;
         }
     </style>
 </th:block>
 
-<div layout:fragment="content">
-    <div class="qna-mng-container">
-        <h2 class="page-title">Q&A 관리</h2>
+<div layout:fragment="content" class="admin-container">
+    <div class="admin-header">
+        <h1 class="admin-title">Q&A 관리</h1>
+    </div>
 
-        <table class="qna-table">
+    <div class="content-table">
+        <table class="table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -115,10 +61,15 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="qna : ${qnAs}">
+                <tr th:if="${#lists.isEmpty(qnAs)}">
+                    <td colspan="5" class="no-results">
+                        등록된 QnA가 없습니다.
+                    </td>
+                </tr>
+                <tr th:unless="${#lists.isEmpty(qnAs)}" th:each="qna : ${qnAs}">
                     <td th:text="${qna.id}"></td>
                     <td>
-                        <a th:href="@{'/mypage/qna/' + ${qna.id}}"
+                        <a th:href="@{'/admin/qna/' + ${qna.id} +'/answer'}"
                            th:text="${qna.title}"
                            class="qna-title"></a>
                     </td>
@@ -133,18 +84,36 @@
                 </tr>
             </tbody>
         </table>
+    </div>
 
-        <!-- 페이징 -->
-        <div th:if="${qnAs.totalPages > 0}" class="pagination">
-            <li class="page-item" 
-                th:each="pageNumber : ${#numbers.sequence(0, qnAs.totalPages - 1)}"
-                th:classappend="${pageNumber == qnAs.number} ? 'active'">
-                <a th:href="@{'/admin/qnas/' + ${pageNumber}}"
-                   th:text="${pageNumber + 1}"
+    <div th:with="start=${(qnAs.number/maxPage)*maxPage + 1},
+                  end=(${(qnAs.totalPages == 0) ? 1 : (start + (maxPage-1) < qnAs.totalPages ? start + (maxPage-1) : qnAs.totalPages)})">
+        <ul class="pagination">
+            <li class="page-item">
+                <a th:onclick="javascript:'page(' + ${qnAs.number - 1} + ')'" aria-label="Previous"
                    class="page-link">
+                    <img src="/images/left_btn.png" alt="이전">
                 </a>
             </li>
-        </div>
+            <li class="page-item" th:each="page: ${#numbers.sequence(start,end)}"
+                th:classappend="${qnAs.number eq page-1}?'active':''">
+                <a th:onclick="javascript:'page(' + ${page-1} +')'" th:inline="text" class="page-link">[[${page}]]</a>
+            </li>
+            <li class="page-item">
+                <a th:onclick="javascript:'page(' + ${qnAs.number + 1} +')'" aria-label="Next" class="page-link">
+                    <img src="/images/right_btn.png" alt="다음">
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        function page(page) {
+            location.href = "/admin/qnas/" + page;
+        }
+    </script>
+</th:block>
+
 </html>

@@ -83,7 +83,7 @@
 
 <div layout:fragment="content">
     <div class="qna-form-container">
-        <form th:action="@{/mypage/qna/new}" method="post" th:object="${qnaDto}">
+        <form action="/mypage/qna/new" method="post" th:object="${qnaDto}">
             <div class="form-group">
                 <label class="form-label">문의 유형</label>
                 <select class="form-select" th:field="*{questionType}">

@@ -1,62 +1,99 @@
 package com.soloProject.myTrip.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soloProject.myTrip.dto.ItemFormDto;
-import com.soloProject.myTrip.entity.Item;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class RecentViewService {
-  private final RedisTemplate<String, Object> redisTemplate;
+
   private final ItemService itemService;
-  private static final String KEY_PREFIX = "recent_view:";
-  private static final int MAX_SIZE = 3; // 최대 3개까지만 저장
+  private final ObjectMapper objectMapper;
+  private static final String COOKIE_NAME = "recentItems";
+  private static final int MAX_ITEMS = 5;
+  private static final int COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7일
 
-  public void addRecentView(String sessionId, Long itemId) {
-    String key = KEY_PREFIX + sessionId;
+  public void addRecentView(HttpServletRequest request, HttpServletResponse response, Long itemId) {
+    List<Long> recentItems = getRecentItemIds(request);
 
-    // 현재 아이템이 이미 있다면 삭제 (중복 방지)
-    redisTemplate.opsForList().remove(key, 0, itemId);
+    // 동일한 상품이 있다면 제거 (최신 순서로 다시 추가하기 위해)
+    recentItems.remove(itemId);
 
-    // 새로운 아이템을 리스트 앞에 추가
-    redisTemplate.opsForList().leftPush(key, itemId);
+    // 최근 본 상품 목록 앞에 추가
+    recentItems.add(0, itemId);
 
-    // 리스트 크기를 MAX_SIZE로 유지
-    redisTemplate.opsForList().trim(key, 0, MAX_SIZE - 1);
+    // 최대 개수 유지
+    if (recentItems.size() > MAX_ITEMS) {
+      recentItems = recentItems.subList(0, MAX_ITEMS);
+    }
 
-    // 24시간 후 만료
-    redisTemplate.expire(key, 24, TimeUnit.HOURS);
+    // 쿠키 저장
+    saveRecentItemsCookie(response, recentItems);
   }
 
-  public List<ItemFormDto> getRecentItems(String sessionId, Long currentItemId) {
-    String key = KEY_PREFIX + sessionId;
-    List<Object> itemIds = redisTemplate.opsForList().range(key, 0, -1);
+  public List<ItemFormDto> getRecentItems(HttpServletRequest request, Long currentItemId) {
+    List<Long> recentItemIds = getRecentItemIds(request);
     List<ItemFormDto> recentItems = new ArrayList<>();
 
-    if (itemIds != null) {
-      for (Object id : itemIds) {
-        Long itemId = Long.valueOf(id.toString());
-        // 현재 보고 있는 상품은 제외
-        if (!itemId.equals(currentItemId)) {
-          try {
-            ItemFormDto item = itemService.getItem(itemId);
-            if (item != null) {
-              recentItems.add(item);
-            }
-          } catch (Exception e) {
-            // 상품이 삭제되었거나 찾을 수 없는 경우 무시
-          }
-        }
+    // 현재 보고 있는 상품 제외
+    recentItemIds.remove(currentItemId);
+
+    // 최근 본 상품 정보 조회
+    for (Long itemId : recentItemIds) {
+      try {
+        ItemFormDto item = itemService.getItem(itemId);
+        recentItems.add(item);
+      } catch (Exception e) {
+        // 상품이 삭제되었거나 조회할 수 없는 경우 무시
+        continue;
       }
     }
 
     return recentItems;
+  }
+
+  private List<Long> getRecentItemIds(HttpServletRequest request) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (COOKIE_NAME.equals(cookie.getName())) {
+          try {
+            String decodedValue = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+            return objectMapper.readValue(decodedValue, new TypeReference<List<Long>>() {
+            });
+          } catch (JsonProcessingException e) {
+            // 파싱 실패 시 빈 리스트 반환
+            return new ArrayList<>();
+          }
+        }
+      }
+    }
+    return new ArrayList<>();
+  }
+
+  private void saveRecentItemsCookie(HttpServletResponse response, List<Long> itemIds) {
+    try {
+      String jsonValue = objectMapper.writeValueAsString(itemIds);
+      String encodedValue = URLEncoder.encode(jsonValue, StandardCharsets.UTF_8);
+
+      Cookie cookie = new Cookie(COOKIE_NAME, encodedValue);
+      cookie.setPath("/");
+      cookie.setMaxAge(COOKIE_MAX_AGE);
+      cookie.setHttpOnly(true); // XSS 방지
+      response.addCookie(cookie);
+    } catch (JsonProcessingException e) {
+      // 쿠키 생성 실패 시 무시
+    }
   }
 }

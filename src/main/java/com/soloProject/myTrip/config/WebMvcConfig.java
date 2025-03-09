@@ -21,9 +21,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/activityImages/**")
                 .addResourceLocations("file:///C:/myTrip/activityImages");
-        
-        registry.addResourceHandler("/banner/**")
-                .addResourceLocations("file:///C:/myTrip/banner/");
+
     }
 
 }

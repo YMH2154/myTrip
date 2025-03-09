@@ -3,6 +3,11 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/layout}">
 
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+
 <th:block layout:fragment="css">
     <style>
         .detail-container {
@@ -229,14 +234,14 @@
         <div class="action-buttons">
             <a href="/member/reservations" class="btn btn-secondary btn-edit">목록으로</a>
             <div th:if="${reservation.reservationStatus.name == 'RESERVED' || reservation.reservationStatus.name == 'DEPOSIT_PAID'}">
-            <button type="button" class="btn btn-primary btn-edit" 
-                    th:onclick="@{'|window.location.href='@{/member/reservations/edit/{id}(id=${reservation.reservationNumber})}'|}">
-                정보 수정
-            </button>
-            <button type="button" class="btn btn-success btn-edit"
-                    th:onclick="|window.location.href='@{/payment/ready/{id}(id=${reservation.reservationNumber})}'|">
-                <span th:text="${reservation.reservationStatus.name == 'RESERVED'} ? '예약금 결제' : '잔금 결제'"></span>
-            </button>
+                <button type="button" class="btn btn-primary btn-edit"
+                        th:onclick="@{'|window.location.href='@{/member/reservations/edit/{id}(id=${reservation.reservationNumber})}'|}">
+                    정보 수정
+                </button>
+                <button type="button" class="btn btn-success btn-edit"
+                        th:onclick="|window.location.href='@{/payment/ready/{id}(id=${reservation.reservationNumber})}'|">
+                    <span th:text="${reservation.reservationStatus.name == 'RESERVED'} ? '예약금 결제' : '잔금 결제'"></span>
+                </button>
             </div>
 
             <button type="button" class="btn btn-primary btn-edit"
@@ -249,9 +254,39 @@
                     th:onclick="|window.location.href='@{/refund/{id}(id=${reservation.reservationNumber})}'|">
                 환불 신청
             </button>
-
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="button" class="btn btn-success btn-edit"
+                    th:if="${reservation.reservationStatus.name == 'RESERVED'}"
+                    th:data-reservation-number="${reservation.reservationNumber}"
+                    onclick="cancelReservation(this.getAttribute('data-reservation-number'))">
+                예약 취소
+            </button>
         </div>
     </div>
 </div>
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        function cancelReservation(reservationNumber) {
+            if (!confirm("예약을 취소하시겠습니까?")) {
+                return;
+            }
+
+            $.ajax({
+                url: `/reservation/${reservationNumber}/cancel`,
+                type: "GET",
+                beforeSend: function(xhr) {
+                    const token = $("meta[name='_csrf']").attr("content");
+                    const header = $("meta[name='_csrf_header']").attr("content");
+                    xhr.setRequestHeader(header, token);
+                },
+                success: function(response) {
+                    alert("예약이 취소되었습니다.");
+                    window.location.href = "/member/reservations";  // 예약 목록 페이지로 리다이렉트
+                },
+                error: function(xhr, status, error) {
+                    alert("예약 취소 중 오류가 발생했습니다.");
+                }
+            });
+        }
+    </script>
+</th:block>
 </html> 

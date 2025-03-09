@@ -11,8 +11,10 @@ import com.soloProject.myTrip.constant.TravelType;
 import com.soloProject.myTrip.dto.ItemSearchDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.QItem;
+import com.soloProject.myTrip.service.MainService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +22,9 @@ import org.thymeleaf.util.StringUtils;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
@@ -117,28 +121,81 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     }
 
     @Override
-    public Page<Item> findItemsByCategory(String link, Pageable pageable) {
+    public Page<Item> findItemsByCategory(String request, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        // 국내여행 카테고리 검색
-        for (DomesticCategory category : DomesticCategory.values()) {
-            if (category.getLink().equals(link)) {
-                builder.or(item.domesticCategory.eq(category));
+        List<OverseasCategory> asiaCategories = Arrays.stream(OverseasCategory.values())
+                .filter(category -> "아시아".equals(category.getRegion()))
+                .collect(Collectors.toList());
+
+        List<OverseasCategory> europeCategories =  Arrays.stream(OverseasCategory.values())
+                .filter(category -> "유럽".equals(category.getRegion()))
+                .collect(Collectors.toList());
+
+        List<OverseasCategory> americanCategories =  Arrays.stream(OverseasCategory.values())
+                .filter(category -> "미주".equals(category.getRegion()))
+                .collect(Collectors.toList());
+
+        // 상위 카테고리별 검색 조건 추가
+        switch (request) {
+            case "국내" ->
+                    builder.and(item.travelType.eq(TravelType.DOMESTIC));
+            case "아시아" ->
+                    builder.and(item.travelType.eq(TravelType.OVERSEAS)).and(item.overseasCategory.in(asiaCategories));
+            case "유럽" ->
+                    builder.and(item.travelType.eq(TravelType.OVERSEAS)).and(item.overseasCategory.in(europeCategories));
+            case "미주" ->
+                    builder.and(item.travelType.eq(TravelType.OVERSEAS)).and(item.overseasCategory.in(americanCategories));
+            case "테마" ->
+                    builder.and(item.travelType.eq(TravelType.THEME));
+            default -> {
+                // 세부 카테고리 검색
+                // 국내여행 카테고리 검색
+                for (DomesticCategory category : DomesticCategory.values()) {
+                    if (category.getDescription().equals(request)) {
+                        builder.or(item.domesticCategory.eq(category));
+                    }
+                }
+
+                // 해외여행 카테고리 검색
+                for (OverseasCategory category : OverseasCategory.values()) {
+                    if (category.getDescription().equals(request)) {
+                        builder.or(item.overseasCategory.eq(category));
+                    }
+                }
+
+                // 테마여행 카테고리 검색
+                for (ThemeCategory category : ThemeCategory.values()) {
+                    if (category.getDescription().equals(request)) {
+                        builder.or(item.themeCategory.eq(category));
+                    }
+                }
             }
         }
 
-        // 해외여행 카테고리 검색
-        for (OverseasCategory category : OverseasCategory.values()) {
-            if (category.getLink().equals(link)) {
-                builder.or(item.overseasCategory.eq(category));
-            }
-        }
+        List<Item> content = queryFactory
+                .selectFrom(item)
+                .where(builder)
+                .orderBy(item.regTime.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-        // 테마여행 카테고리 검색
-        for (ThemeCategory category : ThemeCategory.values()) {
-            if (category.getLink().equals(link)) {
-                builder.or(item.themeCategory.eq(category));
-            }
+        long total = queryFactory
+                .selectFrom(item)
+                .where(builder)
+                .fetchCount();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<Item> findItemsBySearchQuery(String searchQuery, Pageable pageable) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 검색어가 있는 경우
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            builder.and(item.itemName.containsIgnoreCase(searchQuery));
         }
 
         List<Item> content = queryFactory

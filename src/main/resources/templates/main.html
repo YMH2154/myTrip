@@ -25,7 +25,7 @@
             color: white;
             text-align: center;
         }
-        
+
         .section-title {
             font-size: 28px;
             font-weight: 700;
@@ -33,17 +33,17 @@
             text-align: center;
             color: #333;
         }
-        
+
         .section-title .emoji {
             font-size: 24px;
             margin-left: 8px;
         }
-        
+
         .swiper {
             width: 100%;
             padding: 20px;
         }
-        
+
         .item-card {
             background: white;
             border: none;
@@ -54,12 +54,12 @@
             text-decoration: none;
             color: inherit;
         }
-        
+
         .item-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        
+
         .item-image {
             height: 200px;
             object-fit: cover;
@@ -128,73 +128,94 @@
         }
 
         /* 캐러셀 스타일 */
-        #mainCarousel {
+        #mainBanner {
             margin-top: -20px;
         }
 
-        .carousel-inner {
+        .banner-inner {
+            position: relative;
             height: 500px;
         }
 
-        .carousel-item {
+        .banner-item {
+            position: relative;
             height: 500px;
         }
 
-        .carousel-item img {
+        .banner-item img {
             object-fit: cover;
             height: 100%;
+            filter: contrast(0.5);
         }
 
-        .carousel-caption {
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 40px;
-            text-align: left;
-        }
-        
-         /* 캐러셀 네비게이션 버튼 스타일 */
-        #mainCarousel .carousel-control-prev,
-        #mainCarousel .carousel-control-next {
-            width: 50px;
-            height: 50px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 50%;
+        .banner-text {
+            position: absolute;
             top: 50%;
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2;
+            width: 100%;
+            padding: 0 20px;
         }
 
-        #mainCarousel:hover .carousel-control-prev,
-        #mainCarousel:hover .carousel-control-next {
-            opacity: 1;
+        .banner-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 1s ease-out;
         }
 
-        #mainCarousel .carousel-control-prev {
-            left: 20px;
+        .banner-subtitle {
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease-out;
+            letter-spacing: 2px;
         }
 
-        #mainCarousel .carousel-control-next {
-            right: 20px;
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* 인디케이터 스타일 */
-        #mainCarousel .carousel-indicators {
-            margin-bottom: 20px;
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        #mainCarousel .carousel-indicators button.active {
-            background-color: #fff;
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .banner-title {
+                font-size: 2.5rem;
+            }
+            .banner-subtitle {
+                font-size: 3rem;
+            }
         }
 
-        #mainCarousel .carousel-indicators button {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.5);
-            margin: 0 5px;
+        @media (max-width: 480px) {
+            .banner-title {
+                font-size: 2rem;
+            }
+            .banner-subtitle {
+                font-size: 2.5rem;
+            }
         }
 
         /* Swiper 네비게이션 버튼 */
@@ -238,7 +259,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 25px 25px, rgba(52, 152, 219, 0.05) 2%, transparent 0%),
                 radial-gradient(circle at 75px 75px, rgba(52, 152, 219, 0.05) 2%, transparent 0%);
             background-size: 100px 100px;
@@ -472,22 +493,24 @@
         }
 
         .popular-section .departure-info,
-        .special-price-section .departure-info{
+        .special-price-section .departure-info {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             margin: 10px 0;
             color: #666;
             font-size: 14px;
+            padding: 0 20px;
         }
 
         .popular-section .airline-badge,
-        .special-price-section .airline-badge{
+        .special-price-section .airline-badge {
             background: #e8f4f8;
             color: #3498db;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
-            margin-left: 10px;
+            margin-left: 0;
         }
 
         /* 특가 상품 섹션 스타일 */
@@ -533,8 +556,8 @@
 
         /* 반응형 디자인 */
         @media (max-width: 768px) {
-            .carousel-inner,
-            .carousel-item {
+            .banner-inner,
+            .banner-item {
                 height: 400px;
             }
 
@@ -588,7 +611,7 @@
             section {
                 padding: 60px 0;
             }
-            
+
             .section-title:after {
                 width: 60px;
             }
@@ -599,51 +622,21 @@
 
 <div layout:fragment="content">
     <!-- 캐러셀 섹션 -->
-    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
-        <!-- 인디케이터 추가 -->
-        <div class="carousel-indicators">
-            <button th:each="item, stat : ${banners}"
-                    type="button"
-                    data-bs-target="#mainCarousel"
-                    th:data-bs-slide-to="${stat.index}"
-                    th:class="${stat.first ? 'active' : ''}"
-                    th:aria-current="${stat.first}">
-            </button>
-        </div>
-
-        <div class="carousel-inner">
+    <div id="mainBanner" class="banner" data-bs-ride="banner">
+        <div class="banner-inner">
             <!-- 배너 데이터가 없을 경우 기본 이미지 표시 -->
-            <div th:if="${#lists.isEmpty(banners)}" class="carousel-item active">
-                <a href="#" class="carousel-link">
-                    <img src="/images/default_banner.jpg"
+            <div th:if="${#lists.isEmpty(banners)}" class="banner-item active">
+                <a href="#" class="banner-link">
+                    <img src="/images/banner.jpg"
                          class="d-block w-100"
                          alt="기본 배너">
-                </a>
-            </div>
-
-            <!-- 배너 데이터가 있을 경우 해당 데이터 표시 -->
-            <div th:if="${not #lists.isEmpty(banners)}"
-                 th:each="banner, stat : ${banners}"
-                 th:class="'carousel-item ' + ${stat.first ? 'active' : ''}">
-                <a th:href="${banner.mappingUrl}" class="carousel-link" target="_blank">
-                    <img th:if="${banner.bannerImgUrl != null}"
-                         th:src="${banner.bannerImgUrl}"
-                         class="d-block w-100"
-                         th:alt="${banner.title}">
+                    <div class="banner-text">
+                        <h1 class="banner-title">여행을 떠나고 싶다면</h1>
+                        <h2 class="banner-subtitle">My Trip</h2>
+                    </div>
                 </a>
             </div>
         </div>
-
-
-        <!-- 네비게이션 버튼 스타일 수정 -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
     </div>
 
     <!-- 추천 상품 섹션 -->
@@ -773,26 +766,6 @@
             container.style.transform = `translateX(${translateX}%)`;
 
             updateNavigationButtons(sliderId);
-        }
-
-        function updateNavigationButtons(sliderId) {
-            const container = document.getElementById(sliderId);
-            if (!container) return;  // 컨테이너가 없으면 함수 종료
-
-            const prevButton = container.querySelector('.carousel-control-prev');
-            const nextButton = container.querySelector('.carousel-control-next');
-
-            if (!prevButton || !nextButton) return;  // 버튼이 없으면 함수 종료
-
-            const items = container.querySelectorAll('.thumbnail-card');
-            const maxIndex = Math.ceil(items.length / itemsPerPage) - 1;
-
-            if (prevButton) {
-                prevButton.style.display = sliderStates[sliderId].currentIndex === 0 ? 'none' : 'block';
-            }
-            if (nextButton) {
-                nextButton.style.display = sliderStates[sliderId].currentIndex >= maxIndex ? 'none' : 'block';
-            }
         }
 
         // Swiper 초기화

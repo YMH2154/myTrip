@@ -107,6 +107,170 @@
             padding-right: 0;
             padding-left: 0;
         }
+
+        /* 공통 관리자 페이지 스타일 */
+        .admin-container {
+            background-color: #f2f8ff;
+            color: #333;
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00aaff;
+            margin-bottom: 32px;
+        }
+
+        .search-section {
+            background-color: #e8f5ff;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid #b3e0ff;
+        }
+
+        .content-table {
+            background-color: #e8f5ff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #b3e0ff;
+        }
+
+        .table {
+            color: #333;
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background-color: #ccefff;
+        }
+
+        .table thead th {
+            border-bottom: 2px solid #b3e0ff;
+            color: #005f99;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+            text-align: center;
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        .table tbody tr:hover {
+            background-color: #d9f2ff !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn img {
+            filter: brightness(0.5) invert(0.5);
+            opacity: 0.9;
+            width: 24px;
+            height: 24px;
+        }
+
+        .action-btn:hover img {
+            opacity: 1;
+            filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 2rem;
+            gap: 5px;
+        }
+
+        .page-item {
+            list-style: none;
+        }
+
+        .page-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0.5rem;
+            background-color: #e8f5ff;
+            border: 1px solid #b3e0ff;
+            color: #005f99;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .page-link:hover {
+            background-color: #ccefff;
+            border-color: #99d6ff;
+            color: #005f99;
+        }
+
+        .page-item.active .page-link {
+            background-color: #00aaff;
+            border-color: #008ecc;
+            color: #fff;
+        }
+
+        .page-item.disabled .page-link {
+            background-color: #f0f8ff;
+            border-color: #b3e0ff;
+            color: #99cce6;
+            cursor: not-allowed;
+        }
+
+        .page-link img {
+            filter: brightness(0.5) invert(0.5);
+            opacity: 0.9;
+            width: 20px;
+            height: 20px;
+        }
+
+        .page-link:hover img {
+            opacity: 1;
+            filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .pagination {
+                gap: 3px;
+            }
+            .page-link {
+                min-width: 35px;
+                height: 35px;
+                padding: 0.3rem;
+            }
+            .page-link img {
+                width: 16px;
+                height: 16px;
+            }
+        }
     </style>
     
     <!-- 추가 CSS -->
@@ -140,7 +304,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" th:href="@{/admin/qnas}">
-                                <i class="bi bi-graph-up"></i>Q&A 답변
+                                <i class="bi bi-graph-up"></i>Q&A 관리
                             </a>
                         </li>
                         <li class="nav-item">

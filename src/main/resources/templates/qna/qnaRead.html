@@ -151,39 +151,22 @@
 
         <div class="answer-section" th:if="${qnaDto.isAnswered}">
             <h3 class="answer-header">답변</h3>
+            <div class="qna-info">
+                <span th:text="${#temporals.format(qnaDto.regTime, 'yyyy-MM-dd HH:mm')}"></span>
+            </div>
             <div class="answer-content" th:text="${qnaDto.answer}"></div>
         </div>
 
         <div class="btn-container">
-            <!-- 관리자일 경우 답변 입력 폼 표시 -->
-            <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}" class="answer-form">
-                <form th:if="${!qnaDto.isAnswered}" th:action="@{'/admin/qna/' + ${qnaDto.id} + '/answer'}" method="post">
-                    <h3 class="answer-form-header">답변 작성</h3>
-                    <textarea id="answer" 
-                              name="answer" 
-                              class="answer-textarea" 
-                              required
-                              placeholder="답변을 입력해주세요..."></textarea>
-                    <div class="btn-container">
-                        <button type="submit" class="btn btn-submit">답변 등록</button>
-                        <a href="/admin/qnas" class="btn btn-back">목록으로</a>
-                    </div>
-                </form>
-            </div>
-            
-            <!-- 일반 회원일 경우 버튼 표시 -->
-            <div th:unless="${#authorization.expression('hasRole(''ADMIN'')')}">
-                <!-- 답변이 없고 작성자인 경우에만 수정 버튼 표시 -->
+            <div th:if="${#authorization.expression('hasRole(''USER'')') || qnaDto.author == true}">
                 <button th:if="${!qnaDto.isAnswered}"
                         class="btn btn-edit" 
                         onclick="toggleEdit()">수정</button>
-                <!-- 답변이 있는 경우 확인 버튼만 표시 -->
                 <a th:if="${qnaDto.isAnswered}" 
-                   href="/mypage/qna" 
+                   href="/mypage/qna"
                    class="btn btn-back">확인</a>
-                <!-- 목록으로 버튼은 항상 표시 -->
                 <a th:unless="${qnaDto.isAnswered}" 
-                   href="/mypage/qna" 
+                   href="/mypage/qna"
                    class="btn btn-back">목록으로</a>
             </div>
         </div>

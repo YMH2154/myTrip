@@ -1,46 +1,39 @@
 package com.soloProject.myTrip.controller;
 
-import com.soloProject.myTrip.dto.BannnerFormDto;
 import com.soloProject.myTrip.dto.ErrorResponse;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.entity.Item;
-import com.soloProject.myTrip.service.BannersService;
-import com.soloProject.myTrip.service.FlightSearchService;
-import com.soloProject.myTrip.service.ItemService;
 import com.soloProject.myTrip.service.MainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class MainController {
     private final MainService mainService;
-    private final ItemService itemService;
-    private final BannersService bannersService;
+    private final int PAGE_SIZE = 5;
 
     @GetMapping(value = "/")
-    public String main(Model model) {
+    public String mainPage(Model model) {
         List<Item> recommendedItems = mainService.getRecommendedItems();
         List<Item> cheapItems = mainService.getMostCheapItems();
         List<Item> reservationCountItems = mainService.getMostReservationCountItems();
-        List<BannnerFormDto> banners = bannersService.getLatestContents().stream().limit(5).toList();
 
         model.addAttribute("recommendedItems", recommendedItems);
         model.addAttribute("cheapItems", cheapItems);
         model.addAttribute("reservationCountItems", reservationCountItems);
-        model.addAttribute("banners", banners);
 
         return "main";
     }
@@ -51,8 +44,8 @@ public class MainController {
             @RequestParam("searchQuery") String searchQuery,
             Model model) {
         try {
-            int pageSize = 12;
-            List<ItemFormDto> items = itemService.getSearchItemPage(searchQuery, page, pageSize);
+            int pageSize = PAGE_SIZE;
+            List<Item> items = mainService.getSearchItemPage(searchQuery, page, pageSize);
 
             model.addAttribute("items", items);
             model.addAttribute("searchQuery", searchQuery);
@@ -68,16 +61,19 @@ public class MainController {
     }
 
     // 카테고리 페이지
-    @GetMapping("/category/{link}")
-    public String categoryPage(@PathVariable("link") String link,
+    @GetMapping("/category")
+    public String categoryPage(@RequestParam("category") String category,
             @RequestParam(value = "page", defaultValue = "0") int page,
             Model model) {
         try {
-            List<ItemFormDto> items = itemService.getItemByCategory(link, page, 12);
+            List<Item> items = mainService.getItemByCategory(category, page, PAGE_SIZE);
+            String categoryName = getCategoryDisplayName(category);
+
             model.addAttribute("items", items);
-            model.addAttribute("categoryLink", link);
+            model.addAttribute("categoryLink", category);
+            model.addAttribute("categoryName", categoryName);
             model.addAttribute("currentPage", page);
-            model.addAttribute("hasNext", items.size() == 12);
+            model.addAttribute("hasNext", items.size() == PAGE_SIZE);
             model.addAttribute("isSearch", false);
             return "item/itemSearchPage";
         } catch (Exception e) {
@@ -87,30 +83,130 @@ public class MainController {
     }
 
     // API 엔드포인트 - 무한 스크롤용
-    @GetMapping("/api/category/{link}")
+    @GetMapping("/category/api")
     @ResponseBody
-    public ResponseEntity<?> getCategoryItems(@PathVariable("link") String link,
-            @RequestParam(value = "page", defaultValue = "0") int page) {
+    public ResponseEntity<?> getCategoryItems(@RequestParam("category") String category,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
         try {
-            List<ItemFormDto> items = itemService.getItemByCategory(link, page, 12);
-            return ResponseEntity.ok(items);
+            log.info("카테고리 아이템 요청 - 카테고리: {}, 페이지: {}", category, page);
+
+            List<Item> items = mainService.getItemByCategory(category, page, pageSize);
+            List<Map<String, Object>> simplifiedItems = items.stream().map(item -> {
+                Map<String, Object> simplifiedItem = new HashMap<>();
+                simplifiedItem.put("id", item.getId());
+                simplifiedItem.put("itemName", item.getItemName());
+                simplifiedItem.put("thumbnailImageUrls", item.getThumbnailImageUrls());
+                simplifiedItem.put("night", item.getNight());
+                simplifiedItem.put("duration", item.getDuration());
+                simplifiedItem.put("lowestPrice", item.getLowestPrice());
+                simplifiedItem.put("price", item.getPrice());
+                simplifiedItem.put("earliestDepartureDate", item.getEarliestDepartureDate());
+
+                // 스케줄 정보 간소화
+                if (item.getSchedules() != null) {
+                    List<Map<String, String>> schedules = item.getSchedules().stream()
+                            .limit(3)
+                            .map(schedule -> {
+                                Map<String, String> scheduleMap = new HashMap<>();
+                                scheduleMap.put("activity", schedule.getActivity());
+                                return scheduleMap;
+                            })
+                            .collect(Collectors.toList());
+                    simplifiedItem.put("schedules", schedules);
+                }
+
+                return simplifiedItem;
+            }).collect(Collectors.toList());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("items", simplifiedItems);
+            response.put("hasNext", items.size() == pageSize);
+            response.put("currentPage", page);
+            response.put("totalItems", items.size());
+
+            log.info("카테고리 아이템 응답 - 아이템 수: {}, 다음 페이지 존재: {}", items.size(), items.size() == pageSize);
+
+            return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(response);
         } catch (Exception e) {
             log.error("카테고리 아이템 로딩 중 에러 발생", e);
-            return ResponseEntity.badRequest().body(new ErrorResponse("요청 실패: " + e.getMessage()));
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(errorResponse);
         }
     }
 
     // 검색 API 엔드포인트
-    @GetMapping("/api/search")
+    @GetMapping("/search/api")
     @ResponseBody
     public ResponseEntity<?> searchItems(@RequestParam("searchQuery") String searchQuery,
-            @RequestParam(value = "page", defaultValue = "0") int page) {
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
         try {
-            List<ItemFormDto> items = itemService.getSearchItemPage(searchQuery, page, 12);
-            return ResponseEntity.ok(items);
+            log.info("검색 아이템 요청 - 검색어: {}, 페이지: {}", searchQuery, page);
+
+            List<Item> items = mainService.getSearchItemPage(searchQuery, page, pageSize);
+            List<Map<String, Object>> simplifiedItems = items.stream().map(item -> {
+                Map<String, Object> simplifiedItem = new HashMap<>();
+                simplifiedItem.put("id", item.getId());
+                simplifiedItem.put("itemName", item.getItemName());
+                simplifiedItem.put("thumbnailImageUrls", item.getThumbnailImageUrls());
+                simplifiedItem.put("night", item.getNight());
+                simplifiedItem.put("duration", item.getDuration());
+                simplifiedItem.put("lowestPrice", item.getLowestPrice());
+                simplifiedItem.put("price", item.getPrice());
+                simplifiedItem.put("earliestDepartureDate", item.getEarliestDepartureDate());
+
+                // 스케줄 정보 간소화
+                if (item.getSchedules() != null) {
+                    List<Map<String, String>> schedules = item.getSchedules().stream()
+                            .limit(3)
+                            .map(schedule -> {
+                                Map<String, String> scheduleMap = new HashMap<>();
+                                scheduleMap.put("activity", schedule.getActivity());
+                                return scheduleMap;
+                            })
+                            .collect(Collectors.toList());
+                    simplifiedItem.put("schedules", schedules);
+                }
+
+                return simplifiedItem;
+            }).collect(Collectors.toList());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("items", simplifiedItems);
+            response.put("hasNext", items.size() == pageSize);
+            response.put("currentPage", page);
+            response.put("totalItems", items.size());
+
+            log.info("검색 아이템 응답 - 아이템 수: {}, 다음 페이지 존재: {}", items.size(), items.size() == pageSize);
+
+            return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(response);
         } catch (Exception e) {
             log.error("검색 아이템 로딩 중 에러 발생", e);
-            return ResponseEntity.badRequest().body(new ErrorResponse("요청 실패: " + e.getMessage()));
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(errorResponse);
         }
+    }
+
+    // 카테고리 표시 이름 변환
+    private String getCategoryDisplayName(String category) {
+        return switch (category.toLowerCase()) {
+            case "domestic" -> "국내여행";
+            case "theme" -> "테마여행";
+            case "asia" -> "아시아";
+            case "europe" -> "유럽";
+            case "america" -> "미주";
+            default -> category;
+        };
     }
 }

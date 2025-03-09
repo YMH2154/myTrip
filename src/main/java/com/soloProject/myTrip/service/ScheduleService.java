@@ -7,6 +7,7 @@ import com.soloProject.myTrip.repository.ItemRepository;
 import com.soloProject.myTrip.repository.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ScheduleService {
 
     private final ItemRepository itemRepository;
@@ -32,33 +34,34 @@ public class ScheduleService {
     // 여행 일정 등록
     public void saveSchedule(Long itemId, int day, List<String> activities,
             List<MultipartFile> imageFiles, List<String> descriptions) throws Exception {
+        log.info("일정 저장 시작 - 상품 ID: {}, 일차: {}", itemId, day);
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
 
-        Schedule schedule = new Schedule();
-        schedule.setItem(item);
-        schedule.setDay(day);
-
         for (int i = 0; i < activities.size(); i++) {
+            Schedule schedule = new Schedule();
+            schedule.setItem(item);
+            schedule.setDay(day);
             schedule.setActivity(activities.get(i));
             schedule.setDescription(descriptions.get(i));
-        }
 
-        List<String> imageUrls = new ArrayList<>();
-        for (MultipartFile imageFile : imageFiles) {
-            String imageUrl = fileService.saveImageFile(imageFile, "schedule");
-            imageUrls.add(imageUrl);
-            schedule.setImageUrl(imageUrl);
-        }
+            if (!imageFiles.get(i).isEmpty()) {
+                String imageUrl = fileService.saveImageFile(imageFiles.get(i), "activity");
+                schedule.setImageUrl(imageUrl);
+                log.info("이미지 저장 완료 - URL: {}", imageUrl);
+            }
 
-        scheduleRepository.save(schedule);
+            scheduleRepository.save(schedule);
+            log.info("일정 저장 완료 - 활동: {}", activities.get(i));
+        }
     }
 
     // 여행 일정 업데이트
     public void updateSchedule(Long itemId, int day, List<String> activities,
-                               List<MultipartFile> imageFiles,
-                               List<String> existingImageUrls,
-                               List<String> descriptions) throws Exception {
+            List<MultipartFile> imageFiles,
+            List<String> existingImageUrls,
+            List<String> descriptions) throws Exception {
 
         // 해당 일차의 기존 일정들 조회
         List<Schedule> existingSchedules = scheduleRepository.findByItemIdAndDay(itemId, day);
@@ -87,7 +90,7 @@ public class ScheduleService {
             MultipartFile imageFile = imageFiles.get(i);
             if (!imageFile.isEmpty()) {
                 // 새로운 이미지가 업로드된 경우
-                String newImageUrl = fileService.saveImageFile(imageFile,"schedule");
+                String newImageUrl = fileService.saveImageFile(imageFile, "schedule");
                 schedule.setImageUrl(newImageUrl);
 
                 // 기존 이미지가 있었다면 삭제
@@ -118,11 +121,19 @@ public class ScheduleService {
     // 여행 일정 조회
     @Transactional(readOnly = true)
     public List<ScheduleDto> getScheduleDtl(Long itemId) {
+        log.info("일정 조회 시작 - 상품 ID: {}", itemId);
+
         List<Schedule> scheduleList = scheduleRepository.findByItemId(itemId);
+        log.info("조회된 일정 수: {}", scheduleList.size());
+
         List<ScheduleDto> scheduleDtos = new ArrayList<>();
-        for(Schedule schedule : scheduleList){
-            scheduleDtos.add(ScheduleDto.of(schedule));
+        for (Schedule schedule : scheduleList) {
+            ScheduleDto dto = ScheduleDto.of(schedule);
+            log.info("일정 변환 - 일차: {}, 활동: {}, 이미지 URL: {}",
+                    dto.getDay(), dto.getActivity(), dto.getImageUrl());
+            scheduleDtos.add(dto);
         }
+
         return scheduleDtos;
     }
 
@@ -134,8 +145,7 @@ public class ScheduleService {
             try {
                 if (schedule.getImageUrl() != null && !schedule.getImageUrl().isEmpty()) {
                     String fileName = schedule.getImageUrl().substring(
-                        schedule.getImageUrl().lastIndexOf("/") + 1
-                    );
+                            schedule.getImageUrl().lastIndexOf("/") + 1);
                     String filePath = activityImageLocation + "/" + fileName;
 
                     System.out.println("Attempting to delete file: " + filePath);
@@ -158,10 +168,10 @@ public class ScheduleService {
         try {
             // 이미지 파일 삭제
             if (schedule.getImageUrl() != null && !schedule.getImageUrl().isEmpty()) {
-                // 이미지 URL에서 파일명만 추출 (예: http://localhost:8080/images/activity/filename.jpg -> filename.jpg)
+                // 이미지 URL에서 파일명만 추출 (예: http://localhost:8080/images/activity/filename.jpg ->
+                // filename.jpg)
                 String fileName = schedule.getImageUrl().substring(
-                    schedule.getImageUrl().lastIndexOf("/") + 1
-                );
+                        schedule.getImageUrl().lastIndexOf("/") + 1);
 
                 // 실제 파일 경로 구성
                 String filePath = activityImageLocation + "/" + fileName;

@@ -41,8 +41,9 @@ public class QnAController {
     // qna 상세 페이지
     @GetMapping("/mypage/qna/{qnaId}")
     public String qnADtlPage(Model model,
-            @PathVariable("qnaId") Long qnaId) {
-        QnADto qnaDto = qnAService.getQnADtl(qnaId);
+            @PathVariable("qnaId") Long qnaId,
+                             Principal principal) {
+        QnADto qnaDto = qnAService.getQnADtl(qnaId, principal.getName());
         model.addAttribute("qnaDto", qnaDto);
         return "qna/qnaRead";
     }
@@ -89,12 +90,26 @@ public class QnAController {
         }
     }
 
+    // 답변 페이지
+    @GetMapping("/admin/qna/{qnaId}/answer")
+    public String answerPage(@PathVariable("qnaId") Long qnaId,
+                             Model model){
+        try {
+            QnADto qnaDto = qnAService.getQnADtl(qnaId);
+            model.addAttribute("qnaDto",qnaDto);
+            return "qna/qnaAnswer";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error/error";
+        }
+    }
+
     // 답변 등록
     @PostMapping("/admin/qna/{qnaId}/answer")
     public String submitAnswer(@PathVariable("qnaId") Long qnaId,
-            QnADto qnADto) {
+            @RequestParam String answer) {
         try {
-            qnAService.saveAnswer(qnADto);
+            qnAService.saveAnswer(qnaId, answer);
             return "redirect:/admin/qnas";
         } catch (Exception e) {
             e.printStackTrace();

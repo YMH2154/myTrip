@@ -44,9 +44,9 @@ public class QnAService {
         log.info("qna 삭제 완료");
     }
 
-    public void saveAnswer(QnADto qnADto){
-        QnA qnA = qnARepository.findById(qnADto.getId()).orElseThrow(EntityNotFoundException::new);
-        qnA.updateAnswer(qnADto);
+    public void saveAnswer(Long qnaId, String answer){
+        QnA qnA = qnARepository.findById(qnaId).orElseThrow(EntityNotFoundException::new);
+        qnA.updateAnswer(answer);
         log.info("qna 답변 등록 완료");
     }
 
@@ -72,6 +72,16 @@ public class QnAService {
     public QnADto getQnADtl(Long qnaId){
         QnA qnA = qnARepository.findById(qnaId).orElseThrow(EntityNotFoundException::new);
         return QnADto.of(qnA);
+    }
+
+    @Transactional(readOnly = true)
+    public QnADto getQnADtl(Long qnaId, String email){
+        QnA qnA = qnARepository.findById(qnaId).orElseThrow(EntityNotFoundException::new);
+        QnADto qnADto = QnADto.of(qnA);
+        if(qnA.getMember().getEmail().equals(email)){
+            qnADto.setAuthor(true);
+        }
+        return qnADto;
     }
 
     public void updateQnA(QnADto qnADto){

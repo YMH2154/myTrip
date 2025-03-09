@@ -23,11 +23,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequiredArgsConstructor
@@ -50,26 +52,17 @@ public class ItemController {
     // 상품 등록(POST)
     @PostMapping("/admin/item/new")
     public String itemNew(@Valid ItemFormDto itemFormDto,
-                          BindingResult bindingResult,
-                          @RequestParam List<MultipartFile> thumbnailImageFile,
-                          @RequestParam MultipartFile itemDetailImageFile,
-                          Model model,
-                          HttpServletRequest request) {
+            BindingResult bindingResult,
+            @RequestParam List<MultipartFile> thumbnailImageFile,
+            @RequestParam MultipartFile itemDetailImageFile,
+            Model model) {
 
-        // CSRF 토큰 디버깅
-        log.info("CSRF Token from Header: {}", request.getHeader("X-CSRF-TOKEN"));
-        log.info("CSRF Token from Parameter: {}", request.getParameter("_csrf"));
-        log.info("Request Method: {}", request.getMethod());
-        log.info("Request URI: {}", request.getRequestURI());
-        log.info("Request Headers: {}", Collections.list(request.getHeaderNames()).stream()
-                .collect(Collectors.toMap(
-                        headerName -> headerName,
-                        request::getHeader)));
-
+        // 바인딩 에러 처리
         if (bindingResult.hasErrors()) {
-            log.error("Binding Result Errors: {}", bindingResult.getAllErrors());
             return "item/itemForm";
         }
+
+        // 유효성 검사
         if (itemDetailImageFile.isEmpty()) {
             model.addAttribute("errorMessage", "상품 상세 설명 이미지는 필수입니다.");
             return "item/itemForm";
@@ -90,11 +83,12 @@ public class ItemController {
             model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
             return "item/itemForm";
         }
+
         try {
             itemService.saveItem(itemFormDto, itemDetailImageFile, thumbnailImageFile);
             return "redirect:/admin/items";
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("상품 등록 중 에러 발생", e);
             model.addAttribute("errorMessage", "상품 등록 중 에러가 발생하였습니다.");
             return "item/itemForm";
         }
@@ -116,40 +110,58 @@ public class ItemController {
     // 상품 수정(POST)
     @PostMapping("/admin/item/{itemId}")
     public String itemUpdate(@Valid ItemFormDto itemFormDto,
-                             BindingResult bindingResult,
-                             @RequestParam("thumbnailImageFile") List<MultipartFile> thumbnailImageFile,
-                             @RequestParam("itemDetailImageFile") MultipartFile itemDetailImageFile,
-                             Model model) {
-        if (bindingResult.hasErrors()) { // 유효성 체크
+            BindingResult bindingResult,
+            @RequestParam("thumbnailImageFile") List<MultipartFile> thumbnailImages,
+            @RequestParam("itemDetailImageFile") MultipartFile itemDetailImageFile,
+            Model model) {
+
+        log.info("상품 수정 요청 시작 - 상품 ID: {}", itemFormDto.getId());
+
+        if (bindingResult.hasErrors()) {
+            log.error("바인딩 에러 발생: {}", bindingResult.getAllErrors());
             return "item/itemForm";
         }
-        if (itemDetailImageFile.isEmpty() && itemFormDto.getId() != null) {
+
+        // 기존 상품 정보 조회
+        ItemFormDto existingItem = itemService.getItem(itemFormDto.getId());
+
+        // 유효성 검사
+        if (itemDetailImageFile.isEmpty() && existingItem.getItemDetailImageUrl() == null) {
             model.addAttribute("errorMessage", "상품 상세 설명 이미지는 필수입니다.");
             return "item/itemForm";
         }
-        if (thumbnailImageFile.isEmpty() && itemFormDto.getId() != null) {
-            model.addAttribute("errorMessage", "첫 번째 상품 이미지는 필수입니다.");
+
+        if (thumbnailImages.stream().allMatch(MultipartFile::isEmpty) &&
+                (existingItem.getThumbnailImageUrls() == null || existingItem.getThumbnailImageUrls().isEmpty())) {
+            model.addAttribute("errorMessage", "최소 하나의 썸네일 이미지는 필수입니다.");
             return "item/itemForm";
         }
+
         if (itemFormDto.getMinParticipants() > itemFormDto.getMaxParticipants()) {
             model.addAttribute("errorMessage", "최소 출발 인원이 최대 인원보다 많습니다.");
             return "item/itemForm";
         }
+
         if (itemFormDto.getNight() >= itemFormDto.getDuration()) {
             model.addAttribute("errorMessage", "여행 기간이 올바르지 않습니다.");
             return "item/itemForm";
         }
+
         if (itemFormDto.isValidCategory()) {
             model.addAttribute("errorMessage", "선택한 여행 타입에 맞는 카테고리를 선택해주세요.");
             return "item/itemForm";
         }
 
         try {
-            itemService.updateItem(itemFormDto, thumbnailImageFile, itemDetailImageFile);
+            // 기존 이미지 URL 전달
+            itemFormDto.setItemDetailImageUrl(existingItem.getItemDetailImageUrl());
+            itemFormDto.setThumbnailImageUrls(existingItem.getThumbnailImageUrls());
+
+            itemService.updateItem(itemFormDto, thumbnailImages, itemDetailImageFile);
             return "redirect:/admin/items";
         } catch (Exception e) {
-            e.printStackTrace();
-            model.addAttribute("errorMessage", "상품 업로드 중 에러가 발생하였습니다.");
+            log.error("상품 수정 중 에러 발생", e);
+            model.addAttribute("errorMessage", "상품 수정 중 오류가 발생했습니다.");
             return "item/itemForm";
         }
     }
@@ -200,7 +212,8 @@ public class ItemController {
     @GetMapping("/item/{itemId}/detail")
     public String itemDetail(@PathVariable("itemId") Long itemId,
             @RequestParam("departureDateTime") String departureDateTime,
-            HttpSession session,
+            HttpServletRequest request,
+            HttpServletResponse response,
             Model model) {
         try {
             ItemFormDto item = itemService.getItem(itemId);
@@ -208,11 +221,11 @@ public class ItemController {
                     itemId, departureDateTime);
             List<ScheduleDto> schedules = scheduleService.getScheduleDtl(itemId);
 
-            // 최근 본 상품 저장
-            recentViewService.addRecentView(session.getId(), itemId);
+            // 최근 본 상품 저장 (쿠키 사용)
+            recentViewService.addRecentView(request, response, itemId);
 
-            // 최근 본 다른 상품들 조회
-            List<ItemFormDto> recentItems = recentViewService.getRecentItems(session.getId(), itemId);
+            // 최근 본 다른 상품들 조회 (쿠키 사용)
+            List<ItemFormDto> recentItems = recentViewService.getRecentItems(request, itemId);
 
             model.addAttribute("item", item);
             model.addAttribute("reservation", reservation);

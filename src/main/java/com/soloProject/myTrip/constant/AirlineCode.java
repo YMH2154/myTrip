@@ -15,7 +15,17 @@ public enum AirlineCode {
     GANGWON("4V", "플라이 강원"),
     TWAY("TW", "티웨이 항공"),
     AIRPREMIA("YP", "에어 프레미아"),
-    XIAMEN("MF", "샤먼 항공");
+    XIAMEN("MF", "샤먼 항공"),
+    FRANCE("AF","에어 프랑스"),
+    HK("HX","홍콩 에어라인"),
+    TURKISH("TK","터키 항공"),
+    AUSTRIAN("OS","오스트리아 항공"),
+    HANSA("LH","루프트 한자"),
+    MONGOL("OM","몽골 항공"),
+    CHINA("CA","중국 국제 항공"),
+    EY("EY","에티하드 항공");
+
+
 
     private final String code;
     private final String companyName;

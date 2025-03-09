@@ -109,23 +109,122 @@
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+
+    /* 모달 표시 시 스타일 */
+    .modal.show {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
     }
 
     .modal-content {
         position: relative;
         background: white;
-        width: 80%;
-        max-width: 600px;
-        margin: 50px auto;
-        padding: 20px;
-        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: all 0.3s ease-out;
+    }
+
+    /* 모달이 표시될 때 컨텐츠 애니메이션 */
+    .modal.show .modal-content {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .modal-content h3 {
+        color: #1a237e;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
     }
 
     .close-btn {
         position: absolute;
         right: 20px;
         top: 20px;
+        font-size: 24px;
         cursor: pointer;
+        color: #666;
+        transition: color 0.3s;
+        z-index: 1;
+    }
+
+    .close-btn:hover {
+        color: #000;
+    }
+
+    /* 약관 내용 스타일 */
+    .terms-section {
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .terms-section h4 {
+        color: #2c3e50;
+        margin: 20px 0 10px;
+        font-size: 1.1rem;
+    }
+
+    .terms-section p {
+        margin-bottom: 15px;
+        line-height: 1.6;
+        color: #444;
+    }
+
+    .terms-section ul, 
+    .terms-section ol {
+        padding-left: 20px;
+        margin-bottom: 15px;
+    }
+
+    .terms-section li {
+        margin-bottom: 8px;
+        line-height: 1.5;
+        color: #555;
+    }
+
+    /* 스크롤바 스타일링 */
+    .modal-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .modal-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    /* 주의사항 박스 스타일 */
+    .notice-box {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    .notice-title {
+        color: #856404;
+        font-weight: bold;
+        margin-bottom: 10px;
     }
 
     /* 가격 요약 스타일 추가 */
@@ -230,7 +329,7 @@
                    name="bookerSex" id="bookerMale" value="MALE">
             <label for="bookerMale" class="form-check-label">남</label>
             <input class="form-check-input" type="radio"
-                   name="bookerSex" id="bookerFemale" value="MALE" required>
+                   name="bookerSex" id="bookerFemale" value="FEMALE" required>
             <label for="bookerFemale" class="form-check-label">여</label>
           </td>
         </tr>
@@ -301,7 +400,13 @@
 
     <!-- 약관 동의 -->
     <div class="section">
-      <h2 class="section-title">약관 동의</h2>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="section-title mb-0">약관 동의</h2>
+        <div class="form-check">
+          <input type="checkbox" id="agreeAll" class="form-check-input">
+          <label class="form-check-label" for="agreeAll">모두 동의</label>
+        </div>
+      </div>
       <div class="agreement-item">
         <input type="checkbox" id="terms1" class="agreement-checkbox">
         <label for="terms1">여행약관 동의</label>
@@ -335,33 +440,125 @@
       <span class="close-btn">&times;</span>
       <h3>여행약관</h3>
       <div class="modal-body">
+        <div class="terms-section">
+          <h4>제1조 (목적)</h4>
+          <p>이 약관은 ㈜마이트립(이하 '당사')과 여행자가 체결한 국외여행계약의 세부 이행 및 준수사항을 정함을 목적으로 합니다.</p>
+
+          <h4>제2조 (여행의 종류 및 정의)</h4>
+          <p>여행의 종류와 정의는 다음과 같습니다.</p>
+          <ol>
+            <li>패키지여행: 당사가 미리 정한 여행일정이나 여행자의 요구에 따라 출발지에서부터 도착지까지 교통, 숙박, 관광 등 여행에 관한 전반적인 계획을 수립하여 실시하는 여행.</li>
+            <li>희망여행: 여행자가 희망하는 여행조건에 따라 당사가 실시하는 여행.</li>
+          </ol>
+
+          <h4>제3조 (계약의 구성)</h4>
+          <p>여행계약은 여행약관, 여행일정표(또는 여행 설명서), 약관에서 정하여진 필수사항이 포함된 계약서 등으로 구성됩니다.</p>
+
+          <h4>제4조 (여행계약의 성립)</h4>
+          <p>여행계약은 당사가 여행자로부터 소정의 예약금을 받고 여행자에게 여행예약확인서를 교부하면서 성립됩니다.</p>
+        </div>
       </div>
     </div>
   </div>
+
   <div id="termsModal2" class="modal">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
       <h3>개인정보 수집</h3>
       <div class="modal-body">
+        <div class="terms-section">
+          <h4>1. 수집하는 개인정보 항목</h4>
+          <ul>
+            <li>필수항목: 성명, 생년월일, 성별, 여권번호, 연락처, 이메일</li>
+            <li>선택항목: 주소, 비상연락처</li>
+          </ul>
 
+          <h4>2. 개인정보의 수집 및 이용목적</h4>
+          <ul>
+            <li>여행상품 예약 및 여행서비스 제공</li>
+            <li>여행자 보험 가입 및 보험금 청구</li>
+            <li>항공권 발권 및 호텔 예약</li>
+            <li>여행 관련 안내사항 전달</li>
+          </ul>
+
+          <h4>3. 개인정보의 보유 및 이용기간</h4>
+          <p>관계법령에 의거 보존할 필요가 있는 경우를 제외하고는 여행 종료 후 1년간 보관됩니다.</p>
+
+          <h4>4. 동의 거부권 및 거부 시 불이익</h4>
+          <p>개인정보 수집 동의를 거부할 수 있으나, 이 경우 여행상품 예약이 제한될 수 있습니다.</p>
+        </div>
       </div>
     </div>
   </div>
+
   <div id="termsModal3" class="modal">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
       <h3>개인정보 제3자 제공</h3>
       <div class="modal-body">
-        <!-- 여행약관 내용 -->
+        <div class="terms-section">
+          <h4>1. 제공받는 자</h4>
+          <ul>
+            <li>항공사: 대한항공, 아시아나항공 등</li>
+            <li>숙박업체: 현지 호텔</li>
+            <li>보험회사: 여행자보험 제공 보험사</li>
+            <li>현지 여행사</li>
+          </ul>
+
+          <h4>2. 제공하는 개인정보 항목</h4>
+          <ul>
+            <li>성명(한글/영문)</li>
+            <li>생년월일</li>
+            <li>성별</li>
+            <li>여권정보</li>
+            <li>연락처</li>
+          </ul>
+
+          <h4>3. 제공받는 자의 이용목적</h4>
+          <ul>
+            <li>항공권 예약 및 발권</li>
+            <li>호텔 예약</li>
+            <li>여행자보험 가입</li>
+            <li>현지 투어 진행</li>
+          </ul>
+
+          <h4>4. 보유 및 이용기간</h4>
+          <p>제공받는 자의 서비스 제공 완료 시까지 (관련 법령에 따른 보관 기간)</p>
+        </div>
       </div>
     </div>
   </div>
+
   <div id="termsModal4" class="modal">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
       <h3>고유식별정보 수집 및 제공</h3>
       <div class="modal-body">
-        <!-- 여행약관 내용 -->
+        <div class="terms-section">
+          <h4>1. 수집하는 고유식별정보</h4>
+          <ul>
+            <li>여권번호</li>
+            <li>생년월일</li>
+          </ul>
+
+          <h4>2. 수집 및 이용목적</h4>
+          <ul>
+            <li>항공권 예약 및 발권</li>
+            <li>출입국 수속</li>
+            <li>여행자보험 가입</li>
+          </ul>
+
+          <h4>3. 보유 및 이용기간</h4>
+          <p>여행 종료 후 관련 법령에 의거한 기간까지</p>
+
+          <h4>4. 동의 거부권 및 거부 시 불이익</h4>
+          <p>고유식별정보 수집 및 이용에 대한 동의를 거부할 수 있으나, 이 경우 여행상품 예약이 불가능합니다.</p>
+
+          <div class="notice-box">
+            <p class="notice-title">※ 주의사항</p>
+            <p>고유식별정보는 관련 법령에 따라 안전하게 관리되며, 여행 서비스 제공 목적 외에는 사용되지 않습니다.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -388,34 +585,22 @@
 
             // 성인 가격 표시
             document.getElementById('adultCountText').textContent = adultCount;
-            document.getElementById('adultTotalPrice').textContent = 
-                adultTotalPrice.toLocaleString() + '원';
+            document.getElementById('adultTotalPrice').textContent = adultTotalPrice.toLocaleString() + '원';
 
             // 아동 가격 표시
             const childPriceDiv = document.querySelector('.child-price');
-            if (childCount > 0) {
-                childPriceDiv.style.display = 'flex';
-                document.getElementById('childPriceText').textContent = `아동 ${childCount}명`;
-                document.getElementById('childTotalPrice').textContent = 
-                    childTotalPrice.toLocaleString() + '원';
-            } else {
-                childPriceDiv.style.display = 'none';
-            }
+            childPriceDiv.style.display = 'flex';
+            document.getElementById('childPriceText').textContent = `아동 ${childCount}명`;
+            document.getElementById('childTotalPrice').textContent = childTotalPrice.toLocaleString() + '원';
 
             // 유아 가격 표시
             const infantPriceDiv = document.querySelector('.infant-price');
-            if (infantCount > 0) {
-                infantPriceDiv.style.display = 'flex';
-                document.getElementById('infantPriceText').textContent = `유아 ${infantCount}명`;
-                document.getElementById('infantTotalPrice').textContent = 
-                    infantTotalPrice.toLocaleString() + '원';
-            } else {
-                infantPriceDiv.style.display = 'none';
-            }
+            infantPriceDiv.style.display = 'flex';
+            document.getElementById('infantPriceText').textContent = `유아 ${infantCount}명`;
+            document.getElementById('infantTotalPrice').textContent = infantTotalPrice.toLocaleString() + '원';
 
             // 총 합계 업데이트
-            document.getElementById('totalPrice').textContent = 
-                totalPrice.toLocaleString() + '원';
+            document.getElementById('totalPrice').textContent = totalPrice.toLocaleString() + '원';
             document.getElementById('totalPriceInput').value = totalPrice;
         }
 
@@ -431,26 +616,26 @@
                         <h4>성인 ${i + 1}</h4>
                         <div class="row">
                             <div class="col-md-3">
-                                <input type="text" class="form-control" name="names" placeholder="이름" required>
+                                <input type="text" class="form-control" id="name${currentIndex}" name="names" placeholder="이름" required>
                             </div>
                             <div class="col-md-3">
-                                <input type="text" class="form-control" name="tels" 
+                                <input type="text" class="form-control" id="tel${currentIndex}" name="tels" 
                                        placeholder="연락처" ${i === 0 ? 'required' : ''}>
                             </div>
                             <div class="col-md-3">
-                                <input type="text" class="form-control" name="births" 
+                                <input type="text" class="form-control" id="birth${currentIndex}" name="births" 
                                        placeholder="생년월일(YYMMDD)" required>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" 
+                                    <input class="form-check-input" type="radio" id="male${currentIndex}"
                                            name="sex${currentIndex}" value="MALE" required>
-                                    <label class="form-check-label">남</label>
+                                    <label class="form-check-label" for="male${currentIndex}">남</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" 
+                                    <input class="form-check-input" type="radio" id="female${currentIndex}"
                                            name="sex${currentIndex}" value="FEMALE">
-                                    <label class="form-check-label">여</label>
+                                    <label class="form-check-label" for="female${currentIndex}">여</label>
                                 </div>
                             </div>
                         </div>
@@ -478,25 +663,25 @@
                     <h4>${type} ${index + 1}</h4>
                     <div class="row">
                         <div class="col-md-3">
-                            <input type="text" class="form-control" name="names" placeholder="이름" required>
+                            <input type="text" class="form-control" id="name${currentIndex}" name="names" placeholder="이름" required>
                         </div>
                         <div class="col-md-3">
-                            <input type="text" class="form-control" name="tels" placeholder="연락처">
+                            <input type="text" class="form-control" id="tel${currentIndex}" name="tels" placeholder="연락처">
                         </div>
                         <div class="col-md-3">
-                            <input type="text" class="form-control" name="births" 
+                            <input type="text" class="form-control" id="birth${currentIndex}" name="births" 
                                    placeholder="생년월일(YYMMDD)" required>
                         </div>
                         <div class="col-md-3">
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" 
+                                <input class="form-check-input" type="radio" id="male${currentIndex}"
                                        name="sex${currentIndex}" value="MALE" required>
-                                <label class="form-check-label">남</label>
+                                <label class="form-check-label" for="male${currentIndex}">남</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" 
+                                <input class="form-check-input" type="radio" id="female${currentIndex}"
                                        name="sex${currentIndex}" value="FEMALE">
-                                <label class="form-check-label">여</label>
+                                <label class="form-check-label" for="female${currentIndex}">여</label>
                             </div>
                         </div>
                     </div>
@@ -550,9 +735,14 @@
                     }
                 }
 
+                // 인원수 표시 업데이트
                 countElement.textContent = count;
-                updatePersonDetailForms();
+                
+                // 가격 업데이트를 먼저 실행
                 updatePriceDisplay();
+                
+                // 그 다음 폼과 가용성 체크
+                updatePersonDetailForms();
                 checkAvailability();
             });
         });
@@ -734,6 +924,70 @@
             input.value = value;
             form.appendChild(input);
         }
+
+        // 모달 관련 코드 추가
+        const modals = document.querySelectorAll('.modal');
+        const detailBtns = document.querySelectorAll('.detail-btn');
+        const closeBtns = document.querySelectorAll('.close-btn');
+
+        // 모달 열기
+        detailBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modalId = this.getAttribute('data-modal');
+                const modal = document.getElementById(modalId);
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden'; // 스크롤 방지
+            });
+        });
+
+        // 모달 닫기 함수
+        function closeModal(modal) {
+            modal.classList.remove('show');
+            document.body.style.overflow = ''; // 스크롤 복원
+        }
+
+        // 닫기 버튼 클릭
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                closeModal(modal);
+            });
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal(event.target);
+            }
+        });
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const visibleModal = document.querySelector('.modal.show');
+                if (visibleModal) {
+                    closeModal(visibleModal);
+                }
+            }
+        });
+
+        // 약관 전체 동의 처리
+        const agreeAllCheckbox = document.getElementById('agreeAll');
+        const agreementCheckboxes = document.querySelectorAll('.agreement-checkbox');
+
+        agreeAllCheckbox.addEventListener('change', function() {
+            agreementCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        // 개별 약관 체크박스 변경 시 전체 동의 체크박스 상태 업데이트
+        agreementCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const allChecked = Array.from(agreementCheckboxes).every(cb => cb.checked);
+                agreeAllCheckbox.checked = allChecked;
+            });
+        });
 
         // 초기 실행
         updatePersonDetailForms();

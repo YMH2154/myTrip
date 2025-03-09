@@ -38,9 +38,6 @@ public class MemberService implements UserDetailsService {
         if(memberRepository.findByEmail(memberFormDto.getEmail()).isPresent()){ //isPresent() -> Optional 값이 null이면 false, 아니면 true
             throw new IllegalStateException("이미 가입된 이메일입니다");
         }
-        if(memberRepository.findByTel(memberFormDto.getTel()).isPresent()){
-            throw new IllegalStateException("이미 가입된 전화번호입니다");
-        }
     }
 
     public void saveMember(MemberFormDto memberFormDto){
@@ -66,8 +63,12 @@ public class MemberService implements UserDetailsService {
                 .build();
     }
 
-    public MemberFormDto getMember(String email){
+    public MemberFormDto getMemberDto(String email){
         return MemberFormDto.of(memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new));
+    }
+
+    public Member getMember(String email){
+        return memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional(readOnly = true)
@@ -109,6 +110,9 @@ public class MemberService implements UserDetailsService {
     public void updateMember(MemberUpdateFormDto memberUpdateFormDto, Long id) {
 
         Member member = memberRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        if(memberRepository.findByTel(memberUpdateFormDto.getTel()).isPresent()){
+            throw new IllegalStateException("이미 가입된 전화번호입니다");
+        }
 
         member.updateMember(memberUpdateFormDto);
     }

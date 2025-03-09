@@ -2,13 +2,10 @@ package com.soloProject.myTrip.dto;
 
 import com.soloProject.myTrip.constant.QuestionType;
 import com.soloProject.myTrip.entity.QnA;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -27,6 +24,8 @@ public class QnADto {
     private String answer;
 
     private LocalDateTime regTime;
+
+    private boolean author;
 
     public static ModelMapper modelMapper = new ModelMapper();
 

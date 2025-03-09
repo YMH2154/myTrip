@@ -95,15 +95,33 @@
         }
 
         .booking-container {
-            position: fixed;
-            top: 100px;
-            right: 30px;
-            width: 350px;
+            width: 100%;
+            position: relative;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .right-side-container {
+            width: 350px;
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .recent-items-container {
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 620px);
+            overflow-y: auto;
+            position: relative;
         }
 
         .person-count {
@@ -172,17 +190,6 @@
             padding-right: 30px;
         }
 
-        .booking-container {
-            width: 350px;
-            position: sticky;
-            top: 100px;
-            height: fit-content;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
         .product-title {
             font-size: 28px;
             color: #1a237e;
@@ -206,8 +213,9 @@
             border-radius: 30px;
             margin: 30px auto;
             padding: 30px;
-            display: flex;
             background: #f8f9fa;
+            position: relative;
+            overflow: visible;
         }
 
         /* 추가적인 스타일 개선 */
@@ -244,17 +252,6 @@
             padding-bottom: 20px;
             border-bottom: 2px solid #e9ecef;
             font-weight: 700;
-        }
-
-        /* 예약 컨테이너 스타일 */
-        .booking-container {
-            width: 380px;
-            position: sticky;
-            top: 100px;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         /* 인원 선택 스타일 */
@@ -406,23 +403,16 @@
             margin-bottom: 30px;
         }
 
-        .recent-items-container {
-            width: 350px;
-            position: sticky;
-            top: 600px; /* booking-container 아래에 위치하도록 조정 */
-            background: white;
-            padding: 25px;
-            margin-top: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
         .recent-items-title {
             font-size: 18px;
             color: #333;
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
         }
         
         .recent-items-list {
@@ -464,6 +454,13 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
+
+        .debug-info {
+            border-left: 3px solid #007bff;
+        }
+        .debug-info div {
+            margin: 5px 0;
+        }
     </style>
 </th:block>
 
@@ -496,14 +493,14 @@
                     <div class="travel-info d-flex justify-content-around text-center">
                         <div class="info-item">
                             <div class="icon-circle">
-                                <img src="/images/duration.png" alt="여행기간">
+                                <img src="/images/itemDtl/duration.png" alt="여행기간">
                             </div>
                             <p class="info-label">여행기간</p>
                             <p class="info-value" th:text="${item.night} + '박 ' +${item.duration} + '일'"></p>
                         </div>
                         <div class="info-item">
                             <div class="icon-circle">
-                                <img src="/images/airline.png" alt="항공사">
+                                <img src="/images/itemDtl/airline.png" alt="항공사">
                             </div>
                             <p class="info-label">항공사</p>
                             <p class="info-value" th:if="${reservation.departureCarrierName == reservation.returnCarrierName}" th:text="${reservation.departureCarrierName}"></p>
@@ -511,7 +508,7 @@
                         </div>
                         <div class="info-item">
                             <div class="icon-circle">
-                                <img src="/images/leader.png" alt="인솔자">
+                                <img src="/images/itemDtl/leader.png" alt="인솔자">
                             </div>
                             <p class="info-label">인솔자</p>
                             <p class="info-value" th:if="${item.hasLeader == true}">동행</p>
@@ -519,7 +516,7 @@
                         </div>
                         <div class="info-item">
                             <div class="icon-circle">
-                                <img src="/images/expense.png" alt="가이드 경비">
+                                <img src="/images/itemDtl/expense.png" alt="가이드 경비">
                             </div>
                             <p class="info-label">가이드 경비</p>
                             <p class="info-value" th:if="${item.hasGuideFee == true}" th:text="${item.guideFee} + ${item.guideFeeUnit}"></p>
@@ -527,7 +524,7 @@
                         </div>
                         <div class="info-item">
                             <div class="icon-circle">
-                                <img src="/images/shopping.png" alt="쇼핑">
+                                <img src="/images/itemDtl/shopping.png" alt="쇼핑">
                             </div>
                             <p class="info-label">쇼핑</p>
                             <p class="info-value" th:if="${item.hasShopping == true}" th:text="${item.shoppingCount} + ' 회'"></p>
@@ -535,7 +532,7 @@
                         </div>
                         <div class="info-item">
                             <div class="icon-circle">
-                                <img src="/images/insurance.png" alt="여행자 보험">
+                                <img src="/images/itemDtl/insurance.png" alt="여행자 보험">
                             </div>
                             <p class="info-label">여행자 보험</p>
                             <p class="info-value" th:if="${item.hasInsurance == true}">포함</p>
@@ -681,15 +678,27 @@
                 <div class="col-12">
                     <h3 class="mb-4">일정표</h3>
                     <div class="schedule-timeline">
-                        <div th:each="schedule : ${schedules}" class="schedule-item mb-4">
+                        <div th:each="schedule, stat : ${schedules}" class="schedule-item mb-4">
+                            <!-- 디버깅용 주석 -->
+                            <div class="debug-info" th:if="${@environment.getProperty('spring.profiles.active') == 'dev'}"
+                                 style="background: #f8f9fa; padding: 10px; margin-bottom: 10px; font-family: monospace; font-size: 12px;">
+                                <div>Schedule ID: <span th:text="${schedule.id}"></span></div>
+                                <div>Day: <span th:text="${schedule.day}"></span></div>
+                                <div>Activity: <span th:text="${schedule.activity}"></span></div>
+                                <div>Image URL: <span th:text="${schedule.imageUrl}"></span></div>
+                            </div>
+                            
                             <div class="card">
                                 <div class="card-body">
                                     <h5 class="card-title" th:text="${schedule.day + '일차'}">일차</h5>
                                     <div class="row">
-                                        <div class="col-md-4" th:if="${schedule.imageUrl}">
-                                            <img th:src="${schedule.imageUrl}" class="img-fluid rounded" alt="일정 이미지">
+                                        <div th:if="${schedule.imageUrl != null and !schedule.imageUrl.isEmpty()}" class="col-md-4">
+                                            <img th:src="${schedule.imageUrl}"
+                                                 class="img-fluid rounded"
+                                                 th:alt="${schedule.activity}"
+                                                 onerror="this.onerror=null; this.src='/images/no-image.png'; console.log('이미지 로드 실패:', this.src);">
                                         </div>
-                                        <div th:class="${schedule.imageUrl} ? 'col-md-8' : 'col-md-12'">
+                                        <div th:class="${schedule.imageUrl != null and !schedule.imageUrl.isEmpty()} ? 'col-md-8' : 'col-md-12'">
                                             <h6 th:text="${schedule.activity}">활동명</h6>
                                             <p th:text="${schedule.description}">활동 설명</p>
                                         </div>
@@ -702,80 +711,82 @@
             </div>
         </div>
 
-        <div class="booking-container">
-            <h4 class="mb-4">예약하기</h4>
-            <form id="bookingForm" method="get">
-                <input type="hidden" name="itemId" th:value="${item.id}">
-                <input type="hidden" name="departureDateTime" th:value="${reservation.departureDateTime}">
-                <input type="hidden" name="adultCount" id="adultCountInput" value="1">
-                <input type="hidden" name="childCount" id="childCountInput" value="0">
-                <input type="hidden" name="infantCount" id="infantCountInput" value="0">
+        <div class="right-side-container">
+            <div class="booking-container">
+                <h4 class="mb-4">예약하기</h4>
+                <form id="bookingForm" method="get">
+                    <input type="hidden" name="itemId" th:value="${item.id}">
+                    <input type="hidden" name="departureDateTime" th:value="${reservation.departureDateTime}">
+                    <input type="hidden" name="adultCount" id="adultCountInput" value="1">
+                    <input type="hidden" name="childCount" id="childCountInput" value="0">
+                    <input type="hidden" name="infantCount" id="infantCountInput" value="0">
 
-                <div class="person-count">
-                    <span>성인</span>
-                    <div class="count-control">
-                        <button type="button" class="count-btn minus-btn" data-type="adult" disabled>-</button>
-                        <span class="count" id="adultCount">1</span>
-                        <button type="button" class="count-btn plus-btn" data-type="adult">+</button>
+                    <div class="person-count">
+                        <span>성인</span>
+                        <div class="count-control">
+                            <button type="button" class="count-btn minus-btn" data-type="adult" disabled>-</button>
+                            <span class="count" id="adultCount">1</span>
+                            <button type="button" class="count-btn plus-btn" data-type="adult">+</button>
+                        </div>
+                    </div>
+
+                    <div class="person-count">
+                        <span>아동</span>
+                        <div class="count-control">
+                            <button type="button" class="count-btn minus-btn" data-type="child">-</button>
+                            <span class="count" id="childCount">0</span>
+                            <button type="button" class="count-btn plus-btn" data-type="child">+</button>
+                        </div>
+                    </div>
+
+                    <div class="person-count">
+                        <span>유아</span>
+                        <div class="count-control">
+                            <button type="button" class="count-btn minus-btn" data-type="infant">-</button>
+                            <span class="count" id="infantCount">0</span>
+                            <button type="button" class="count-btn plus-btn" data-type="infant">+</button>
+                        </div>
+                    </div>
+
+                    <div class="warning-message" id="seatsWarning">
+                        선택하신 인원이 잔여 좌석을 초과했습니다.
+                    </div>
+
+                    <div class="price-summary">
+                        <div class="d-flex justify-content-between">
+                            <span>성인 1명</span>
+                            <span th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between child-price" style="display: none;">
+                            <span id="childPriceText">아동 0명</span>
+                            <span id="childTotalPrice">0원</span>
+                        </div>
+                        <div class="d-flex justify-content-between infant-price" style="display: none;">
+                            <span id="infantPriceText">유아 0명</span>
+                            <span id="infantTotalPrice">0원</span>
+                        </div>
+                        <hr>
+                        <div class="total-price">
+                            총 합계: <span id="totalPrice" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary btn-lg w-100" id="bookButton">예약하기</button>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                </form>
+            </div>
+
+            <!-- 최근 본 상품 섹션 -->
+            <div class="recent-items-container" th:if="${not #lists.isEmpty(recentItems)}">
+                <h5 class="recent-items-title">관심 있게 본 상품</h5>
+                <div class="recent-items-list">
+                    <div th:each="recentItem : ${recentItems}" class="recent-item">
+                        <a th:href="@{/item/{itemId}/calendar(itemId=${recentItem.id})}" class="recent-item-link">
+                            <img th:src="${recentItem.thumbnailImageUrls[0]}" class="recent-item-image" alt="상품 이미지">
+                            <div class="recent-item-name" th:text="${recentItem.itemName}">상품명</div>
+                        </a>
                     </div>
                 </div>
-
-                <div class="person-count">
-                    <span>아동</span>
-                    <div class="count-control">
-                        <button type="button" class="count-btn minus-btn" data-type="child">-</button>
-                        <span class="count" id="childCount">0</span>
-                        <button type="button" class="count-btn plus-btn" data-type="child">+</button>
-                    </div>
-                </div>
-
-                <div class="person-count">
-                    <span>유아</span>
-                    <div class="count-control">
-                        <button type="button" class="count-btn minus-btn" data-type="infant">-</button>
-                        <span class="count" id="infantCount">0</span>
-                        <button type="button" class="count-btn plus-btn" data-type="infant">+</button>
-                    </div>
-                </div>
-
-                <div class="warning-message" id="seatsWarning">
-                    선택하신 인원이 잔여 좌석을 초과했습니다.
-                </div>
-
-                <div class="price-summary">
-                    <div class="d-flex justify-content-between">
-                        <span>성인 1명</span>
-                        <span th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
-                    </div>
-                    <div class="d-flex justify-content-between child-price" style="display: none;">
-                        <span id="childPriceText">아동 0명</span>
-                        <span id="childTotalPrice">0원</span>
-                    </div>
-                    <div class="d-flex justify-content-between infant-price" style="display: none;">
-                        <span id="infantPriceText">유아 0명</span>
-                        <span id="infantTotalPrice">0원</span>
-                    </div>
-                    <hr>
-                    <div class="total-price">
-                        총 합계: <span id="totalPrice" th:text="${#numbers.formatInteger(reservation.totalPrice, 3, 'COMMA') + '원'}"></span>
-                    </div>
-                </div>
-
-                <button type="button" class="btn btn-primary btn-lg w-100" id="bookButton">예약하기</button>
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            </form>
-        </div>
-    </div>
-
-    <!-- 최근 본 상품 섹션 -->
-    <div class="recent-items-container" th:if="${not #lists.isEmpty(recentItems)}">
-        <h5 class="recent-items-title">관심 있게 본 상품</h5>
-        <div class="recent-items-list">
-            <div th:each="recentItem : ${recentItems}" class="recent-item">
-                <a th:href="@{/item/{itemId}/calendar(itemId=${recentItem.id})}" class="recent-item-link">
-                    <img th:src="${recentItem.thumbnailImageUrls[0]}" class="recent-item-image" alt="상품 이미지">
-                    <div class="recent-item-name" th:text="${recentItem.itemName}">상품명</div>
-                </a>
             </div>
         </div>
     </div>
@@ -784,8 +795,8 @@
 <th:block layout:fragment="script">
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            const remainingSeats = [[${reservation.remainingSeats}]];
-            const basePrice = [[${reservation.totalPrice}]];
+            const remainingSeats = /*[[${reservation.remainingSeats}]]*/ 0;
+            const basePrice = /*[[${reservation.totalPrice}]]*/ 0;
             let adultCount = 1;
             let childCount = 0;
             let infantCount = 0;
@@ -817,30 +828,23 @@
                 const totalPrice = adultTotalPrice + childTotalPrice + infantTotalPrice;
 
                 // 성인 가격 표시
-                document.querySelector('.d-flex.justify-content-between:not(.child-price):not(.infant-price) span:first-child')
-                    .textContent = `성인 ${adultCount}명`;
-                document.querySelector('.d-flex.justify-content-between:not(.child-price):not(.infant-price) span:last-child')
-                    .textContent = adultTotalPrice.toLocaleString() + '원';
+                const adultPriceElement = document.querySelector('.price-summary .d-flex:not(.child-price):not(.infant-price)');
+                if (adultPriceElement) {
+                    adultPriceElement.querySelector('span:first-child').textContent = `성인 ${adultCount}명`;
+                    adultPriceElement.querySelector('span:last-child').textContent = adultTotalPrice.toLocaleString() + '원';
+                }
 
                 // 아동 가격 표시
                 const childPriceDiv = document.querySelector('.child-price');
-                if (childCount > 0) {
-                    childPriceDiv.style.display = 'flex';
-                    document.getElementById('childPriceText').textContent = `아동 ${childCount}명`;
-                    document.getElementById('childTotalPrice').textContent = childTotalPrice.toLocaleString() + '원';
-                } else {
-                    childPriceDiv.style.display = 'none';
-                }
+                childPriceDiv.style.display = 'flex';
+                document.getElementById('childPriceText').textContent = `아동 ${childCount}명`;
+                document.getElementById('childTotalPrice').textContent = childTotalPrice.toLocaleString() + '원';
 
                 // 유아 가격 표시
                 const infantPriceDiv = document.querySelector('.infant-price');
-                if (infantCount > 0) {
-                    infantPriceDiv.style.display = 'flex';
-                    document.getElementById('infantPriceText').textContent = `유아 ${infantCount}명`;
-                    document.getElementById('infantTotalPrice').textContent = infantTotalPrice.toLocaleString() + '원';
-                } else {
-                    infantPriceDiv.style.display = 'none';
-                }
+                infantPriceDiv.style.display = 'flex';
+                document.getElementById('infantPriceText').textContent = `유아 ${infantCount}명`;
+                document.getElementById('infantTotalPrice').textContent = infantTotalPrice.toLocaleString() + '원';
 
                 // 총 합계 업데이트
                 document.getElementById('totalPrice').textContent = totalPrice.toLocaleString() + '원';
@@ -864,6 +868,7 @@
                             } else if (!isPlus && adultCount > 1) {
                                 if (infantCount >= adultCount - 1) {
                                     infantCount = adultCount - 1;
+                                    document.getElementById('infantCount').textContent = infantCount;
                                 }
                                 adultCount--;
                             }
@@ -889,6 +894,10 @@
                         type === 'adult' ? adultCount :
                         type === 'child' ? childCount : infantCount;
 
+                    // 가격 업데이트를 먼저 실행
+                    updatePriceDisplay();
+                    
+                    // 그 다음 버튼 상태 업데이트
                     updateButtons();
                 });
             });
@@ -940,6 +949,20 @@
                     // 상단으로 부드럽게 스크롤
                     container.scrollIntoView({ behavior: 'smooth' });
                 }
+            });
+
+            // 이미지 로드 디버깅
+            const schedules = /*[[${schedules}]]*/ [];
+            console.log('일정 데이터:', schedules);
+            
+            document.querySelectorAll('.schedule-item img').forEach(img => {
+                console.log('이미지 URL:', img.src);
+                img.addEventListener('load', function() {
+                    console.log('이미지 로드 성공:', this.src);
+                });
+                img.addEventListener('error', function() {
+                    console.error('이미지 로드 실패:', this.src);
+                });
             });
         });
     </script>

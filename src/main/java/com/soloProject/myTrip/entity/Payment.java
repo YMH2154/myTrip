@@ -10,7 +10,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payment")
+@Table(name = "payment", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_merchant_uid", columnNames = { "merchant_uid" })
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,35 +21,35 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Payment extends BaseTimeEntity {
 
-   @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-   private String itemName;
+    private String itemName;
 
-   @Column(name = "merchant_uid", unique = true, nullable = false)
-   private String merchantUid; // 주문 번호
+    @Column(name = "merchant_uid", nullable = false)
+    private String merchantUid;
 
-   @Column(name = "amount", nullable = false)
-   private Integer amount; // 결제된 금액
+    @Column(name = "amount", nullable = false)
+    private Integer amount;
 
-   private String paymentKey;
+    private String paymentKey;
 
-   @Enumerated(EnumType.STRING)
-   private PaymentMethod paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
 
-   @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "member_reservation_id")
-   private MemberReservation memberReservation; // 예약
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_reservation_id")
+    private MemberReservation memberReservation;
 
-   private String cancelReason;
+    private String cancelReason;
 
-   @OneToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "used_coupon_id")
-   private Coupon usedCoupon;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "used_coupon_id")
+    private Coupon usedCoupon;
 
-   private Integer usedMileage;
+    private Integer usedMileage;
 
-   @Enumerated(EnumType.STRING)
-   private PaymentType paymentType;
+    @Enumerated(EnumType.STRING)
+    private PaymentType paymentType;
 }

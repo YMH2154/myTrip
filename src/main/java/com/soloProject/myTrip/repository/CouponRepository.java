@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface CouponRepository extends JpaRepository<Coupon, Long>, CouponRepositoryCustom {
 
-    Optional<Coupon> findByDescription(String description);
+    Optional<Coupon> findByDescriptionAndIsAlphaCouponTrue(String description);
 
     List<Coupon> findByCouponWalletIdAndCouponStatus(Long couponWalletId, CouponStatus couponStatus);
 }

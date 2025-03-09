@@ -2,6 +2,7 @@ package com.soloProject.myTrip.dto;
 
 import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.entity.Item;
+import com.soloProject.myTrip.entity.Schedule;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -9,6 +10,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.modelmapper.ModelMapper;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -43,7 +46,7 @@ public class ItemFormDto {
 
     private Integer currentParticipants;
 
-    private List<String> thumbnailImageUrls;
+    private List<String> thumbnailImageUrls = new ArrayList<>();
 
     private List<ScheduleDto> scheduleDtos;
 
@@ -59,6 +62,10 @@ public class ItemFormDto {
     private boolean hasInsurance; // 여행자 보험 유무
 
     private Integer reservationCount = 0;
+
+    private List<Schedule> schedules = new ArrayList<>();
+    private LocalDate earliestDepartureDate;
+    private Integer lowestPrice;
 
     public static ModelMapper modelMapper = new ModelMapper();
 

@@ -28,7 +28,7 @@ public class CouponService {
     public CouponWallet createCouponWaller(Member member) {
         List<Coupon> coupons = new ArrayList<>();
 
-        Coupon coupon = couponRepository.findByDescription("가입 축하 쿠폰")
+        Coupon coupon = couponRepository.findByDescriptionAndIsAlphaCouponTrue("가입 축하 쿠폰")
                 .orElseThrow(EntityNotFoundException::new);
 
         Coupon userCoupon = Coupon.giveCoupon(coupon);

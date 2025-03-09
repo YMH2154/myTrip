@@ -1,5 +1,7 @@
 package com.soloProject.myTrip.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.dto.IamportResponse;
 import com.soloProject.myTrip.dto.KakaoCancelResponse;
@@ -96,40 +98,56 @@ public class RefundService {
     }
 
     // 포트원 결제 취소
-    public IamportResponse cancelIamportPayment(RefundRequestDto refundRequestDto) {
+    public IamportResponse cancelIamportPayment(RefundRequestDto refundRequestDto) throws JsonProcessingException {
         try {
             log.info("포트원 결제 취소 시작 - paymentId: {}", refundRequestDto.getPaymentId());
 
             Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
                     .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
 
-            // paymentKey가 비어있는지 확인
-            if (payment.getPaymentKey() == null || payment.getPaymentKey().isEmpty()) {
-                log.error("결제 키가 비어있습니다. paymentId: {}", payment.getId());
-                throw new RuntimeException("결제 키가 비어있습니다.");
+            // imp_uid와 merchant_uid를 DTO에서 가져옴
+            String impUid = refundRequestDto.getImpUid();
+            String merchantUid = refundRequestDto.getMerchantUid();
+
+            log.info("결제 취소 요청 정보 - imp_uid: {}, amount: {}, merchant_uid: {}",
+                    impUid, refundRequestDto.getAmount(), merchantUid);
+
+            // 필수 값 검증 강화
+            if (impUid == null || impUid.trim().isEmpty()) {
+                String errorMsg = "imp_uid가 누락되었습니다.";
+                log.error(errorMsg);
+                throw new IllegalArgumentException(errorMsg);
             }
 
-            log.info("결제 취소 요청 정보 - imp_uid: {}, amount: {}",
-                    payment.getPaymentKey(), refundRequestDto.getAmount());
+            if (merchantUid == null || merchantUid.trim().isEmpty()) {
+                String errorMsg = "merchant_uid가 누락되었습니다.";
+                log.error(errorMsg);
+                throw new IllegalArgumentException(errorMsg);
+            }
+
+            // 결제 정보 로깅 추가
+            log.info("결제 취소 요청 검증 완료 - imp_uid: {}, merchant_uid: {}", impUid, merchantUid);
 
             // 아임포트 API 토큰 발급
             String token = paymentService.getIamportToken();
-            log.debug("아임포트 토큰 발급 완료");
+            log.info("아임포트 토큰 발급 완료");
 
-            // 결제 취소 요청 데이터 준비
-            Map<String, Object> cancelData = new HashMap<>();
-            cancelData.put("imp_uid", payment.getPaymentKey());
-            cancelData.put("amount", refundRequestDto.getAmount());
-            cancelData.put("reason", refundRequestDto.getReason());
-            cancelData.put("checksum", refundRequestDto.getAmount());
-
+            // RestTemplate 요청 부분 수정
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(cancelData, headers);
+            // JSON 요청 바디 직접 구성
+            String requestBody = String.format(
+                    "{\"imp_uid\":\"%s\",\"merchant_uid\":\"%s\",\"amount\":%d,\"reason\":\"%s\"}",
+                    refundRequestDto.getImpUid(),
+                    refundRequestDto.getMerchantUid(),
+                    refundRequestDto.getAmount(),
+                    refundRequestDto.getReason());
 
-            log.debug("아임포트 취소 요청 데이터: {}", cancelData);
+            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            log.info("실제 전송되는 요청 바디: {}", requestBody);
 
             ResponseEntity<IamportResponse> response = restTemplate.exchange(
                     "https://api.iamport.kr/payments/cancel",
@@ -137,14 +155,25 @@ public class RefundService {
                     requestEntity,
                     IamportResponse.class);
 
+            log.info("아임포트 API 응답 - Status: {}, Body: {}",
+                    response.getStatusCode(),
+                    new ObjectMapper().writeValueAsString(response.getBody()));
+
             if (response.getBody() == null) {
                 log.error("아임포트 취소 응답이 null입니다.");
                 throw new RuntimeException("결제 취소에 실패했습니다: 응답이 null입니다.");
             }
 
+            if (response.getBody().getCode() != 0) {
+                log.error("아임포트 취소 실패 - code: {}, message: {}",
+                        response.getBody().getCode(),
+                        response.getBody().getMessage());
+                throw new RuntimeException("결제 취소에 실패했습니다: " + response.getBody().getMessage());
+            }
+
             if (response.getBody().getResponse() == null) {
                 log.error("아임포트 취소 응답의 response가 null입니다. 전체 응답: {}", response.getBody());
-                throw new RuntimeException("결제 취소에 실패했습니다: " + response.getBody().getMessage());
+                throw new RuntimeException("결제 취소에 실패했습니다: 응답 데이터가 없습니다.");
             }
 
             // 잔금 결제 취소
@@ -155,12 +184,12 @@ public class RefundService {
             // 예약금 결제 취소
             else {
                 cancelPayment(payment, refundRequestDto);
-                log.info("포트원 결제 취소 완료 - impUid: {}", payment.getPaymentKey());
+                log.info("포트원 결제 취소 완료 - impUid: {}", impUid);
                 return response.getBody();
             }
 
         } catch (Exception e) {
-            log.error("포트원 결제 취소 실패", e);
+            log.error("포트원 결제 취소 실패 - 상세 에러: ", e);
             if (e instanceof RuntimeException) {
                 throw e;
             }

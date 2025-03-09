@@ -2,6 +2,10 @@
             width: 100%;
             background: #fff;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
         .header-main > div:first-child {
             display: flex;
@@ -242,4 +246,9 @@
         #mainCarousel {
             position: relative;
             z-index: 1;
+        }
+
+        /* 헤더 고정으로 인한 컨텐츠 여백 조정 */
+        .page-wrapper {
+            padding-top: 200px; /* 헤더 높이에 맞게 조정 */
         }

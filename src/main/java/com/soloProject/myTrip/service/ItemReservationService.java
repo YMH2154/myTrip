@@ -30,19 +30,6 @@ public class ItemReservationService {
   private final FlightSearchService flightSearchService;
   private final ItemRepository itemRepository;
 
-  // 최저가격 업데이트 메서드 추가
-  @Transactional
-  public void updateItemLowestPrice(Item item) {
-    List<ItemReservation> reservations = itemReservationRepository.findByItemId(item.getId());
-    if (!reservations.isEmpty()) {
-      int lowestPrice = reservations.stream()
-          .mapToInt(ItemReservation::getTotalPrice)
-          .min()
-          .getAsInt();
-      item.updateLowestPrice(lowestPrice);
-    }
-  }
-
   // 새로운 상품 예약 정보 생성
   @Async
   public void createReservationForDateAsync(Item item, LocalDate date) {
@@ -74,9 +61,6 @@ public class ItemReservationService {
         // 한 날짜 실패해도 계속 진행
       }
     }
-
-    // 모든 예약 생성이 완료된 후 최저가격 업데이트
-    updateItemLowestPrice(item);
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -138,43 +122,51 @@ public class ItemReservationService {
     ItemReservationDto dto = ItemReservationDto.createEmpty();
 
     int minPrice = Integer.MAX_VALUE;
-    int maxPrice = 0;
+    int maxPrice = Integer.MIN_VALUE;
+
+    // 내일부터 7일 동안의 날짜 범위 설정
+    LocalDate tomorrow = LocalDate.now().plusDays(1);
+    LocalDate endDate = tomorrow.plusDays(6);
 
     for (ItemReservation reservation : reservations) {
       String departureDate = reservation.getDepartureDateTime().split("T")[0];
+      LocalDate reservationDate = LocalDate.parse(departureDate);
 
-      // 잔여석, 가격, 상태 정보 설정
-      dto.getRemainingSeats().put(departureDate, reservation.getRemainingSeats());
-      dto.getPrices().put(departureDate, reservation.getTotalPrice());
-      dto.getItemSellStatus().put(departureDate, reservation.getItemSellStatus());
+      // 날짜가 범위 내에 있는 경우에만 처리
+      if (!reservationDate.isBefore(tomorrow) && !reservationDate.isAfter(endDate)) {
+        // 잔여석, 가격, 상태 정보 설정
+        dto.getRemainingSeats().put(departureDate, reservation.getRemainingSeats());
+        dto.getPrices().put(departureDate, reservation.getTotalPrice());
+        dto.getItemSellStatus().put(departureDate, reservation.getItemSellStatus());
 
-      // 최소/최대 가격 업데이트
-      int totalPrice = reservation.getTotalPrice();
-      if (totalPrice < minPrice)
-        minPrice = totalPrice;
-      if (totalPrice > maxPrice)
-        maxPrice = totalPrice;
+        // 최소/최대 가격 업데이트
+        int totalPrice = reservation.getTotalPrice();
+        if (totalPrice < minPrice)
+          minPrice = totalPrice;
+        if (totalPrice > maxPrice)
+          maxPrice = totalPrice;
 
-      // 출발 항공편 정보
-      ItemReservationDto.FlightInfo departureFlight = ItemReservationDto.FlightInfo.builder()
-          .carrierName(reservation.getDepartureCarrierName())
-          .flightNumber(reservation.getDepartureFlightNumber())
-          .dateTime(reservation.getDepartureDateTime())
-          .build();
+        // 출발 항공편 정보
+        ItemReservationDto.FlightInfo departureFlight = ItemReservationDto.FlightInfo.builder()
+            .carrierName(reservation.getDepartureCarrierName())
+            .flightNumber(reservation.getDepartureFlightNumber())
+            .dateTime(reservation.getDepartureDateTime())
+            .build();
 
-      // 귀국 항공편 정보
-      ItemReservationDto.FlightInfo returnFlight = ItemReservationDto.FlightInfo.builder()
-          .carrierName(reservation.getReturnCarrierName())
-          .flightNumber(reservation.getReturnFlightNumber())
-          .dateTime(reservation.getReturnDateTime())
-          .build();
+        // 귀국 항공편 정보
+        ItemReservationDto.FlightInfo returnFlight = ItemReservationDto.FlightInfo.builder()
+            .carrierName(reservation.getReturnCarrierName())
+            .flightNumber(reservation.getReturnFlightNumber())
+            .dateTime(reservation.getReturnDateTime())
+            .build();
 
-      dto.getDepartureFlights().put(departureDate, departureFlight);
-      dto.getReturnFlights().put(departureDate, returnFlight);
+        dto.getDepartureFlights().put(departureDate, departureFlight);
+        dto.getReturnFlights().put(departureDate, returnFlight);
+      }
     }
 
     dto.setMinPrice(minPrice != Integer.MAX_VALUE ? minPrice : 0);
-    dto.setMaxPrice(maxPrice);
+    dto.setMaxPrice(maxPrice != Integer.MIN_VALUE ? maxPrice : 0);
 
     return dto;
   }

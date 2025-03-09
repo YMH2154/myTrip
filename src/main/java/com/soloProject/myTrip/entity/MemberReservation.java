@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -37,6 +38,12 @@ public class MemberReservation extends BaseTimeEntity {
 
     private int totalPrice;
     private int totalDeposit;
+
+    private LocalDateTime reservedAt;
+
+    public MemberReservation() {
+        this.reservedAt = LocalDateTime.now();
+    }
 
     public void updateStatus(ReservationStatus status) {
         this.setReservationStatus(status);

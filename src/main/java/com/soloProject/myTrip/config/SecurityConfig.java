@@ -28,9 +28,7 @@ public class SecurityConfig {
                                 .requestMatchers("/css/**", "/js/**", "/img/**", "/favicon.ico", "/error").permitAll()
                                 .requestMatchers("/", "/member/**", "/item/**", "/images/**", "/itemDetailImages/**",
                                                 "/email/**", "/api/prices/status/**", "/thumbnailImages/**",
-                                                "/category/**",
-                                                "/banner/**")
-                                .permitAll()
+                                                "/category/**", "/search/**").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/reservation/**", "/payment/**","/myPage/**").authenticated()
                                 .anyRequest().authenticated()).formLogin(login -> login

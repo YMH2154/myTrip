@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}">
+
+<th:block layout:fragment="css">
+    <style>
+        .qna-answer-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .qna-header {
+            border-bottom: 2px solid #e1e8f5;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .qna-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .qna-info {
+            display: flex;
+            gap: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .qna-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            min-height: 200px;
+        }
+
+        .answer-form {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e8f5;
+        }
+
+        .answer-form-header {
+            font-weight: 500;
+            color: #1a73e8;
+            margin-bottom: 15px;
+        }
+
+        .answer-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #e1e8f5;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 20px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .answer-textarea:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.1);
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-submit {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        .btn-back {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="qna-answer-container">
+        <div class="qna-header">
+            <h1 class="qna-title" th:text="${qnaDto.title}"></h1>
+            <div class="qna-info">
+                <span th:text="${#temporals.format(qnaDto.regTime, 'yyyy-MM-dd HH:mm')}"></span>
+                <span th:text="${qnaDto.questionType.getDescription()}"></span>
+                <span th:text="${qnaDto.isAnswered ? '답변완료' : '미답변'}"></span>
+            </div>
+        </div>
+
+        <div class="qna-content" th:text="${qnaDto.content}"></div>
+
+        <form th:action="@{'/admin/qna/' + ${qnaDto.id} + '/answer'}" method="post" class="answer-form">
+            <h3 class="answer-form-header">답변 작성</h3>
+            <textarea name="answer" 
+                      class="answer-textarea" 
+                      th:text="${qnaDto.answer}"
+                      placeholder="답변을 입력해주세요"></textarea>
+            
+            <div class="btn-container">
+                <button type="submit" class="btn btn-submit">답변 등록</button>
+                <a th:href="@{/admin/qnas}" class="btn btn-back">목록으로</a>
+            </div>
+        </form>
+    </div>
+</div>
+</html>

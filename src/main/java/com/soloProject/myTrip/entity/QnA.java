@@ -31,8 +31,8 @@ public class QnA extends BaseTimeEntity {
 
     private String answer;
 
-    public void updateAnswer(QnADto qnADto){
-        this.answer = qnADto.getAnswer();
+    public void updateAnswer(String answer){
+        this.answer = answer;
         this.isAnswered = true;
     }
 

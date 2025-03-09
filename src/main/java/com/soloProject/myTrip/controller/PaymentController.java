@@ -67,7 +67,7 @@ public class PaymentController {
     }
   }
 
-  @PostMapping("/payment/prepare")
+  @PostMapping("/payment/kakao/prepare")
   public @ResponseBody ResponseEntity<?> preparePayment(@RequestBody PaymentDto requestDto) {
     try {
       log.info("결제 준비 요청 - 예약번호: {}, 금액: {}", requestDto.getReservationNumber(), requestDto.getAmount());
@@ -90,9 +90,8 @@ public class PaymentController {
   }
 
   @PostMapping("/payment/card/prepare")
-  public @ResponseBody ResponseEntity<?> prepareCardPayment(@RequestBody PaymentDto requestDto,
-                                                            Principal principal) {
-    //테스트용 금액 (requestDto.getMount())
+  public @ResponseBody ResponseEntity<?> prepareCardPayment(@RequestBody CardPaymentDto requestDto,
+      Principal principal) {
     log.info("카드결제 준비 요청 - 예약번호: {}, 금액: {}", requestDto.getReservationNumber(), requestDto.getAmount());
     try {
       CardPaymentPrepareResponse response = paymentService.prepareCardPayment(requestDto, principal.getName());

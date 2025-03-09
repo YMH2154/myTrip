@@ -340,7 +340,7 @@
                 const mileageAmount = parseInt($('#mileageInput').val()) || 0;
 
                 $.ajax({
-                    url: '/payment/prepare',
+                    url: '/payment/kakao/prepare',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -422,7 +422,7 @@
                             contentType: 'application/json',
                             data: JSON.stringify({
                                 impUid: rsp.imp_uid,
-                                merchantUid: rsp.merchant_uid,
+                                merchantUid: prepareResponse.merchantUid,
                                 amount: finalAmount,
                                 couponId: selectedCouponId,
                                 usedMileage: parseInt($('#mileageInput').val()) || 0

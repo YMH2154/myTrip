@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -148,9 +149,14 @@ public class MemberController {
     }
 
     @GetMapping("/reservations/{reservationNumber}")
-    public String reservationDetail(@PathVariable("reservationNumber") String reservationNumber, Model model) {
+    public String reservationDetail(@PathVariable("reservationNumber") String reservationNumber, Model model, Principal principal) {
+
         try {
             MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
+            if(!Objects.equals(reservation.getMember().getEmail(), principal.getName())){
+                model.addAttribute("errorMessage","접근 권한이 없습니다.");
+                    return "member/history";
+            }
             model.addAttribute("reservation", reservation);
             return "reservation/reservationDetail";
         } catch (Exception e) {
@@ -159,11 +165,16 @@ public class MemberController {
         }
     }
 
+    //미구현
     //여권 정보 등록
     @GetMapping("/reservations/passport/{reservationNumber}")
-    public String passportRegist(@PathVariable("reservationNumber")String reservationNumber, Model model){
+    public String passportRegist(@PathVariable("reservationNumber")String reservationNumber, Model model, Principal principal){
         try {
             MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
+            if(!Objects.equals(reservation.getMember().getEmail(), principal.getName())){
+                model.addAttribute("errorMessage","접근 권한이 없습니다.");
+                return "member/history";
+            }
             model.addAttribute("reservation", reservation);
             return "reservation/passport";
         } catch (Exception e){
@@ -256,7 +267,7 @@ public class MemberController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("errorMessage", "입력값에 오류가 있습니다. 다시 확인해주세요.");
             reloadMemberData(model, principal);
-            return "/member/myPage";
+            return "myPage/myInfo";
         }
 
         try {
@@ -267,6 +278,6 @@ public class MemberController {
         }
 
         reloadMemberData(model, principal);
-        return "redirect:/member/myPage";
+        return "redirect:/myPage/info";
     }
 }

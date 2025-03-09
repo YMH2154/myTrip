@@ -14,4 +14,6 @@ public class RefundRequestDto {
     private String reason;
     private boolean flag;
     private PaymentType paymentType;
-} 
+    private String merchantUid;
+    private String impUid;
+}

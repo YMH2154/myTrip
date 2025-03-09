@@ -26,7 +26,7 @@ public class UpdateItemReservationScheduler {
     public void updateReservations() {
         List<Item> items = itemService.findAllItems();
         LocalDate today = LocalDate.now();
-        LocalDate futureDate = today.plusDays(6);
+        LocalDate futureDate = today.plusDays(7);
 
         for (Item item : items) {
             // 오늘 날짜의 예약 엔티티 삭제
@@ -34,9 +34,6 @@ public class UpdateItemReservationScheduler {
 
             // 7일 후 날짜의 예약 엔티티 생성
             itemReservationService.createReservationForDateAsync(item, futureDate);
-
-            // 예약 변경 후 최저가격 업데이트
-            itemReservationService.updateItemLowestPrice(item);
         }
     }
 }

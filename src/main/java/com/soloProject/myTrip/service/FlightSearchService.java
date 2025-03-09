@@ -27,22 +27,26 @@ import java.util.stream.Collectors;
 public class FlightSearchService {
     private final Amadeus amadeus;
     private final RedisTemplate<String, List<FlightOfferDto>> flightOffersRedisTemplate;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     private static final long CACHE_DURATION = 60 * 60; // 1시간 캐시
+    private static final String CACHE_KEY_PREFIX = "flight:offers:";
 
     @Transactional
     public List<FlightOfferDto> searchFlights(String origin, String destination, LocalDate departureDate,
             LocalDate returnDate) {
         String cacheKey = generateCacheKey(origin, destination, departureDate, returnDate);
-        List<FlightOfferDto> cachedOffers = flightOffersRedisTemplate.opsForValue().get(cacheKey);
+        log.info("Searching flights with cache key: {}", cacheKey);
 
+        // 캐시에서 조회
+        List<FlightOfferDto> cachedOffers = flightOffersRedisTemplate.opsForValue().get(cacheKey);
         if (cachedOffers != null && !cachedOffers.isEmpty()) {
             log.info("Cache hit for key: {}", cacheKey);
             return cachedOffers;
         }
+        log.info("Cache miss for key: {}", cacheKey);
 
         try {
+            // Amadeus API 호출
             FlightOfferSearch[] flightOffers = amadeus.shopping.flightOffersSearch.get(
                     Params.with("originLocationCode", origin)
                             .and("destinationLocationCode", destination)
@@ -57,22 +61,44 @@ public class FlightSearchService {
                     .collect(Collectors.toList());
 
             if (!offers.isEmpty()) {
-                flightOffersRedisTemplate.opsForValue().set(cacheKey, offers, CACHE_DURATION, TimeUnit.SECONDS);
-                log.info("Cached flight offers for key: {}", cacheKey);
+                // 캐시에 저장
+                try {
+                    flightOffersRedisTemplate.opsForValue().set(cacheKey, offers, CACHE_DURATION, TimeUnit.SECONDS);
+                    log.info("Successfully cached flight offers for key: {}", cacheKey);
+                } catch (Exception e) {
+                    log.error("Failed to cache flight offers for key: {}", cacheKey, e);
+                }
                 return offers;
             }
 
-            return createDefaultFlightOffers(origin, destination, departureDate, returnDate);
+            // API 호출 실패 시 기본값 반환
+            List<FlightOfferDto> defaultOffers = createDefaultFlightOffers(origin, destination, departureDate,
+                    returnDate);
+            try {
+                flightOffersRedisTemplate.opsForValue().set(cacheKey, defaultOffers, CACHE_DURATION, TimeUnit.SECONDS);
+                log.info("Successfully cached default flight offers for key: {}", cacheKey);
+            } catch (Exception e) {
+                log.error("Failed to cache default flight offers for key: {}", cacheKey, e);
+            }
+            return defaultOffers;
 
         } catch (ResponseException e) {
             log.error("Amadeus API 호출 실패: {}", e.getMessage());
-            return createDefaultFlightOffers(origin, destination, departureDate, returnDate);
+            List<FlightOfferDto> defaultOffers = createDefaultFlightOffers(origin, destination, departureDate,
+                    returnDate);
+            try {
+                flightOffersRedisTemplate.opsForValue().set(cacheKey, defaultOffers, CACHE_DURATION, TimeUnit.SECONDS);
+                log.info("Successfully cached default flight offers after API error for key: {}", cacheKey);
+            } catch (Exception ex) {
+                log.error("Failed to cache default flight offers after API error for key: {}", cacheKey, ex);
+            }
+            return defaultOffers;
         }
     }
 
     @Transactional
     private String generateCacheKey(String origin, String destination, LocalDate departureDate, LocalDate returnDate) {
-        return String.format("flight:offers:%s:%s:%s:%s", origin, destination, departureDate, returnDate);
+        return CACHE_KEY_PREFIX + String.format("%s:%s:%s:%s", origin, destination, departureDate, returnDate);
     }
 
     @Transactional
@@ -96,7 +122,7 @@ public class FlightSearchService {
     private List<FlightOfferDto> createDefaultFlightOffers(String origin, String destination,
             LocalDate departureDate, LocalDate returnDate) {
         // 실제 항공사 코드와 운항 시간대를 반영한 기본값 설정
-        String carrierCode = "KE";  // 대한항공
+        String carrierCode = "KE"; // 대한항공
         String departureTime = "09:00";
         String returnTime = "11:00";
 
@@ -112,7 +138,7 @@ public class FlightSearchService {
                 .returnDate(returnDate.atTime(
                         Integer.parseInt(returnTime.split(":")[0]),
                         Integer.parseInt(returnTime.split(":")[1])).toString())
-                .price(new BigDecimal("350000"))  // 현실적인 가격으로 조정
+                .price(new BigDecimal("350000")) // 현실적인 가격으로 조정
                 .currency("KRW")
                 .origin(origin)
                 .destination(destination)

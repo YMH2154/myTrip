@@ -2,28 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/admin-layout}">
-<head>
-    <meta charset="UTF-8">
-    <title>myTrip 쿠폰 관리 페이지</title>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-</head>
 
 <th:block layout:fragment="css">
     <style>
-        .admin-container {
-            background-color: #f2f8ff;
-            color: #333;
-            padding: 30px;
-            min-height: 100vh;
-        }
-
-        .admin-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #00aaff;
-        }
-
+        /* 쿠폰 관리 페이지 고유 스타일 */
         .add-coupon-btn {
             background-color: #00aaff;
             color: white;
@@ -32,54 +14,15 @@
             border-radius: 8px;
             font-weight: bold;
             transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .add-coupon-btn:hover {
             background-color: #008ecc;
             color: white;
             text-decoration: none;
-        }
-
-        .search-section {
-            background-color: #e8f5ff;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            border: 1px solid #b3e0ff;
-        }
-
-        .content-table {
-            background-color: #e8f5ff;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #b3e0ff;
-        }
-
-        .table {
-            color: #333;
-            margin-bottom: 0;
-        }
-
-        .table thead {
-            background-color: #ccefff;
-        }
-
-        .table thead th {
-            border-bottom: 2px solid #b3e0ff;
-            color: #005f99;
-            font-weight: bold;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .table td {
-            vertical-align: middle;
-            text-align: center;
-            background-color: #ffffff;
-        }
-
-        .table tbody tr:hover {
-            background-color: #d9f2ff !important;
         }
 
         .coupon-type {
@@ -90,7 +33,7 @@
             font-weight: bold;
         }
 
-        .type-duration{
+        .type-duration {
             background-color: #dc3545;
             color: white;
         }
@@ -103,70 +46,6 @@
         .type-percentage {
             background-color: #2196F3;
             color: white;
-        }
-
-        .coupon-status {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-
-        .status-active {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .status-expired {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .status-inactive {
-            background-color: #9e9e9e;
-            color: white;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        /* 모달 스타일 */
-        .modal-content {
-            background-color: #f8f9fa;
-            border-radius: 12px;
-        }
-
-        .modal-header {
-            background-color: #00aaff;
-            color: white;
-            border-radius: 12px 12px 0 0;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-control {
-            border: 1px solid #b3e0ff;
-            border-radius: 4px;
-        }
-
-        .form-control:focus {
-            border-color: #00aaff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 170, 255, 0.25);
         }
 
         .search-filters {
@@ -237,115 +116,15 @@
                 gap: 0.5rem;
             }
         }
-
-        .action-btn {
-            background: none;
-            border: none;
-            padding: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .action-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .action-btn img {
-            filter: brightness(0.5) invert(0.5);
-            opacity: 0.9;
-            width: 24px;
-            height: 24px;
-        }
-
-        .action-btn:hover img {
-            opacity: 1;
-            filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 2rem;
-            gap: 5px;
-        }
-
-        .page-item {
-            list-style: none;
-        }
-
-        .page-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40px;
-            height: 40px;
-            padding: 0.5rem;
-            background-color: #e8f5ff;
-            border: 1px solid #b3e0ff;
-            color: #005f99;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .page-link:hover {
-            background-color: #ccefff;
-            border-color: #99d6ff;
-            color: #005f99;
-        }
-
-        .page-item.active .page-link {
-            background-color: #00aaff;
-            border-color: #008ecc;
-            color: #fff;
-        }
-
-        .page-item.disabled .page-link {
-            background-color: #f0f8ff;
-            border-color: #b3e0ff;
-            color: #99cce6;
-            cursor: not-allowed;
-        }
-
-        .page-link img {
-            filter: brightness(0.5) invert(0.5);
-            opacity: 0.9;
-            width: 20px;
-            height: 20px;
-        }
-
-        .page-link:hover img {
-            opacity: 1;
-            filter: brightness(0.5) invert(0.5) sepia(1) saturate(5) hue-rotate(200deg);
-        }
-
-        /* 반응형 디자인 */
-        @media (max-width: 768px) {
-            .pagination {
-                gap: 3px;
-            }
-            .page-link {
-                min-width: 35px;
-                height: 35px;
-                padding: 0.3rem;
-            }
-            .page-link img {
-                width: 16px;
-                height: 16px;
-            }
-        }
-
     </style>
 </th:block>
 
 <div layout:fragment="content" class="admin-container">
     <div class="admin-header">
         <h1 class="admin-title">쿠폰 관리</h1>
-        <button type="button" class="add-coupon-btn"  onclick="window.location.href='/admin/coupon/new'">>
+        <a href="/admin/coupon/new" class="add-coupon-btn">
             <i class="fas fa-plus"></i> 새 쿠폰 등록
-        </button>
+        </a>
     </div>
 
     <div class="search-section">
@@ -432,68 +211,69 @@
     <div class="content-table">
         <table class="table">
             <thead>
-            <tr>
-                <th>쿠폰 ID</th>
-                <th>유효기간</th>
-                <th>쿠폰 타입</th>
-                <th>할인 금액/비율</th>
-                <th>최소 구매 금액</th>
-                <th>설명</th>
-                <th>관리</th>
-            </tr>
+                <tr>
+                    <th>쿠폰 ID</th>
+                    <th>유효기간</th>
+                    <th>쿠폰 타입</th>
+                    <th>할인 금액/비율</th>
+                    <th>최소 구매 금액</th>
+                    <th>설명</th>
+                    <th>관리</th>
+                </tr>
             </thead>
             <tbody>
-            <tr th:if="${#lists.isEmpty(coupons)}">
-                <td colspan="8" class="text-center">해당하는 쿠폰이 없습니다.</td>
-            </tr>
-            <tr th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
-                <td th:text="${coupon.id}"></td>
-                <td>
-                    <span class="coupon-type type-duration" th:text="${coupon.couponDuration.getDescription()}"></span>
-                </td>
-                <td>
-                    <span class="coupon-type" th:classappend="${coupon.couponType.name() == 'AMOUNT' ? 'type-amount' : 'type-percentage'}"
-                          th:text="${coupon.couponType.name() == 'AMOUNT' ? '정액' : '정률'}">
-                    </span>
-                </td>
-                <td>
-                    <span th:text="${coupon.couponType.name() == 'AMOUNT'
-                    ? #numbers.formatInteger(coupon.discountAmount, 0, 'COMMA') + '원'
-                    : coupon.discountPercentage + '%'}"></span>
-                </td>
-                <td th:text="${#numbers.formatInteger(coupon.minPurchaseAmount, 0, 'COMMA') + '원'}"></td>
-                <td th:text="${coupon.description}"></td>
-                <td>
-                    <div class="action-buttons">
-                        <button type="button" class="action-btn" th:onclick="'giveCoupon('+${coupon.id}+')'">
-                            <img src="/images/give_coupon.png" alt="쿠폰 지급" title="쿠폰 지급">
-                        </button>
-                        <button type="button" class="action-btn" th:onclick="'deleteCoupon('+${coupon.id}+')'">
-                            <img src="/images/delete.png" alt="삭제" title="삭제">
-                        </button>
-                    </div>
-                </td>
-            </tr>
+                <tr th:if="${#lists.isEmpty(coupons)}">
+                    <td colspan="7" class="no-results">
+                        검색 조건에 맞는 쿠폰이 없습니다.
+                    </td>
+                </tr>
+                <tr th:unless="${#lists.isEmpty(coupons)}" th:each="coupon : ${coupons}">
+                    <td th:text="${coupon.id}"></td>
+                    <td>
+                        <span class="coupon-type type-duration" th:text="${coupon.couponDuration.getDescription()}"></span>
+                    </td>
+                    <td>
+                        <span class="coupon-type" th:classappend="${coupon.couponType.name() == 'AMOUNT' ? 'type-amount' : 'type-percentage'}"
+                              th:text="${coupon.couponType.name() == 'AMOUNT' ? '정액' : '정률'}">
+                        </span>
+                    </td>
+                    <td>
+                        <span th:text="${coupon.couponType.name() == 'AMOUNT'
+                        ? #numbers.formatInteger(coupon.discountAmount, 0, 'COMMA') + '원'
+                        : coupon.discountPercentage + '%'}"></span>
+                    </td>
+                    <td th:text="${#numbers.formatInteger(coupon.minPurchaseAmount, 0, 'COMMA') + '원'}"></td>
+                    <td th:text="${coupon.description}"></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button type="button" class="action-btn" th:onclick="'giveCoupon('+${coupon.id}+')'">
+                                <img src="/images/give_coupon.png" alt="쿠폰 지급" title="쿠폰 지급">
+                            </button>
+                            <button type="button" class="action-btn" th:onclick="'deleteCoupon('+${coupon.id}+')'">
+                                <img src="/images/delete.png" alt="삭제" title="삭제">
+                            </button>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
 
     <div th:with="start=${(coupons.number/maxPage)*maxPage + 1},
-        end=(${(coupons.totalPages == 0) ? 1 : (start + (maxPage-1) < coupons.totalPages ? start + (maxPage-1) : coupons.totalPages)})">
+                  end=(${(coupons.totalPages == 0) ? 1 : (start + (maxPage-1) < coupons.totalPages ? start + (maxPage-1) : coupons.totalPages)})">
         <ul class="pagination">
-            <li class="page-item" th:classappend="${coupons.first} ? 'disabled'">
-                <a th:onclick="page([[${coupons.number - 1}]])" aria-label="Previous"
-                   class="page-link" th:classappend="${coupons.first} ? 'disabled'">
+            <li class="page-item" th:classappend="${coupons.first}?'disabled'">
+                <a th:onclick="'page(' + ${coupons.number - 1} + ')'" aria-label="Previous"
+                   class="page-link">
                     <img src="/images/left_btn.png" alt="이전">
                 </a>
             </li>
-            <li class="page-item" th:each="page: ${#numbers.sequence(start, end)}"
+            <li class="page-item" th:each="page: ${#numbers.sequence(start,end)}"
                 th:classappend="${coupons.number eq page-1}?'active':''">
-                <a th:onclick="page([[${page-1}]])" th:inline="text" class="page-link">[[${page}]]</a>
+                <a th:onclick="'page(' + ${page-1} +')'" th:inline="text" class="page-link">[[${page}]]</a>
             </li>
-            <li class="page-item" th:classappend="${coupons.last} ? 'disabled'">
-                <a th:onclick="page([[${coupons.number + 1}]])" aria-label="Next"
-                   class="page-link" th:classappend="${coupons.last} ? 'disabled'">
+            <li class="page-item" th:classappend="${coupons.last}?'disabled'">
+                <a th:onclick="'page(' + ${coupons.number + 1} +')'" aria-label="Next" class="page-link">
                     <img src="/images/right_btn.png" alt="다음">
                 </a>
             </li>
@@ -504,12 +284,6 @@
 <th:block layout:fragment="script">
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            // 검색 버튼 클릭 이벤트
-            $("#searchBtn").on("click", function(e) {
-                e.preventDefault();
-                page(0);
-            });
-
             // 라디오 버튼 변경 이벤트 처리
             const searchForm = document.getElementById('searchForm');
             const radioInputs = searchForm.querySelectorAll('input[type="radio"]');
@@ -559,8 +333,8 @@
             );
         }
 
-        function giveCoupon(couponId){
-            if (!confirm('해당 쿠폰을 모든 회원에게 지급하시겠습니까?')){
+        function giveCoupon(couponId) {
+            if (!confirm('해당 쿠폰을 모든 회원에게 지급하시겠습니까?')) {
                 return;
             }
 
@@ -568,7 +342,7 @@
                 '/admin/coupon/give-coupon/' + couponId,
                 'POST',
                 {},
-                function(response){
+                function(response) {
                     alert('쿠폰 지급이 완료되었습니다.');
                     location.reload();
                 }

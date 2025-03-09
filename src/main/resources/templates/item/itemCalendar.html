@@ -21,7 +21,10 @@
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 20px;
-            height: 917px;
+            height: 921px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         .selection-info {
             flex: 1;
@@ -30,9 +33,10 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             position: sticky;
             top: 20px;
-            height: 917px;
+            height: 921px;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         .item-image {
             width: 100%;
@@ -44,6 +48,8 @@
         .selection-content {
             padding: 0 25px 25px 25px;
             flex-grow: 1;
+            overflow-y: auto;
+            height: calc(100% - 220px);
         }
         .fc .fc-toolbar.fc-header-toolbar {
             margin-bottom: 1.5em;
@@ -168,17 +174,18 @@
             font-size: 1.05em;
         }
         .book-button {
-            width: 100%;
+            width: calc(100% - 50px);
             padding: 15px;
             background-color: #1976d2;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 80px;
+            margin: 20px 25px;
             font-size: 1.1em;
             font-weight: 600;
             transition: all 0.3s ease;
+            position: relative;
             bottom: 0;
         }
         .book-button:hover {
@@ -306,6 +313,55 @@
         
         .price-display, .seats-display {
             text-align: center;
+        }
+
+        .fc {
+            height: calc(100% - 150px) !important;
+            overflow: hidden;
+        }
+
+        .fc .fc-scrollgrid {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-liquid {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table > tbody {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table > tbody > tr {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table > tbody > tr > td {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table > tbody > tr > td > .fc-scroller {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table > tbody > tr > td > .fc-scroller > .fc-scroller-liquid-absolute {
+            height: 100% !important;
+        }
+
+        .fc .fc-scrollgrid-section-body > table > tbody > tr > td > .fc-scroller > .fc-scroller-liquid-absolute > .fc-daygrid-body {
+            height: 100% !important;
         }
     </style>
 </th:block>
@@ -435,7 +491,7 @@
                     <button class="book-button" 
                             onclick="location.href='/item/${itemId}/detail?departureDateTime=${departureFlight.dateTime}'"
                             ${seats <= 0 ? 'disabled' : ''}>
-                        ${seats <= 0 ? '예약마감' : '일정 선택하기'}
+                        ${seats <= 0 ? '예약불가' : '일정 선택하기'}
                     </button>
                 `;
             }

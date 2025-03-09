@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     private final ItemService itemService;
-    private final BannersService bannersService;
     private final CouponService couponService;
     private final PaymentService paymentService;
     private final QnAService qnAService;
@@ -37,23 +36,6 @@ public class AdminController {
             model.addAttribute("maxPage", 5);
             return "item/itemMng";
         } catch (Exception e) {
-            e.printStackTrace();
-            return "error/error";
-        }
-    }
-
-    // 배너 관리 페이지
-    @GetMapping("/admin/banners")
-    public String bannerMngPage(Model model) {
-        try {
-            List<Banners> banners = bannersService.getBannerList();
-            List<BannnerFormDto> bannerDtos = banners.stream()
-                    .map(BannnerFormDto::of)
-                    .collect(Collectors.toList());
-
-            model.addAttribute("banners", bannerDtos);
-            return "banner/bannerMng";
-        } catch (Exception e){
             e.printStackTrace();
             return "error/error";
         }

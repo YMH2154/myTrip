@@ -466,18 +466,18 @@
     <div th:with="start=${(items.number/maxPage)*maxPage + 1},
         end=(${(items.totalPages == 0) ? 1 : (start + (maxPage-1) < items.totalPages ? start + (maxPage-1) : items.totalPages)})">
         <ul class="pagination">
-            <li class="page-item">
-                <a th:onclick="javascript:'page(' + ${items.number - 1} + ')'" aria-label="Previous"
+            <li class="page-item" th:classappend="${items.first} ? 'disabled' : ''">
+                <a th:onclick="'page(' + ${items.number - 1} + ')'" aria-label="Previous"
                    class="page-link">
                     <img src="/images/left_btn.png" alt="이전">
                 </a>
             </li>
             <li class="page-item" th:each="page: ${#numbers.sequence(start,end)}"
-                th:classappend="${items.number eq page-1}?'active':''">
-                <a th:onclick="javascript:'page(' + ${page-1} +')'" th:inline="text" class="page-link">[[${page}]]</a>
+                th:classappend="${items.number eq page-1} ? 'active' : ''">
+                <a th:onclick="'page(' + ${page-1} +')'" th:inline="text" class="page-link">[[${page}]]</a>
             </li>
-            <li class="page-item">
-                <a th:onclick="javascript:'page(' + ${item.number + 1} +')'" aria-label="Next" class="page-link">
+            <li class="page-item" th:classappend="${items.last} ? 'disabled' : ''">
+                <a th:onclick="'page(' + ${items.number + 1} +')'" aria-label="Next" class="page-link">
                     <img src="/images/right_btn.png" alt="다음">
                 </a>
             </li>
@@ -493,6 +493,29 @@
                 page(0);
             });
         });
+
+        function page(page){
+            const searchDateType = $("#searchDateType").val();
+            const travelType = $("#travelType").val();
+            const domesticCategory = $("#domesticSel").val() || '';
+            const overseasCategory = $("#overseasSel").val() || '';
+            const themeCategory = $("#themeSel").val() || '';
+            const searchBy = $("#searchBy").val();
+            const searchQuery = $("#searchQuery").val();
+
+            let url = "/admin/items/" + page + "?";
+            const params = new URLSearchParams();
+            
+            if (searchDateType) params.append("searchDateType", searchDateType);
+            if (travelType) params.append("travelType", travelType);
+            if (domesticCategory) params.append("domesticCategory", domesticCategory);
+            if (overseasCategory) params.append("overseasCategory", overseasCategory);
+            if (themeCategory) params.append("themeCategory", themeCategory);
+            if (searchBy) params.append("searchBy", searchBy);
+            if (searchQuery) params.append("searchQuery", searchQuery);
+
+            location.href = url + params.toString();
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const travelTypeSelect = document.getElementById('travelType');
@@ -536,25 +559,6 @@
                 }
             }
         });
-
-        function page(page){
-            const searchDateType = $("#searchDateType").val();
-            const travelType = $("#travelType").val();
-            const domesticCategory = $("#domesticCategory").val() || '';  // 빈 문자열로 대체
-            const overseasCategory = $("#overseasCategory").val() || '';  // 빈 문자열로 대체
-            const themeCategory = $("#themeCategory").val() || '';       // 빈 문자열로 대체
-            const searchBy = $("#searchBy").val();
-            const searchQuery = $("#searchQuery").val();
-
-            location.href = "/admin/items/" + page
-                + "?searchDateType=" + searchDateType
-                + "&travelType=" + (travelType || '')
-                + "&domesticCategory=" + domesticCategory
-                + "&overseasCategory=" + overseasCategory
-                + "&themeCategory=" + themeCategory
-                + "&searchBy=" + searchBy
-                + "&searchQuery=" + searchQuery;
-        }
 
         function deleteItem(itemId) {
             if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) {

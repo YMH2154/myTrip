@@ -345,8 +345,56 @@
 
 <th:block layout:fragment="script">
   <script th:inline="javascript">
+    function ajaxRequest(url, method, data, successCallback, errorCallback) {
+        $.ajax({
+            url: url,
+            type: method,
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            beforeSend: function(xhr) {
+                const token = $("meta[name='_csrf']").attr("content");
+                const header = $("meta[name='_csrf_header']").attr("content");
+                xhr.setRequestHeader(header, token);
+            },
+            success: function(response) {
+                console.log('API 응답:', response);
+                if (response.code !== undefined && response.code !== 0) {
+                    console.error('API 에러:', response);
+                    errorCallback(new Error(response.message || '환불 처리 중 오류가 발생했습니다.'));
+                    return;
+                }
+                successCallback(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('API 호출 실패:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText
+                });
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorCallback(new Error(response.message || '환불 처리 중 오류가 발생했습니다.'));
+                } catch (e) {
+                    errorCallback(new Error('환불 처리 중 오류가 발생했습니다.'));
+                }
+            }
+        });
+    }
+
     $(document).ready(function(){
-      const refundInfo = /*[[${refundInfo}]]*/ {};
+      // Thymeleaf 데이터를 직접 가져오기
+      const refundInfo = /*[[${refundInfo}]]*/ null;
+      
+      // 디버깅을 위한 로그
+      console.log('원본 환불 정보:', refundInfo);
+      
+      if (!refundInfo) {
+        console.error('환불 정보가 없습니다.');
+        return;
+      }
+      
+      console.log('결제 정보:', refundInfo.payments);
+      
       const modal = document.getElementById('refundModal');
       const closeBtn = document.querySelector('.close');
       const cancelBtn = document.getElementById('cancelRefund');
@@ -355,6 +403,26 @@
 
       // 환불하기 버튼 클릭 시 모달 표시
       $('#refundButton').click(function(){
+        // 결제 정보 미리 검증
+        if (!refundInfo || !refundInfo.payments || refundInfo.payments.length === 0) {
+          console.error('결제 정보 누락:', refundInfo);
+          alert('결제 정보를 불러올 수 없습니다. 페이지를 새로고침 해주세요.');
+          return;
+        }
+        
+        // 결제 정보 로깅
+        console.log('현재 결제 정보:', refundInfo.payments);
+        refundInfo.payments.forEach((payment, index) => {
+          console.log(`결제 정보 ${index + 1}:`, {
+            id: payment.id,
+            paymentType: payment.paymentType,
+            paymentMethod: payment.paymentMethod,
+            paymentKey: payment.paymentKey,
+            merchantUid: payment.merchantUid,
+            amount: payment.amount
+          });
+        });
+
         modal.style.display = "block";
       });
 
@@ -388,6 +456,12 @@
           return;
         }
 
+        // refundInfo 데이터 검증
+        if (!refundInfo || !refundInfo.payments || refundInfo.payments.length === 0) {
+          alert('결제 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
+
         const refundReason = selectedReason.value === 'OTHER' ?
           otherReasonTextarea.value : selectedReason.value;
 
@@ -395,22 +469,89 @@
         const balancePayment = refundInfo.payments.find(p => p.paymentType === 'BALANCE');
         const depositPayment = refundInfo.payments.find(p => p.paymentType === 'DEPOSIT');
 
+        // 결제 정보 유효성 검사
+        const validatePayment = (payment) => {
+          console.log('결제 정보 검증:', payment);
+          
+          if (!payment) {
+            console.error('결제 정보가 없습니다.');
+            return false;
+          }
+
+          if (!payment.paymentKey) {
+            console.error('paymentKey가 누락되었습니다:', payment);
+            return false;
+          }
+
+          if (!payment.merchantUid) {
+            console.error('merchantUid가 누락되었습니다:', payment);
+            return false;
+          }
+
+          console.log('결제 정보 검증 성공:', {
+            paymentKey: payment.paymentKey,
+            merchantUid: payment.merchantUid
+          });
+
+          return true;
+        };
+
         // 순차적으로 처리하기 위한 함수
         const processRefund = async (payment) => {
           return new Promise((resolve, reject) => {
-            ajaxRequest("/refund/prepare",
+            console.log('환불 처리 시작:', payment);
+
+            if (!validatePayment(payment)) {
+              const error = new Error('필수 결제 정보가 누락되었습니다.');
+              console.error('검증 실패:', error);
+              reject(error);
+              return;
+            }
+
+            // 결제 정보 로깅 추가
+            console.log('결제 키 정보:', {
+              paymentKey: payment.paymentKey,
+              merchantUid: payment.merchantUid
+            });
+
+            const requestData = {
+              paymentId: payment.id,
+              reservationNumber: refundInfo.reservationNumber,
+              amount: payment.amount,
+              reason: refundReason,
+              flag: payment.paymentType === 'DEPOSIT',
+              paymentType: payment.paymentType,
+              merchantUid: payment.merchantUid,
+              impUid: payment.paymentKey
+            };
+
+            // 요청 데이터 검증 로깅 추가
+            console.log('환불 요청 데이터 검증:', {
+              impUid: requestData.impUid,
+              merchantUid: requestData.merchantUid,
+              amount: requestData.amount
+            });
+
+            if (!requestData.impUid || !requestData.merchantUid) {
+              console.error('필수 결제 정보 누락:', requestData);
+              reject(new Error('결제 키 정보가 누락되었습니다.'));
+              return;
+            }
+
+            console.log('환불 요청 데이터:', JSON.stringify(requestData, null, 2));
+
+            const endpoint = payment.paymentMethod === 'CARD' ? '/refund/prepare/card' : '/refund/prepare/kakao';
+            console.log('요청 엔드포인트:', endpoint);
+
+            ajaxRequest(endpoint,
               "POST",
-              {
-                paymentId: payment.id,
-                reservationNumber: refundInfo.reservationNumber,
-                amount: payment.amount.toString(),
-                reason: refundReason,
-                flag: payment.paymentType === 'DEPOSIT'  // 예약금인 경우 flag를 true로 설정
-              },
+              requestData,
               function(response) {
+                console.log('환불 처리 성공:', response);
                 resolve(response);
               },
               function(error) {
+                console.error('환불 처리 실패:', error);
                 reject(error);
               }
             );
@@ -420,14 +561,20 @@
         // 순차적으로 환불 처리
         const processRefunds = async () => {
           try {
+            // 버튼 비활성화
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = '처리중...';
+
             // 1. 잔금 결제 취소
             if (balancePayment) {
+              console.log('잔금 결제 취소 시작:', balancePayment);
               await processRefund(balancePayment);
               console.log("잔금 결제 취소 완료");
             }
 
             // 2. 예약금 결제 취소
             if (depositPayment) {
+              console.log('예약금 결제 취소 시작:', depositPayment);
               await processRefund(depositPayment);
               console.log("예약금 결제 취소 완료");
             }
@@ -437,6 +584,9 @@
           } catch (error) {
             console.error("환불 처리 중 오류 발생", error);
             alert("환불 처리 중 오류가 발생했습니다. 다시 시도해주세요.");
+            // 버튼 재활성화
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = '환불 신청';
           }
         };
 

@@ -7,6 +7,7 @@ import com.soloProject.myTrip.dto.MemberFormDto;
 import com.soloProject.myTrip.dto.ParticipantDto;
 import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.entity.MemberReservation;
+import com.soloProject.myTrip.exception.NotEnoughRemainingSeats;
 import com.soloProject.myTrip.repository.ItemReservationRepository;
 import com.soloProject.myTrip.repository.MemberReservationRepository;
 import com.soloProject.myTrip.service.ItemService;
@@ -15,12 +16,10 @@ import com.soloProject.myTrip.service.ReservationService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ public class ReservationController {
     private final MemberService memberService;
     private final ReservationService reservationService;
 
+    // 상품 예약 페이지
     @GetMapping("/reservation/new")
     public String newReservation(@RequestParam("itemId") Long itemId,
             @RequestParam("departureDateTime") String departureDateTime,
@@ -68,7 +68,7 @@ public class ReservationController {
             ItemFormDto item = itemService.getItem(itemId);
             ItemReservation itemReservation = itemReservationRepository
                     .findByItemIdAndDepartureDateTime(itemId, departureDateTime);
-            MemberFormDto member = memberService.getMember(principal.getName());
+            MemberFormDto member = memberService.getMemberDto(principal.getName());
             Map<String, Integer> peopleCount = new HashMap<>();
             peopleCount.put("adultCount", adultCount);
             peopleCount.put("childCount", childCount);
@@ -86,6 +86,7 @@ public class ReservationController {
         }
     }
 
+    //예약 데이터 저장 요청
     @PostMapping("/reservation/new")
     public String createReservation(@RequestParam("itemId") Long itemId,
             @RequestParam("departureDateTime") String departureDateTime,
@@ -93,7 +94,8 @@ public class ReservationController {
             @RequestParam("totalDeposit") String totalDeposit,
             @RequestParam("totalPrice") String totalPrice,
             @RequestParam("bookerTel") String bookerTel,
-            Principal principal) {
+            Principal principal,
+                                    Model model) {
         try {
             // 쉼표 제거 후 정수로 변환
             int depositAmount = Integer.parseInt(totalDeposit.replaceAll("[^0-9]", ""));
@@ -121,10 +123,12 @@ public class ReservationController {
                     reservation.getReservationNumber();
         } catch (Exception e) {
             e.printStackTrace();
+            model.addAttribute("errorMessage",e.getMessage());
             return "redirect:/error";
         }
     }
 
+    // 예약 성공 페이지
     @GetMapping("/reservation/complete")
     public String checkReservation(@RequestParam("reservationNumber") String reservationNumber,
             Model model) {
@@ -133,5 +137,19 @@ public class ReservationController {
 
         model.addAttribute("reservation", reservation);
         return "reservation/complete";
+    }
+
+    //예약 취소 요청
+    @GetMapping("/reservation/{reservationNumber}/cancel")
+    @ResponseBody
+    public ResponseEntity<?> cancelReservation(Principal principal,
+                                               @PathVariable String reservationNumber) {
+        try {
+            reservationService.cancelReservation(reservationNumber, principal);
+            return ResponseEntity.ok(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 }

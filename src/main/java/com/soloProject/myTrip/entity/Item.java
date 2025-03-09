@@ -54,6 +54,9 @@ public class Item extends BaseEntity {
     private int price;
 
     @Column(nullable = false)
+    private int lowestPrice;
+
+    @Column(nullable = false)
     private String itemDetailImageUrl;
 
     @Column(nullable = false)
@@ -67,18 +70,16 @@ public class Item extends BaseEntity {
     @Column(name = "thumbnail_image_url")
     private List<String> thumbnailImageUrls;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Schedule> schedules;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemReservation> reservations;
 
     @Column(nullable = false)
     private int night;
     @Column(nullable = false)
     private int duration;
-
-    private int lowestPrice;
 
     private boolean hasLeader; // 인솔자 유무
     private boolean hasGuideFee; // 가이드 경비 유무
@@ -104,6 +105,8 @@ public class Item extends BaseEntity {
         this.reservationCount++;
     }
 
+    public void minusReservationCount(){this.reservationCount--;}
+
     public void updateItem(ItemFormDto itemFormDto) {
         this.setItemName(itemFormDto.getItemName());
         this.setTravelType(itemFormDto.getTravelType());
@@ -118,14 +121,14 @@ public class Item extends BaseEntity {
         this.setDuration(itemFormDto.getDuration());
         this.hasLeader = itemFormDto.isHasLeader();
         this.hasGuideFee = itemFormDto.isHasGuideFee();
-        this.guideFee = itemFormDto.getGuideFee();
+        this.guideFee = itemFormDto.isHasGuideFee()
+                ? (itemFormDto.getGuideFee() != null ? itemFormDto.getGuideFee() : 0)
+                : 0;
         this.guideFeeUnit = itemFormDto.getGuideFeeUnit();
         this.hasShopping = itemFormDto.isHasShopping();
-        this.shoppingCount = itemFormDto.getShoppingCount();
+        this.shoppingCount = itemFormDto.isHasShopping()
+                ? (itemFormDto.getShoppingCount() != null ? itemFormDto.getShoppingCount() : 0)
+                : 0;
         this.hasInsurance = itemFormDto.isHasInsurance();
-    }
-
-    public void updateLowestPrice(int newLowestPrice) {
-        this.lowestPrice = newLowestPrice;
     }
 }

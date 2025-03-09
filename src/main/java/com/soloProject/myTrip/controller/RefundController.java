@@ -94,6 +94,48 @@ public class RefundController {
         }
     }
 
+    @PostMapping("/refund/prepare/card")
+    public @ResponseBody ResponseEntity<?> refundCard(@RequestBody RefundRequestDto refundRequestDto) {
+        log.info("카드 결제 취소 요청 - paymentId: {}, amount: {}",
+                refundRequestDto.getPaymentId(), refundRequestDto.getAmount());
+
+        try {
+            Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
+                    .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
+
+            if (payment.getPaymentMethod() != PaymentMethod.CARD) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("카드 결제 취소만 가능합니다."));
+            }
+
+            IamportResponse iamportResponse = refundService.cancelIamportPayment(refundRequestDto);
+            return new ResponseEntity<>(iamportResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("카드 결제 취소 실패", e);
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/refund/prepare/kakao")
+    public @ResponseBody ResponseEntity<?> refundKakao(@RequestBody RefundRequestDto refundRequestDto) {
+        log.info("카카오페이 결제 취소 요청 - paymentId: {}, amount: {}",
+                refundRequestDto.getPaymentId(), refundRequestDto.getAmount());
+
+        try {
+            Payment payment = paymentRepository.findById(refundRequestDto.getPaymentId())
+                    .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
+
+            if (payment.getPaymentMethod() != PaymentMethod.KAKAO) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("카카오페이 결제 취소만 가능합니다."));
+            }
+
+            KakaoCancelResponse kakaoCancelResponse = refundService.kakaoCancel(refundRequestDto);
+            return new ResponseEntity<>(kakaoCancelResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("카카오페이 결제 취소 실패", e);
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping("/refund/success")
     public String refundSuccess() {
         log.info("환불 성공 페이지 호출");
