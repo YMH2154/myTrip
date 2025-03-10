@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/admin-layout}">
+
+<head>
+    <title>통계 조회</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .statistics-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .statistics-title {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="admin-container">
+            <h1 class="admin-title">통계 대시보드</h1>
+            
+            <div class="row">
+                <!-- 예약 통계 -->
+                <div class="col-md-6">
+                    <div class="statistics-card">
+                        <h2 class="statistics-title">예약 현황</h2>
+                        <div class="chart-container">
+                            <canvas id="reservationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 매출 통계 -->
+                <div class="col-md-6">
+                    <div class="statistics-card">
+                        <h2 class="statistics-title">매출 현황</h2>
+                        <div class="chart-container">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 연령대별 통계 -->
+                <div class="col-md-6">
+                    <div class="statistics-card">
+                        <h2 class="statistics-title">연령대별 분포</h2>
+                        <div class="chart-container">
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 성별 통계 -->
+                <div class="col-md-6">
+                    <div class="statistics-card">
+                        <h2 class="statistics-title">성별 분포</h2>
+                        <div class="chart-container">
+                            <canvas id="genderChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script>
+            // 예약 통계 차트
+            fetch('/admin/api/statistics/reservations')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('reservationChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Object.keys(data.monthlyReservations),
+                            datasets: [{
+                                label: '월별 예약 수',
+                                data: Object.values(data.monthlyReservations),
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                });
+
+            // 매출 통계 차트
+            fetch('/admin/api/statistics/sales')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('salesChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(data.monthlySales),
+                            datasets: [{
+                                label: '월별 매출',
+                                data: Object.values(data.monthlySales),
+                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                });
+
+            // 연령대별 통계 차트
+            fetch('/admin/api/statistics/participants')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('ageChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(data.ageDistribution),
+                            datasets: [{
+                                data: Object.values(data.ageDistribution),
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.5)',
+                                    'rgba(54, 162, 235, 0.5)',
+                                    'rgba(255, 206, 86, 0.5)',
+                                    'rgba(75, 192, 192, 0.5)',
+                                    'rgba(153, 102, 255, 0.5)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                });
+
+            // 성별 통계 차트
+            fetch('/admin/api/statistics/participants')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('genderChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(data.genderDistribution),
+                            datasets: [{
+                                data: Object.values(data.genderDistribution),
+                                backgroundColor: [
+                                    'rgba(54, 162, 235, 0.5)',
+                                    'rgba(255, 99, 132, 0.5)'
+                                ]
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                });
+        </script>
+    </th:block>
+</body>
+</html> 
