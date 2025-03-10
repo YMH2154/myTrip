@@ -3,8 +3,10 @@ package com.soloProject.myTrip.service;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ItemSearchDto;
 import com.soloProject.myTrip.entity.Item;
+import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.entity.Schedule;
 import com.soloProject.myTrip.repository.ItemRepository;
+import com.soloProject.myTrip.repository.ItemReservationRepository;
 import com.soloProject.myTrip.repository.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,8 @@ public class ItemService {
     private final ScheduleRepository scheduleRepository;
     private final FileService fileService;
     private final ItemReservationService itemReservationService;
+    private final ItemReservationRepository itemReservationRepository;
+    private final ReservationService reservationService;
 
     @Value("${thumbnailImageLocation}")
     private String thumbnailImageLocation;
@@ -76,6 +80,8 @@ public class ItemService {
                 .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다."));
         log.info("상품 조회 성공 : {}", item.getId());
 
+        List<ItemReservation> itemReservationList = itemReservationRepository.findByItemId(item.getId());
+
         // 상품 기본 정보 업데이트
         log.info("상품 기본 정보 업데이트 시작");
         item.updateItem(itemFormDto);
@@ -101,6 +107,10 @@ public class ItemService {
             log.info("상세 이미지 업데이트 완료 - 새 URL: {}", updatedDetailImageUrl);
         } else {
             log.info("새로운 상세 이미지가 없어 기존 이미지를 유지합니다.");
+        }
+
+        for(ItemReservation itemReservation : itemReservationList) {
+            reservationService.updateDepartureConfirmed(itemReservation);
         }
 
         log.info("상품 업데이트 완료");

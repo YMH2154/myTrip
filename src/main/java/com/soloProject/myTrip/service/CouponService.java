@@ -9,17 +9,21 @@ import com.soloProject.myTrip.repository.CouponRepository;
 import com.soloProject.myTrip.repository.CouponWalletRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class CouponService {
 
     private final CouponRepository couponRepository;
@@ -62,12 +66,12 @@ public class CouponService {
         return couponRepository.getAdminCouponPage(searchDto, pageable);
     }
 
-    public void giveCouponForAllMembers(Long couponId){
+    public void giveCouponForAllMembers(Long couponId) {
         Coupon alphaCoupon = couponRepository.findById(couponId).orElseThrow(EntityNotFoundException::new);
         List<CouponWallet> allCouponWallets = couponWalletRepository.findAll();
-        if(!allCouponWallets.isEmpty()){
-            for(CouponWallet couponWallet : allCouponWallets){
-                //모든 쿠폰지갑에 해당 쿠폰 추가
+        if (!allCouponWallets.isEmpty()) {
+            for (CouponWallet couponWallet : allCouponWallets) {
+                // 모든 쿠폰지갑에 해당 쿠폰 추가
                 Coupon userCoupon = Coupon.giveCoupon(alphaCoupon);
                 couponWallet.getCoupons().add(userCoupon);
                 userCoupon.setCouponWallet(couponWallet);

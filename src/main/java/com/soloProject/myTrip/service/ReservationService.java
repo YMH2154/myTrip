@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.service;
 
+import com.soloProject.myTrip.constant.ItemSellStatus;
 import com.soloProject.myTrip.constant.ReservationStatus;
 import com.soloProject.myTrip.entity.*;
 import com.soloProject.myTrip.exception.NotEnoughRemainingSeats;
@@ -170,5 +171,49 @@ public class ReservationService {
 
         log.info("예약 취소 처리 완료 - 예약번호: {}, 취소된 좌석: {}, 갱신된 잔여좌석: {}",
                 reservationNumber, cancelledSeats, updatedRemainingSeats);
+    }
+
+    //예약 상태 업데이트 메서드
+    public void updateReservation(Long itemReservationId){
+        ItemReservation itemReservation = itemReservationRepository.findById(itemReservationId).orElseThrow(EntityExistsException::new);
+
+        //출발 확정 여부
+        updateDepartureConfirmed(itemReservation);
+
+        // 예약 마감 (해당 날짜의 남은 좌석이 0이면서 예약이 모두 잔금 지불 상태)
+        if (itemReservation.getRemainingSeats() == 0) {
+            boolean flag = true;
+            for (MemberReservation memberReservation : itemReservation.getMemberReservations()) {
+                if (memberReservation.getReservationStatus().equals(ReservationStatus.BALANCE_PAID)) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (!flag) {
+                itemReservation.soldOutReservation();
+                log.info("예약 마감 - 예약 ID : {}, 예약 날짜 : {}",
+                        itemReservation.getId(), itemReservation.getDepartureDateTime());
+            }
+        }
+    }
+
+    public void updateDepartureConfirmed(ItemReservation itemReservation){
+        // 출발 확정 (최소 출발 인원 <= 예약금 지불 인원)
+        List<MemberReservation> memberReservationList = memberReservationRepository.findByItemReservationId(itemReservation.getId());
+        int paidParticipant = 0;
+        for(MemberReservation reservation : memberReservationList){
+            if(reservation.getReservationStatus().equals(ReservationStatus.DEPOSIT_PAID)){
+                List<Participant> adults = participantRepository.findByMemberReservationIdAndAge(reservation.getId(),Age.ADULT);
+                List<Participant> children = participantRepository.findByMemberReservationIdAndAge(reservation.getId(),Age.CHILD);
+                paidParticipant += (adults.size() + children.size());
+                log.info("예약금 지불 인원 : {}", paidParticipant);
+            }
+        }
+        if(itemReservation.getItem().getMinParticipants() <= paidParticipant){
+            itemReservation.setDepartureConfirmed(true);
+            log.info("예약 출발 확정 - 예약 ID : {}, 예약 날짜 : {}",
+                    itemReservation.getId(), itemReservation.getDepartureDateTime());
+        }
+
     }
 }

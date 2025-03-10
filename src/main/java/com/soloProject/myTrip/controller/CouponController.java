@@ -4,6 +4,7 @@ import com.soloProject.myTrip.dto.CouponDto;
 import com.soloProject.myTrip.dto.CouponSearchDto;
 import com.soloProject.myTrip.entity.Coupon;
 import com.soloProject.myTrip.service.CouponService;
+import com.soloProject.myTrip.service.QnAService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,12 @@ import java.util.Map;
 @Slf4j
 public class CouponController {
     private final CouponService couponService;
+    private final QnAService qnAService;
+
+    @ModelAttribute("unansweredCount")
+    public Long getUnansweredCount() {
+        return qnAService.getUnansweredCount();
+    }
 
     // 쿠폰 생성 페이지
     @GetMapping("/admin/coupon/new")
@@ -100,7 +107,7 @@ public class CouponController {
     }
 
     // 쿠폰 지급 요청
-    @PostMapping("/admin/coupon/give-coupon/{couponId}")
+    @GetMapping("/admin/coupon/give-coupon/{couponId}")
     @ResponseBody
     public ResponseEntity<String> giveCoupon(@PathVariable("couponId") Long couponId) {
         try {

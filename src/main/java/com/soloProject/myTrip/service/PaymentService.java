@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.service;
 
+import com.soloProject.myTrip.config.SessionUtils;
 import com.soloProject.myTrip.constant.*;
 import com.soloProject.myTrip.dto.*;
 import com.soloProject.myTrip.entity.*;
@@ -49,6 +50,7 @@ public class PaymentService {
   private final MemberReservationRepository memberReservationRepository;
   private final CouponRepository couponRepository;
   private final ItemReservationRepository itemReservationRepository;
+  private final ReservationService reservationService;
 
   // 결제 준비 정보를 저장할 Map
   private final Map<String, Object> paymentInfoMap = new HashMap<>();
@@ -194,39 +196,7 @@ public class PaymentService {
         .usedCoupon(null)
         .build();
 
-    // 쿠폰 처리
-    if (paymentDto.getCouponId() != null) {
-      Coupon coupon = couponRepository.findById(paymentDto.getCouponId())
-          .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
-      payment.setUsedCoupon(coupon);
-      coupon.setCouponStatus(CouponStatus.USED);
-    }
-
-    // 마일리지 처리
-    if (paymentDto.getUsedMileage() != null && paymentDto.getUsedMileage() > 0) {
-      payment.getMemberReservation().getMember().useMileage(paymentDto.getUsedMileage());
-    }
-
-    // 예약 상태 변경
-    if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
-      reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
-      payment.setPaymentType(PaymentType.DEPOSIT);
-    } else {
-      reservation.updateStatus(ReservationStatus.BALANCE_PAID);
-      payment.setPaymentType(PaymentType.BALANCE);
-
-      // 해당 날짜의 예약이 모두 잔금 지불 상태라면 예약 마감
-      boolean flag = true;
-      for (MemberReservation memberReservation : itemReservation.getMemberReservations()) {
-        if (!memberReservation.getReservationStatus().equals(ReservationStatus.BALANCE_PAID)) {
-          flag = false;
-          break;
-        }
-      }
-      if (flag) {
-        itemReservation.soldOutReservation();
-      }
-    }
+    updateCouponAndMileage(paymentDto, payment, reservation, itemReservation);
 
     paymentRepository.save(payment);
   }
@@ -241,7 +211,7 @@ public class PaymentService {
 
   // 카드결제 준비
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  public CardPaymentPrepareResponse prepareCardPayment(CardPaymentDto requestDto, String userEmail) {
+  public CardPaymentPrepareResponse prepareCardPayment(PaymentDto requestDto, String userEmail) {
     try {
       log.info("카드결제 준비 시작 - 예약번호: {}", requestDto.getReservationNumber());
 
@@ -266,7 +236,7 @@ public class PaymentService {
       log.debug("생성된 주문번호: {}", merchantUid);
 
       // 결제 정보를 임시로 저장
-      CardPaymentDto paymentDto = CardPaymentDto.builder()
+      PaymentDto paymentDto = PaymentDto.builder()
           .reservationNumber(requestDto.getReservationNumber())
           .amount(requestDto.getAmount())
           .couponId(requestDto.getCouponId())
@@ -312,7 +282,7 @@ public class PaymentService {
       }
       log.info("저장된 결제 정보 조회 성공: {}", storedPayment);
 
-      CardPaymentDto paymentDto = (CardPaymentDto) storedPayment;
+      PaymentDto paymentDto = (PaymentDto) storedPayment;
       log.info("결제 정보 변환 완료 - 예약번호: {}, 금액: {}",
           paymentDto.getReservationNumber(), paymentDto.getAmount());
 
@@ -396,35 +366,7 @@ public class PaymentService {
             .usedCoupon(null)
             .build();
 
-        // 쿠폰 처리
-        if (paymentDto.getCouponId() != null) {
-          Coupon coupon = couponRepository.findById(paymentDto.getCouponId())
-              .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
-          payment.setUsedCoupon(coupon);
-          coupon.setCouponStatus(CouponStatus.USED);
-        }
-
-        // 마일리지 처리
-        if (paymentDto.getUsedMileage() != null && paymentDto.getUsedMileage() > 0) {
-          reservation.getMember().useMileage(paymentDto.getUsedMileage());
-        }
-
-        // 예약 상태 업데이트
-        if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
-          reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
-        } else {
-          reservation.updateStatus(ReservationStatus.BALANCE_PAID);
-          boolean flag = true;
-          for (MemberReservation memberReservation : itemReservation.getMemberReservations()) {
-            if (!memberReservation.getReservationStatus().equals(ReservationStatus.BALANCE_PAID)) {
-              flag = false;
-              break;
-            }
-          }
-          if (flag) {
-            itemReservation.soldOutReservation();
-          }
-        }
+        updateCouponAndMileage(paymentDto, payment, reservation, itemReservation);
 
         // 모든 변경사항 저장
         paymentRepository.save(payment);
@@ -485,5 +427,40 @@ public class PaymentService {
   @Transactional(readOnly = true)
   public Page<Payment> getAdminPaymentPage(PaymentSearchDto paymentSearchDto, Pageable pageable) {
     return paymentRepository.getAdminPaymentPage(paymentSearchDto, pageable);
+  }
+
+  private void updateCouponAndMileage(PaymentDto paymentDto, Payment payment, MemberReservation reservation,
+      ItemReservation itemReservation) {
+    // 쿠폰 처리
+    if (paymentDto.getCouponId() != null) {
+      Coupon coupon = couponRepository.findById(paymentDto.getCouponId())
+          .orElseThrow(() -> new EntityNotFoundException("쿠폰을 찾을 수 없습니다."));
+      payment.setUsedCoupon(coupon);
+      coupon.setCouponStatus(CouponStatus.USED);
+    }
+
+    // 마일리지 처리
+    if (paymentDto.getUsedMileage() != null && paymentDto.getUsedMileage() > 0) {
+      payment.getMemberReservation().getMember().useMileage(paymentDto.getUsedMileage());
+    }
+
+    // 예약 상태 변경
+    if (reservation.getReservationStatus().equals(ReservationStatus.RESERVED)) {
+      reservation.updateStatus(ReservationStatus.DEPOSIT_PAID);
+      payment.setPaymentType(PaymentType.DEPOSIT);
+    } else {
+      reservation.updateStatus(ReservationStatus.BALANCE_PAID);
+      payment.setPaymentType(PaymentType.BALANCE);
+
+      // 잔금 결제 성공 시 마일리지 적립 (총 결제금액의 0.5%)
+      int earnedMileage = (int) (reservation.getTotalPrice() * 0.005);
+      reservation.getMember().addMileage(earnedMileage);
+      log.info("마일리지 적립 완료 - 예약번호: {}, 적립금액: {}",
+          reservation.getReservationNumber(), earnedMileage);
+
+      // 세션에 마일리지 적립 정보 저장
+      SessionUtils.addAttribute("earnedMileage", earnedMileage);
+    }
+    reservationService.updateReservation(itemReservation.getId());
   }
 }

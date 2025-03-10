@@ -333,20 +333,21 @@
             );
         }
 
-        function giveCoupon(couponId) {
+        async function giveCoupon(couponId) {
             if (!confirm('해당 쿠폰을 모든 회원에게 지급하시겠습니까?')) {
                 return;
             }
 
-            ajaxRequest(
-                '/admin/coupon/give-coupon/' + couponId,
-                'POST',
-                {},
-                function(response) {
-                    alert('쿠폰 지급이 완료되었습니다.');
-                    location.reload();
+            try{
+                const response = await fetch('/admin/coupon/give-coupon/'+couponId);
+                if(!response.ok){
+                    throw new Error('error');
                 }
-            );
+                alert('쿠폰 지급이 완료되었습니다.');
+                    location.reload();
+            } catch (error) {
+                console.error('에러 발생 : ', error);
+            }
         }
     </script>
 </th:block>

@@ -29,6 +29,25 @@
             margin-bottom: 30px;
         }
 
+        .mileage-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .mileage-info i {
+            color: #28a745;
+            margin-right: 8px;
+        }
+
+        .mileage-amount {
+            font-size: 1.2em;
+            color: #28a745;
+            font-weight: 600;
+        }
+
         .button-group {
             margin-top: 30px;
             display: flex;
@@ -77,6 +96,12 @@
         <p class="result-message">
             결제가 성공적으로 처리되었습니다.<br>
         </p>
+        <div th:if="${earnedMileage != null}" class="mileage-info">
+            <i class="fas fa-gift"></i>
+            <span>총 결제 금액의 0.5%인</span>
+            <span class="mileage-amount" th:text="${#numbers.formatInteger(earnedMileage, 0, 'COMMA')} + '원'"></span>
+            <span>의 마일리지가 적립되었습니다.</span>
+        </div>
         <div class="button-group">
             <a href="/" class="btn-home">홈으로 돌아가기</a>
             <a href="/member/reservations" class="btn-reservations">예약 내역</a>

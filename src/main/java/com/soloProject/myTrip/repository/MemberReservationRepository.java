@@ -17,7 +17,8 @@ public interface MemberReservationRepository extends JpaRepository<MemberReserva
     List<MemberReservation> findByMemberOrderByRegTimeDesc(Member member);
 
     List<MemberReservation> findByReservationStatusAndReservedAtBefore(
-        ReservationStatus status, 
-        LocalDateTime dateTime
-    );
-} 
+            ReservationStatus status,
+            LocalDateTime dateTime);
+
+    List<MemberReservation> findByItemReservationId(Long itemReservationId);
+}

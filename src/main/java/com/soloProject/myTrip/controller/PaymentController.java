@@ -11,6 +11,7 @@ import com.soloProject.myTrip.entity.MemberReservation;
 import com.soloProject.myTrip.entity.Payment;
 import com.soloProject.myTrip.repository.*;
 import com.soloProject.myTrip.service.PaymentService;
+import com.soloProject.myTrip.service.QnAService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,12 @@ public class PaymentController {
   private final CouponRepository couponRepository;
   private final MemberRepository memberRepository;
   private final CouponWalletRepository couponWalletRepository;
+  private final QnAService qnAService;
+
+  @ModelAttribute("unansweredCount")
+  public Long getUnansweredCount() {
+    return qnAService.getUnansweredCount();
+  }
 
   @GetMapping("/payment/ready/{reservationNumber}")
   public String paymentReady(@PathVariable String reservationNumber, Model model, Principal principal) {
@@ -90,7 +97,7 @@ public class PaymentController {
   }
 
   @PostMapping("/payment/card/prepare")
-  public @ResponseBody ResponseEntity<?> prepareCardPayment(@RequestBody CardPaymentDto requestDto,
+  public @ResponseBody ResponseEntity<?> prepareCardPayment(@RequestBody PaymentDto requestDto,
       Principal principal) {
     log.info("카드결제 준비 요청 - 예약번호: {}, 금액: {}", requestDto.getReservationNumber(), requestDto.getAmount());
     try {
@@ -133,8 +140,16 @@ public class PaymentController {
   }
 
   @GetMapping("/payment/completed")
-  public String paymentComplete() {
+  public String paymentComplete(Model model) {
     log.info("결제 성공 페이지 호출");
+    // 세션에서 마일리지 적립 정보 가져오기
+    Object earnedMileageObj = SessionUtils.getAttribute("earnedMileage");
+    if (earnedMileageObj != null) {
+      Integer earnedMileage = (Integer) earnedMileageObj;
+      model.addAttribute("earnedMileage", earnedMileage);
+      // 세션에서 마일리지 정보 제거
+      SessionUtils.addAttribute("earnedMileage", null);
+    }
     return "payment/success";
   }
 

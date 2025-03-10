@@ -19,25 +19,32 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentDto {
-  // 기본 결제 정보
+  // 공통 필드
   private Long id;
+  private String reservationNumber;
   private Integer amount;
+  private Long couponId;
+  private Integer usedMileage;
+  private String merchantUid;
+  private String status;
+  private String errorMessage;
+  private String userId;
+
+  // 결제 타입 및 수단
   private PaymentType paymentType;
   private PaymentMethod paymentMethod;
   private String paymentKey;
-  private String merchantUid;
 
-  // 결제 요청 정보
-  private String reservationNumber;
-  private Long couponId;
-  private Integer usedMileage;
-
-  // 결제 상태 정보
-  private String status;
-  private String errorMessage;
-
-  // 사용자 정보
-  private String userId;
+  // 카드 결제 관련 필드
+  private String impUid;
+  private String cardName;
+  private String cardNumber;
+  private Integer cardQuota;
+  private String buyerName;
+  private String buyerEmail;
+  private String buyerTel;
+  private String failReason;
+  private String cancelReason;
 
   public static List<PaymentDto> createDtoList(List<Payment> payments) {
     return payments.stream()

@@ -44,17 +44,16 @@ public class Member extends BaseTimeEntity {
     @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private CouponWallet couponWallet;
 
-
-    public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder){
+    public static Member createMember(MemberFormDto memberFormDto, PasswordEncoder passwordEncoder) {
         Member member = new Member();
         member.setName(memberFormDto.getName());
         member.setEmail(memberFormDto.getEmail());
         String password = passwordEncoder.encode(memberFormDto.getPassword());
         member.setPassword(password);
         member.setTel(memberFormDto.getTel());
-        member.setMileage(1000); //테스트 용 마일리지
+        member.setMileage(1000); // 테스트 용 마일리지
         member.setRole(Role.ADMIN);
-        member.setProvider("local"); //로컬 가입자
+        member.setProvider("local"); // 로컬 가입자
 
         return member;
     }
@@ -67,11 +66,16 @@ public class Member extends BaseTimeEntity {
         this.tel = memberUpdateFormDto.getTel();
     }
 
-    public void useMileage(Integer usedMileage){
-        this.mileage -= usedMileage;
+    public void useMileage(int mileage) {
+        if (this.mileage < mileage) {
+            throw new IllegalStateException("보유 마일리지가 부족합니다.");
+        }
+        this.mileage -= mileage;
     }
 
-    public void cancelMileage(Integer usedMileage){
-        this.mileage += usedMileage;
+    public void addMileage(int mileage) {
+        this.mileage += mileage;
     }
+
+    public void cancelMileage(int mileage){ this.mileage -= mileage; }
 }

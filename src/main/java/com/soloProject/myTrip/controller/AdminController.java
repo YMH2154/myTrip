@@ -81,16 +81,16 @@ public class AdminController {
     }
 
     //
-    @GetMapping({"/admin/qnas", "/admin/qnas/{page}"})
-    public String qnaMngPage(@PathVariable("page") Optional<Integer> page, Model model){
-        try{
+    @GetMapping({ "/admin/qnas", "/admin/qnas/{page}" })
+    public String qnaMngPage(@PathVariable("page") Optional<Integer> page, Model model) {
+        try {
             Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.by(Sort.Order.desc("regTime")));
             Page<QnA> qnAs = qnAService.getAdminQnAPage(pageable);
 
-            model.addAttribute("qnAs",qnAs);
-            model.addAttribute("maxPage",5);
+            model.addAttribute("qnAs", qnAs);
+            model.addAttribute("maxPage", 5);
             return "qna/qnaMng";
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return "error/error";
         }
@@ -153,4 +153,29 @@ public class AdminController {
     // 이용자의 환불 요청 => 관리자 환불 승인
 
     // 통계 조회
+
+    @ModelAttribute("unansweredCount")
+    public Long getUnansweredCount() {
+        return qnAService.getUnansweredCount();
+    }
+
+    @GetMapping("/items")
+    public String itemsPage() {
+        return "admin/items";
+    }
+
+    @GetMapping("/coupons")
+    public String couponsPage() {
+        return "admin/coupons";
+    }
+
+    @GetMapping("/payments")
+    public String paymentsPage() {
+        return "admin/payments";
+    }
+
+    @GetMapping("/statistics")
+    public String statisticsPage() {
+        return "admin/statistics";
+    }
 }

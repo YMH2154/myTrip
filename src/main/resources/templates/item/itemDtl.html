@@ -198,6 +198,24 @@
             border-bottom: 2px solid #e0e0e0;
         }
 
+        .departure-confirmed {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .departure-confirmed i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
         .section-title {
             font-size: 24px;
             color: #1a237e;
@@ -468,6 +486,10 @@
     <div class="content-wrapper">
         <div class="main-content">
             <h1 class="product-title" th:text="${item.itemName}">상품명</h1>
+            <div th:if="${reservation.departureConfirmed}" class="departure-confirmed">
+                <i class="fas fa-check-circle"></i>
+                출발 확정
+            </div>
 
             <!-- 상품 기본 정보 -->
             <div class="row mb-5">

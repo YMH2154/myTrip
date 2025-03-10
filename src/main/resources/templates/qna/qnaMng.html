@@ -41,12 +41,46 @@
             color: rgba(100, 100, 100, 0.7) !important;
             font-size: 1.1rem;
         }
+
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            cursor: pointer;
+        }
+
+        .form-check-label {
+            font-size: 1rem;
+            color: #495057;
+            cursor: pointer;
+        }
     </style>
 </th:block>
 
 <div layout:fragment="content" class="admin-container">
     <div class="admin-header">
         <h1 class="admin-title">Q&A 관리</h1>
+        <div class="filter-section mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="unansweredOnly" onchange="filterUnanswered()">
+                <label class="form-check-label" for="unansweredOnly">
+                    미답변 QnA만 보기
+                </label>
+            </div>
+        </div>
     </div>
 
     <div class="content-table">
@@ -112,6 +146,21 @@
     <script th:inline="javascript">
         function page(page) {
             location.href = "/admin/qnas/" + page;
+        }
+
+        function filterUnanswered() {
+            const unansweredOnly = document.getElementById('unansweredOnly').checked;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                if (row.querySelector('.no-results')) return;
+                
+                const statusBadge = row.querySelector('.status-badge');
+                if (statusBadge) {
+                    const isUnanswered = statusBadge.textContent.trim() === '미답변';
+                    row.style.display = unansweredOnly && !isUnanswered ? 'none' : '';
+                }
+            });
         }
     </script>
 </th:block>

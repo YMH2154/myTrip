@@ -160,6 +160,15 @@ public class ItemReservationService {
             .dateTime(reservation.getReturnDateTime())
             .build();
 
+        // 출발 확정 정보
+        dto.getDepartureConfirmed().put(departureDate, reservation.getDepartureConfirmed());
+
+        // 출발 확정된 날짜의 departureDateTime 설정
+        if (reservation.getDepartureConfirmed()) {
+          dto.setDepartureDateTime(reservation.getDepartureDateTime());
+          log.info("출발 확정 날짜 : {}", departureDate);
+        }
+
         dto.getDepartureFlights().put(departureDate, departureFlight);
         dto.getReturnFlights().put(departureDate, returnFlight);
       }
@@ -167,7 +176,6 @@ public class ItemReservationService {
 
     dto.setMinPrice(minPrice != Integer.MAX_VALUE ? minPrice : 0);
     dto.setMaxPrice(maxPrice != Integer.MIN_VALUE ? maxPrice : 0);
-
     return dto;
   }
 }

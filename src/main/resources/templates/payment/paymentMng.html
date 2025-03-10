@@ -125,11 +125,12 @@
                     <th>결제 수단</th>
                     <th>결제 상태</th>
                     <th>결제 종류</th>
+                    <th>결제 금액</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:if="${#lists.isEmpty(payments)}">
-                    <td colspan="7" class="no-results">
+                    <td colspan="8" class="no-results">
                         검색 조건에 맞는 결제 내역이 없습니다.
                     </td>
                 </tr>
@@ -141,6 +142,7 @@
                     <td th:text="${payment.paymentMethod.getDescription()}"></td>
                     <td th:text="${payment.memberReservation.reservationStatus.getDescription()}"></td>
                     <td th:text="${payment.paymentType.getDescription()}"></td>
+                    <td th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT') + '원'}"></td>
                 </tr>
             </tbody>
         </table>

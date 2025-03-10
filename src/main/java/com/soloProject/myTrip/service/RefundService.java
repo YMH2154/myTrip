@@ -230,6 +230,21 @@ public class RefundService {
             payment.setCancelReason(refundRequestDto.getReason());
             log.info("취소 사유 등록 완료 - reason: {}", refundRequestDto.getReason());
 
+            int paidParticipant = 0;
+            for(MemberReservation memberReservation : itemReservation.getMemberReservations()){
+                if(memberReservation.getReservationStatus().equals(ReservationStatus.DEPOSIT_PAID)){
+                    List<Participant> adults = participantRepository.findByMemberReservationIdAndAge(memberReservation.getId(),Age.ADULT);
+                    List<Participant> children = participantRepository.findByMemberReservationIdAndAge(memberReservation.getId(),Age.CHILD);
+                    paidParticipant += (adults.size() + children.size());
+                    log.info("예약금 지불 인원 : {}", paidParticipant);
+                }
+            }
+            if(itemReservation.getItem().getMinParticipants() > paidParticipant){
+                itemReservation.setDepartureConfirmed(false);
+                log.info("예약 출발 확정 취소 - 예약 ID : {}, 예약 날짜 : {}",
+                        itemReservation.getId(), itemReservation.getDepartureDateTime());
+            }
+
             return;
         }
 

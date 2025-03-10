@@ -24,6 +24,8 @@ public class ItemReservation {
 
     private int totalPrice;
 
+    private Boolean departureConfirmed;
+
     @OneToMany(mappedBy = "itemReservation", cascade = CascadeType.ALL)
     private List<MemberReservation> memberReservations;
 
@@ -40,6 +42,7 @@ public class ItemReservation {
     private String returnFlightNumber;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 10)
     private ItemSellStatus itemSellStatus;
 
     @Builder
@@ -51,6 +54,7 @@ public class ItemReservation {
         this.departureDateTime = departureDateTime;
         this.returnDateTime = returnDateTime;
         this.itemSellStatus = ItemSellStatus.SELL;
+        this.departureConfirmed = false;
         this.remainingSeats = item.getMaxParticipants();
         this.totalPrice = totalPrice;
 
@@ -65,19 +69,16 @@ public class ItemReservation {
         this.returnFlightNumber = returnFlightNumber;
     }
 
-    public void updateTotalPrice(int totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-    public void updateRemainingSeats(int updatedSeats){
+    public void updateRemainingSeats(int updatedSeats) {
         this.remainingSeats = updatedSeats;
-        if(this.remainingSeats == 0){
+        if (this.remainingSeats == 0) {
             this.itemSellStatus = ItemSellStatus.WAITING;
-        }else{
+        } else {
             this.itemSellStatus = ItemSellStatus.SELL;
         }
     }
 
-    public void soldOutReservation(){
+    public void soldOutReservation() {
         this.itemSellStatus = ItemSellStatus.SOLDOUT;
     }
 }

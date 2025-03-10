@@ -18,4 +18,5 @@ public class SessionUtils {
     public static Object getAttribute(String name) {
         return Objects.requireNonNull(RequestContextHolder.getRequestAttributes()).getAttribute(name, RequestAttributes.SCOPE_SESSION);
     }
+
 }

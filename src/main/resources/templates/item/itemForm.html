@@ -9,26 +9,6 @@
 </head>
 <th:block layout:fragment="css">
     <style>
-        /* 기본 레이아웃 */
-        body {
-            background: #f8f9fa;
-            min-height: 100vh;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at 20% 20%, rgba(106, 13, 173, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(106, 13, 173, 0.05) 0%, transparent 40%);
-            pointer-events: none;
-        }
-
         label{
             margin-bottom: 10px;
         }
@@ -354,6 +334,10 @@
                             th:text="${code.name}">
                     </option>
                 </select>
+                <input type="hidden" th:field="*{origin}" th:if="${!#strings.isEmpty(itemFormDto.id)}">
+                <div th:if="${!#strings.isEmpty(itemFormDto.id)}" class="alert alert-warning mt-2" role="alert" style="font-size: 0.9rem;">
+                    <i class="fas fa-exclamation-circle"></i> 항공권 정보는 수정할 수 없습니다.
+                </div>
             </div>
 
             <div class="form-group">
@@ -365,6 +349,7 @@
                             th:text="${code.name}">
                     </option>
                 </select>
+                <input type="hidden" th:field="*{destination}" th:if="${!#strings.isEmpty(itemFormDto.id)}">
                 <div th:if="${!#strings.isEmpty(itemFormDto.id)}" class="alert alert-warning mt-2" role="alert" style="font-size: 0.9rem;">
                     <i class="fas fa-exclamation-circle"></i> 항공권 정보는 수정할 수 없습니다.
                 </div>

@@ -9,5 +9,8 @@ import java.util.List;
 
 public interface QnARepository extends JpaRepository<QnA, Long> {
     Page<QnA> findAll(Pageable pageable);
+
     List<QnA> findByMemberIdOrderByRegTimeDesc(Long memberId);
+
+    Long countByIsAnsweredFalse();
 }

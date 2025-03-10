@@ -18,6 +18,11 @@ import java.security.Principal;
 public class QnAController {
     private final QnAService qnAService;
 
+    @ModelAttribute("unansweredCount")
+    public Long getUnansweredCount() {
+        return qnAService.getUnansweredCount();
+    }
+
     // qna 등록 페이지
     @GetMapping("/mypage/qna/new")
     public String qnAFormPage(Model model) {
@@ -42,7 +47,7 @@ public class QnAController {
     @GetMapping("/mypage/qna/{qnaId}")
     public String qnADtlPage(Model model,
             @PathVariable("qnaId") Long qnaId,
-                             Principal principal) {
+            Principal principal) {
         QnADto qnaDto = qnAService.getQnADtl(qnaId, principal.getName());
         model.addAttribute("qnaDto", qnaDto);
         return "qna/qnaRead";
@@ -93,10 +98,10 @@ public class QnAController {
     // 답변 페이지
     @GetMapping("/admin/qna/{qnaId}/answer")
     public String answerPage(@PathVariable("qnaId") Long qnaId,
-                             Model model){
+            Model model) {
         try {
             QnADto qnaDto = qnAService.getQnADtl(qnaId);
-            model.addAttribute("qnaDto",qnaDto);
+            model.addAttribute("qnaDto", qnaDto);
             return "qna/qnaAnswer";
         } catch (Exception e) {
             e.printStackTrace();

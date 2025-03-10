@@ -293,11 +293,6 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" th:href="@{/admin/banners}">
-                                <i class="bi bi-image"></i>배너 관리
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" th:href="@{/admin/coupons}">
                                 <i class="bi bi-graph-up"></i>쿠폰 관리
                             </a>
@@ -305,6 +300,10 @@
                         <li class="nav-item">
                             <a class="nav-link" th:href="@{/admin/qnas}">
                                 <i class="bi bi-graph-up"></i>Q&A 관리
+                                <span th:if="${unansweredCount > 0}" 
+                                      class="badge bg-danger rounded-pill ms-2" 
+                                      th:text="${unansweredCount}">
+                                </span>
                             </a>
                         </li>
                         <li class="nav-item">

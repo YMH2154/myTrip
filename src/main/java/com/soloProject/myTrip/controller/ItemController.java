@@ -4,11 +4,7 @@ import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ItemReservationDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
 import com.soloProject.myTrip.entity.ItemReservation;
-import com.soloProject.myTrip.service.ItemReservationService;
-import com.soloProject.myTrip.service.ItemService;
-import com.soloProject.myTrip.service.ScheduleService;
-import com.soloProject.myTrip.service.FlightSearchService;
-import com.soloProject.myTrip.service.RecentViewService;
+import com.soloProject.myTrip.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,9 +34,14 @@ public class ItemController {
 
     private final ItemService itemService;
     private final ScheduleService scheduleService;
-    private final FlightSearchService flightSearchService;
     private final ItemReservationService itemReservationService;
     private final RecentViewService recentViewService;
+    private final QnAService qnAService;
+
+    @ModelAttribute("unansweredCount")
+    public Long getUnansweredCount() {
+        return qnAService.getUnansweredCount();
+    }
 
     // 상품 등록(GET)
     @GetMapping("/admin/item/new")
@@ -59,6 +60,11 @@ public class ItemController {
 
         // 바인딩 에러 처리
         if (bindingResult.hasErrors()) {
+            log.error("바인딩 에러 발생: {}", bindingResult.getAllErrors());
+            bindingResult.getFieldErrors().forEach(error -> {
+                log.error("필드 에러 - 필드명: {}, 거부된 값: {}, 에러 메시지: {}",
+                        error.getField(), error.getRejectedValue(), error.getDefaultMessage());
+            });
             return "item/itemForm";
         }
 
@@ -119,6 +125,10 @@ public class ItemController {
 
         if (bindingResult.hasErrors()) {
             log.error("바인딩 에러 발생: {}", bindingResult.getAllErrors());
+            bindingResult.getFieldErrors().forEach(error -> {
+                log.error("필드 에러 - 필드명: {}, 거부된 값: {}, 에러 메시지: {}",
+                        error.getField(), error.getRejectedValue(), error.getDefaultMessage());
+            });
             return "item/itemForm";
         }
 

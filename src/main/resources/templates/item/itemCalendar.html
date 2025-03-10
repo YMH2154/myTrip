@@ -289,6 +289,11 @@
             color: #c62828;
         }
         
+        .status-item:has(.status-confirmed) {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
         .cell-sell {
             background-color: #e8f5e9 !important;
         }
@@ -362,6 +367,19 @@
 
         .fc .fc-scrollgrid-section-body > table > tbody > tr > td > .fc-scroller > .fc-scroller-liquid-absolute > .fc-daygrid-body {
             height: 100% !important;
+        }
+        
+        .confirmed-badge {
+            display: inline-block;
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+            width: 100%;
         }
     </style>
 </th:block>
@@ -463,7 +481,6 @@
                     : `<span class="info-value">${departureFlight.carrierName}, ${returnFlight.carrierName}</span>`;
 
                 selectionContent.innerHTML = `
-                    <h3>선택 일정</h3>
                     <div class="info-row">
                         <span class="info-label">상품명</span>
                         <span class="info-value">${itemName}</span>
@@ -488,6 +505,8 @@
                         <span class="info-label">잔여좌석</span>
                         <span class="info-value">${seats}석</span>
                     </div>
+                    ${reservationInfo.departureConfirmed && clickedDate === formatDate(new Date(reservationInfo.departureDateTime)) ? 
+                        '<div class="confirmed-badge">출발 확정</div>' : ''}
                     <button class="book-button" 
                             onclick="location.href='/item/${itemId}/detail?departureDateTime=${departureFlight.dateTime}'"
                             ${seats <= 0 ? 'disabled' : ''}>

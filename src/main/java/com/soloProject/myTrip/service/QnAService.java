@@ -24,43 +24,43 @@ public class QnAService {
     private final QnARepository qnARepository;
     private final MemberRepository memberRepository;
 
-    public void saveQuestion(QnADto qnADto, String email){
+    public void saveQuestion(QnADto qnADto, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
         QnA qnA = qnADto.createQnA();
         qnA.setMember(member);
         qnARepository.save(qnA);
 
-        //인당 QnA는 5개로 유지(최신순)
+        // 인당 QnA는 5개로 유지(최신순)
         List<QnA> allQuestions = qnARepository.findByMemberIdOrderByRegTimeDesc(member.getId());
-        if(allQuestions.size() > 5){
+        if (allQuestions.size() > 5) {
             QnA oldestQnA = allQuestions.getLast();
             qnARepository.delete(oldestQnA);
         }
     }
 
-    public void deleteQuestion(Long qnAId){
+    public void deleteQuestion(Long qnAId) {
         QnA qnA = qnARepository.findById(qnAId).orElseThrow(EntityNotFoundException::new);
         qnARepository.delete(qnA);
         log.info("qna 삭제 완료");
     }
 
-    public void saveAnswer(Long qnaId, String answer){
+    public void saveAnswer(Long qnaId, String answer) {
         QnA qnA = qnARepository.findById(qnaId).orElseThrow(EntityNotFoundException::new);
         qnA.updateAnswer(answer);
         log.info("qna 답변 등록 완료");
     }
 
     @Transactional(readOnly = true)
-    public Page<QnA> getAdminQnAPage(Pageable pageable){
+    public Page<QnA> getAdminQnAPage(Pageable pageable) {
         return qnARepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<QnADto> getMemberQnAPage(String email){
+    public List<QnADto> getMemberQnAPage(String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
         List<QnA> qnAs = qnARepository.findByMemberIdOrderByRegTimeDesc(member.getId());
         List<QnADto> qnADtos = new ArrayList<>();
-        if(!qnAs.isEmpty()) {
+        if (!qnAs.isEmpty()) {
             for (QnA qnA : qnAs) {
                 qnADtos.add(QnADto.of(qnA));
             }
@@ -69,24 +69,29 @@ public class QnAService {
     }
 
     @Transactional(readOnly = true)
-    public QnADto getQnADtl(Long qnaId){
+    public QnADto getQnADtl(Long qnaId) {
         QnA qnA = qnARepository.findById(qnaId).orElseThrow(EntityNotFoundException::new);
         return QnADto.of(qnA);
     }
 
     @Transactional(readOnly = true)
-    public QnADto getQnADtl(Long qnaId, String email){
+    public QnADto getQnADtl(Long qnaId, String email) {
         QnA qnA = qnARepository.findById(qnaId).orElseThrow(EntityNotFoundException::new);
         QnADto qnADto = QnADto.of(qnA);
-        if(qnA.getMember().getEmail().equals(email)){
+        if (qnA.getMember().getEmail().equals(email)) {
             qnADto.setAuthor(true);
         }
         return qnADto;
     }
 
-    public void updateQnA(QnADto qnADto){
+    public void updateQnA(QnADto qnADto) {
         QnA qnA = qnARepository.findById(qnADto.getId()).orElseThrow(EntityNotFoundException::new);
         qnA.updateQnA(qnADto);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getUnansweredCount() {
+        return qnARepository.countByIsAnsweredFalse();
     }
 
 }
