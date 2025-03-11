@@ -119,6 +119,8 @@ public class FlightSearchService {
                 .build();
     }
 
+
+    // Amadeus 서버에 문제가 생겼을 때 사용한 더미 데이터 생성 메서드
     private List<FlightOfferDto> createDefaultFlightOffers(String origin, String destination,
             LocalDate departureDate, LocalDate returnDate) {
         // 실제 항공사 코드와 운항 시간대를 반영한 기본값 설정

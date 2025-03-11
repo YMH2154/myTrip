@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.service;
 
+import com.soloProject.myTrip.constant.CouponStatus;
 import com.soloProject.myTrip.dto.CouponDto;
 import com.soloProject.myTrip.dto.CouponSearchDto;
 import com.soloProject.myTrip.entity.Coupon;
@@ -7,6 +8,7 @@ import com.soloProject.myTrip.entity.CouponWallet;
 import com.soloProject.myTrip.entity.Member;
 import com.soloProject.myTrip.repository.CouponRepository;
 import com.soloProject.myTrip.repository.CouponWalletRepository;
+import com.soloProject.myTrip.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class CouponService {
 
     private final CouponRepository couponRepository;
     private final CouponWalletRepository couponWalletRepository;
+    private final MemberRepository memberRepository;
 
     public CouponWallet createCouponWaller(Member member) {
         List<Coupon> coupons = new ArrayList<>();
@@ -77,5 +80,10 @@ public class CouponService {
                 userCoupon.setCouponWallet(couponWallet);
             }
         }
+    }
+
+    public List<Coupon> getCouponsByMember(String email){
+        Member member = memberRepository.findByEmail(email).orElseThrow(EntityNotFoundException::new);
+        return couponRepository.findByCouponWalletIdAndCouponStatus(member.getCouponWallet().getId(), CouponStatus.USABLE);
     }
 }

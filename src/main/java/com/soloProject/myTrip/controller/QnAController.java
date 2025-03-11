@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.controller;
 
+import com.soloProject.myTrip.annotaion.CheckQnAAccess;
 import com.soloProject.myTrip.dto.QnADto;
 import com.soloProject.myTrip.service.QnAService;
 import jakarta.validation.Valid;
@@ -24,19 +25,19 @@ public class QnAController {
     }
 
     // qna 등록 페이지
-    @GetMapping("/mypage/qna/new")
+    @GetMapping("/myPage/qna/new")
     public String qnAFormPage(Model model) {
         model.addAttribute("qnaDto", new QnADto());
         return "qna/qnaForm";
     }
 
     // qna 저장 요청
-    @PostMapping("/mypage/qna/new")
+    @PostMapping("/myPage/qna/new")
     public String newQnA(@Valid QnADto qnADto,
             Principal principal) {
         try {
             qnAService.saveQuestion(qnADto, principal.getName());
-            return "redirect:/mypage/qna";
+            return "redirect:/myPage/qna";
         } catch (Exception e) {
             e.printStackTrace();
             return "error/error";
@@ -44,7 +45,8 @@ public class QnAController {
     }
 
     // qna 상세 페이지
-    @GetMapping("/mypage/qna/{qnaId}")
+    @CheckQnAAccess
+    @GetMapping("/myPage/qna/{qnaId}")
     public String qnADtlPage(Model model,
             @PathVariable("qnaId") Long qnaId,
             Principal principal) {
@@ -54,7 +56,8 @@ public class QnAController {
     }
 
     // qna 수정 페이지
-    @GetMapping("/mypage/qna/{qnaId}/edit")
+    @CheckQnAAccess
+    @GetMapping("/myPage/qna/{qnaId}/edit")
     public String qnaEditPage(Model model,
             @PathVariable("qnaId") Long qnaId) {
         try {
@@ -68,7 +71,8 @@ public class QnAController {
     }
 
     // qna 수정 요청
-    @PutMapping("/mypage/qna/{qnaId}/edit")
+    @CheckQnAAccess
+    @PutMapping("/myPage/qna/{qnaId}/edit")
     @ResponseBody
     public ResponseEntity<?> editQnA(@PathVariable("qnaId") Long qnaId,
             @RequestBody QnADto qnaDto) {
@@ -83,7 +87,8 @@ public class QnAController {
     }
 
     // qna 삭제 요청
-    @DeleteMapping("/mypage/qna/delete/{qnaId}")
+    @CheckQnAAccess
+    @DeleteMapping("/myPage/qna/{qnaId}/delete")
     @ResponseBody
     public ResponseEntity<?> deleteQnA(@PathVariable("qnaId") Long qnaId) {
         try {

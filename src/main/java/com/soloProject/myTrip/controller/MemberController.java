@@ -1,13 +1,12 @@
 package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.dto.MemberFormDto;
-import com.soloProject.myTrip.dto.MemberUpdateFormDto;
+import com.soloProject.myTrip.dto.MemberTelUpdateDto;
 import com.soloProject.myTrip.entity.Member;
 import com.soloProject.myTrip.entity.MemberReservation;
 import com.soloProject.myTrip.repository.MemberRepository;
 import com.soloProject.myTrip.service.EmailService;
 import com.soloProject.myTrip.service.MemberService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
@@ -43,7 +43,7 @@ public class MemberController {
 
     // 회원가입(POST)
     @PostMapping("/new")
-    public String newMember(@Valid MemberFormDto memberFormDto, BindingResult bindingResult,  Model model) {
+    public String newMember(@Valid MemberFormDto memberFormDto, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             return "member/newAccount";
         }
@@ -55,7 +55,7 @@ public class MemberController {
             model.addAttribute("errorMessage", "비밀번호 확인이 일치하지 않습니다");
             return "member/newAccount";
         }
-        if (!memberFormDto.getInputCode().equals(emailService.getAuthCode())){
+        if (!memberFormDto.getInputCode().equals(emailService.getAuthCode())) {
             model.addAttribute("errorMessage", "인증 코드가 일치하지 않습니다.");
             return "member/newAccount";
         }
@@ -117,11 +117,11 @@ public class MemberController {
         // 세션에서 예약 정보 확인
         Map<String, Object> reservationInfo = (Map<String, Object>) session.getAttribute("reservationInfo");
         String prevPage = (String) session.getAttribute("prevPage");
-        
+
         // 세션 데이터 삭제
         session.removeAttribute("reservationInfo");
         session.removeAttribute("prevPage");
-        
+
         // 이전 페이지가 예약 페이지였다면 예약 정보와 함께 리다이렉트
         if (reservationInfo != null && "/reservation/new".equals(prevPage)) {
             return "redirect:/reservation/new" +
@@ -131,7 +131,7 @@ public class MemberController {
                     "&childCount=" + reservationInfo.get("childCount") +
                     "&infantCount=" + reservationInfo.get("infantCount");
         }
-        
+
         return "redirect:/";
     }
 
@@ -149,13 +149,14 @@ public class MemberController {
     }
 
     @GetMapping("/reservations/{reservationNumber}")
-    public String reservationDetail(@PathVariable("reservationNumber") String reservationNumber, Model model, Principal principal) {
+    public String reservationDetail(@PathVariable("reservationNumber") String reservationNumber, Model model,
+            Principal principal) {
 
         try {
             MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
-            if(!Objects.equals(reservation.getMember().getEmail(), principal.getName())){
-                model.addAttribute("errorMessage","접근 권한이 없습니다.");
-                    return "member/history";
+            if (!Objects.equals(reservation.getMember().getEmail(), principal.getName())) {
+                model.addAttribute("errorMessage", "접근 권한이 없습니다.");
+                return "member/history";
             }
             model.addAttribute("reservation", reservation);
             return "reservation/reservationDetail";
@@ -165,119 +166,55 @@ public class MemberController {
         }
     }
 
-    //미구현
-    //여권 정보 등록
-    @GetMapping("/reservations/passport/{reservationNumber}")
-    public String passportRegist(@PathVariable("reservationNumber")String reservationNumber, Model model, Principal principal){
-        try {
-            MemberReservation reservation = memberService.getReservationByNumber(reservationNumber);
-            if(!Objects.equals(reservation.getMember().getEmail(), principal.getName())){
-                model.addAttribute("errorMessage","접근 권한이 없습니다.");
-                return "member/history";
-            }
-            model.addAttribute("reservation", reservation);
-            return "reservation/passport";
-        } catch (Exception e){
-            e.printStackTrace();
-            return "redirect:/error";
-        }
-    }
-
-    @GetMapping("/myPage")
-    public String memberMyPage(Model model, Principal principal) {
-        String email = principal.getName();
-
-        if (email == null) {
-            throw new IllegalStateException("로그인된 사용자의 이메일 정보를 가져올 수 없습니다.");
-        }
-
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
-
-        System.out.println("Member found: " + member);
-
-        MemberUpdateFormDto memberUpdateFormDto = new MemberUpdateFormDto();
-        memberUpdateFormDto.setTel(member.getTel());
-
-        model.addAttribute("member", member);
-        model.addAttribute("memberUpdateFormDto", memberUpdateFormDto);
-
-        return "member/myPage";
-    }
-
+    // 비밀번호 변경
     @PostMapping("/change-password")
     public String changePassword(@RequestParam String currentPassword,
-                                 @RequestParam String newPassword,
-                                 @RequestParam String confirmPassword,
-                                 Model model, Principal principal) {
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            RedirectAttributes redirectAttributes,
+            Principal principal) {
         if (principal == null) {
-            model.addAttribute("errorMessage", "로그인 정보가 없습니다. 다시 로그인해주세요.");
-            reloadMemberData(model, principal);
-            return "member/myPage"; // 전체 페이지 반환
+            redirectAttributes.addFlashAttribute("errorMessage", "로그인 정보가 없습니다. 다시 로그인해주세요.");
+            return "redirect:/myPage/myInfo";
         }
 
         // 입력값 검증
         if (currentPassword == null || currentPassword.trim().isEmpty() ||
                 newPassword == null || newPassword.trim().isEmpty() ||
                 confirmPassword == null || confirmPassword.trim().isEmpty()) {
-            model.addAttribute("errorMessage", "모든 빈칸을 입력해주세요.");
-            reloadMemberData(model, principal);
-            return "member/myPage"; // 전체 페이지 반환
+            redirectAttributes.addFlashAttribute("errorMessage", "모든 빈칸을 입력해주세요.");
+            return "redirect:/myPage/myInfo";
         }
-
-        String email = principal.getName();
 
         try {
-            memberService.changePassword(email, currentPassword, newPassword, confirmPassword);
-            model.addAttribute("successMessage", "비밀번호가 성공적으로 변경되었습니다.");
+            memberService.changePassword(principal.getName(), currentPassword, newPassword, confirmPassword);
+            redirectAttributes.addFlashAttribute("successMessage", "비밀번호가 성공적으로 변경되었습니다.");
         } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
-        // 필요한 데이터를 다시 로드
-        reloadMemberData(model, principal);
-
-        return "member/myPage"; // 전체 페이지 반환
+        return "redirect:/myPage/myInfo";
     }
 
-    private void reloadMemberData(Model model, Principal principal) {
-        String email = principal.getName();
-
-        if (email == null) {
-            throw new IllegalStateException("로그인된 사용자의 이메일 정보를 가져올 수 없습니다.");
-        }
-
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
-
-        MemberUpdateFormDto memberUpdateFormDto = new MemberUpdateFormDto();
-        memberUpdateFormDto.setTel(member.getTel());
-
-        model.addAttribute("member", member);
-        model.addAttribute("memberUpdateFormDto", memberUpdateFormDto);
-    }
-
+    // 회원 정보 수정
     @PostMapping(value = "/update/{id}")
     public String memberUpdate(@PathVariable Long id,
-                               @Valid MemberUpdateFormDto memberUpdateFormDto,
-                               BindingResult bindingResult,
-                               Model model,
-                               Principal principal) {
+            @Valid MemberTelUpdateDto memberTelUpdateDto,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
-            model.addAttribute("errorMessage", "입력값에 오류가 있습니다. 다시 확인해주세요.");
-            reloadMemberData(model, principal);
-            return "myPage/myInfo";
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    bindingResult.getFieldError().getDefaultMessage());
+            return "redirect:/myPage/myInfo";
         }
 
         try {
-            memberService.updateMember(memberUpdateFormDto, id);
-            model.addAttribute("successMessage", "정보가 성공적으로 수정되었습니다.");
+            memberService.updateMemberTel(id, memberTelUpdateDto.getTel());
+            redirectAttributes.addFlashAttribute("successMessage", "전화번호가 성공적으로 수정되었습니다.");
         } catch (Exception e) {
-            model.addAttribute("errorMessage", "정보 수정 중 에러가 발생하였습니다.");
+            redirectAttributes.addFlashAttribute("errorMessage", "전화번호 수정 중 에러가 발생하였습니다.");
         }
-
-        reloadMemberData(model, principal);
-        return "redirect:/myPage/info";
+        return "redirect:/myPage/myInfo";
     }
 }

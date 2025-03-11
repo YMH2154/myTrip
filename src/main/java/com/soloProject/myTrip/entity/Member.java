@@ -2,12 +2,10 @@ package com.soloProject.myTrip.entity;
 
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
-import com.soloProject.myTrip.dto.MemberUpdateFormDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -60,10 +58,6 @@ public class Member extends BaseTimeEntity {
 
     public void update(String name) {
         this.name = name;
-    }
-
-    public void updateMember(MemberUpdateFormDto memberUpdateFormDto) {
-        this.tel = memberUpdateFormDto.getTel();
     }
 
     public void useMileage(int mileage) {

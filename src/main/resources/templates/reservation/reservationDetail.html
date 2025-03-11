@@ -243,12 +243,6 @@
                     <span th:text="${reservation.reservationStatus.name == 'RESERVED'} ? '예약금 결제' : '잔금 결제'"></span>
                 </button>
             </div>
-
-            <button type="button" class="btn btn-primary btn-edit"
-                    th:if="${reservation.reservationStatus.name == 'BALANCE_PAID'}"
-                    th:onclick="@{'|window.location.href='@{/member/reservations/passport/{id}(id=${reservation.reservationNumber})}'|}">
-                여권 정보 등록
-            </button>
             <button type="button" class="btn btn-success btn-edit"
                     th:if="${reservation.reservationStatus.name() == 'BALANCE_PAID' || reservation.reservationStatus.name() == 'DEPOSIT_PAID'}"
                     th:onclick="|window.location.href='@{/refund/{id}(id=${reservation.reservationNumber})}'|">

@@ -2,6 +2,9 @@ package com.soloProject.myTrip.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.soloProject.myTrip.constant.PaymentMethod;
+import com.soloProject.myTrip.constant.PaymentType;
+import com.soloProject.myTrip.constant.ReservationStatus;
 import com.soloProject.myTrip.dto.PaymentSearchDto;
 import com.soloProject.myTrip.entity.Payment;
 import com.soloProject.myTrip.entity.QPayment;
@@ -33,7 +36,12 @@ public class PaymentRepositoryCustomImpl implements PaymentRepositoryCustom {
         .selectFrom(payment)
         .join(payment.memberReservation, memberReservation).fetchJoin()
         .join(memberReservation.member, member).fetchJoin()
-        .where(searchByLike(paymentSearchDto.getSearchBy(), paymentSearchDto.getSearchQuery()))
+        .where(
+            searchByLike(paymentSearchDto.getSearchBy(), paymentSearchDto.getSearchQuery()),
+            paymentMethodEq(paymentSearchDto.getPaymentMethod()),
+            reservationStatusEq(paymentSearchDto.getReservationStatus()),
+            paymentTypeEq(paymentSearchDto.getPaymentType())
+        )
         .orderBy(payment.regTime.desc())
         .offset(pageable.getOffset())
         .limit(pageable.getPageSize())
@@ -43,7 +51,12 @@ public class PaymentRepositoryCustomImpl implements PaymentRepositoryCustom {
         .selectFrom(payment)
         .join(payment.memberReservation, memberReservation)
         .join(memberReservation.member, member)
-        .where(searchByLike(paymentSearchDto.getSearchBy(), paymentSearchDto.getSearchQuery()))
+        .where(
+            searchByLike(paymentSearchDto.getSearchBy(), paymentSearchDto.getSearchQuery()),
+            paymentMethodEq(paymentSearchDto.getPaymentMethod()),
+            reservationStatusEq(paymentSearchDto.getReservationStatus()),
+            paymentTypeEq(paymentSearchDto.getPaymentType())
+        )
         .fetchCount();
 
     return new PageImpl<>(content, pageable, total);
@@ -67,5 +80,26 @@ public class PaymentRepositoryCustomImpl implements PaymentRepositoryCustom {
     }
 
     return null;
+  }
+
+  private BooleanExpression paymentMethodEq(String paymentMethod) {
+    if (StringUtils.isEmpty(paymentMethod)) {
+      return null;
+    }
+    return QPayment.payment.paymentMethod.eq(PaymentMethod.valueOf(paymentMethod));
+  }
+
+  private BooleanExpression reservationStatusEq(String reservationStatus) {
+    if (StringUtils.isEmpty(reservationStatus)) {
+      return null;
+    }
+    return QPayment.payment.memberReservation.reservationStatus.eq(ReservationStatus.valueOf(reservationStatus));
+  }
+
+  private BooleanExpression paymentTypeEq(String paymentType) {
+    if (StringUtils.isEmpty(paymentType)) {
+      return null;
+    }
+    return QPayment.payment.paymentType.eq(PaymentType.valueOf(paymentType));
   }
 }

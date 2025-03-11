@@ -24,8 +24,15 @@ public interface MemberReservationRepository extends JpaRepository<MemberReserva
 
     List<MemberReservation> findByItemReservationId(Long itemReservationId);
 
-    List<MemberReservation> findByReservedAtAfter(LocalDateTime dateTime);
-
-    @Query("SELECT COUNT(mr) FROM MemberReservation mr WHERE mr.reservedAt >= :startDate")
-    long countReservationsAfter(@Param("startDate") LocalDateTime startDate);
+    // 기간별 예약 통계를 위한 JPQL 쿼리
+    @Query("SELECT DATE_FORMAT(mr.reservedAt, :pattern) as date, COUNT(mr) " +
+           "FROM MemberReservation mr " +
+           "WHERE mr.reservedAt BETWEEN :startDate AND :endDate " +
+           "AND mr.reservationStatus != 'REFUNDED' " +
+           "GROUP BY DATE_FORMAT(mr.reservedAt, :pattern)")
+    List<Object[]> getReservationStatistics(
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        @Param("pattern") String pattern
+    );
 }

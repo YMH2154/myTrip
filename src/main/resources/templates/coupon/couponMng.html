@@ -134,7 +134,7 @@
                     <h5 class="filter-title">유효 기간</h5>
                     <div class="radio-options">
                         <div class="radio-option">
-                            <input type="radio" th:field="*{searchDateType}" id="date-all" value="all">
+                            <input type="radio" th:field="*{searchDateType}" id="date-all" value="all" checked>
                             <label for="date-all">전체</label>
                         </div>
                         <div class="radio-option">
@@ -164,7 +164,7 @@
                     <h5 class="filter-title">쿠폰 타입</h5>
                     <div class="radio-options">
                         <div class="radio-option">
-                            <input type="radio" th:field="*{couponType}" id="type-all" value="">
+                            <input type="radio" th:field="*{couponType}" id="type-all" value="" checked>
                             <label for="type-all">전체</label>
                         </div>
                         <div class="radio-option">
@@ -182,7 +182,7 @@
                     <h5 class="filter-title">사용 가능 금액</h5>
                     <div class="radio-options">
                         <div class="radio-option">
-                            <input type="radio" th:field="*{minAmount}" id="amount-all" value="0">
+                            <input type="radio" th:field="*{minAmount}" id="amount-all" value="0" checked>
                             <label for="amount-all">제한 없음</label>
                         </div>
                         <div class="radio-option">
@@ -201,8 +201,18 @@
                 </div>
 
                 <div class="search-input-group">
-                    <input type="text" class="form-control" name="searchQuery" id="searchQuery" 
-                           placeholder="쿠폰 설명 검색" th:field="*{searchQuery}" autofocus>
+                    <div class="d-flex align-items-end gap-2">
+                        <div class="flex-grow-1">
+                            <input type="text" class="form-control" name="searchQuery" id="searchQuery" 
+                                   placeholder="쿠폰 설명 검색" th:field="*{searchQuery}" autofocus>
+                        </div>
+                        <div>
+                            <button type="button" onclick="searchByQuery()" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                                검색
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
@@ -287,7 +297,6 @@
             // 라디오 버튼 변경 이벤트 처리
             const searchForm = document.getElementById('searchForm');
             const radioInputs = searchForm.querySelectorAll('input[type="radio"]');
-            const searchQuery = document.getElementById('searchQuery');
 
             // 라디오 버튼 변경 이벤트
             radioInputs.forEach(radio => {
@@ -296,25 +305,31 @@
                 });
             });
 
-            // 검색어 입력 이벤트 (디바운싱 적용)
-            let searchTimeout;
-            searchQuery.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => page(0), 300);
+            // Enter 키 입력 시 검색 실행
+            document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchByQuery();
+                }
             });
         });
 
-        function page(page) {
-            const searchDateType = $("input[name='searchDateType']:checked").val() || 'all';
-            const couponType = $("input[name='couponType']:checked").val() || '';
-            const minAmount = $("input[name='minAmount']:checked").val() || '0';
-            const searchQuery = $("#searchQuery").val() || '';
+        // 검색어로 검색하는 함수
+        function searchByQuery() {
+            page(0);
+        }
 
-            location.href = "/admin/coupons/" + page
-                + "?searchDateType=" + searchDateType
-                + "&couponType=" + couponType
-                + "&minAmount=" + minAmount
-                + "&searchQuery=" + searchQuery;
+        function page(page) {
+            const searchDateType = document.querySelector('input[name="searchDateType"]:checked')?.value || 'all';
+            const couponType = document.querySelector('input[name="couponType"]:checked')?.value || '';
+            const minAmount = document.querySelector('input[name="minAmount"]:checked')?.value || '0';
+            const searchQuery = document.getElementById('searchQuery').value;
+
+            location.href = `/admin/coupons/${page}`
+                + `?searchDateType=${searchDateType}`
+                + `&couponType=${couponType}`
+                + `&minAmount=${minAmount}`
+                + `&searchQuery=${searchQuery}`;
         }
 
         function deleteCoupon(couponId) {
@@ -338,13 +353,13 @@
                 return;
             }
 
-            try{
+            try {
                 const response = await fetch('/admin/coupon/give-coupon/'+couponId);
                 if(!response.ok){
                     throw new Error('error');
                 }
                 alert('쿠폰 지급이 완료되었습니다.');
-                    location.reload();
+                location.reload();
             } catch (error) {
                 console.error('에러 발생 : ', error);
             }

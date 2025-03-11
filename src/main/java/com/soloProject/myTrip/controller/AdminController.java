@@ -4,6 +4,7 @@ import com.soloProject.myTrip.dto.*;
 import com.soloProject.myTrip.entity.*;
 import com.soloProject.myTrip.service.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,11 +14,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class AdminController {
 
     private final ItemService itemService;
@@ -61,6 +64,7 @@ public class AdminController {
         }
     }
 
+    // 결제 관리 페이지
     @GetMapping({ "/admin/payments", "/admin/payments/{page}" })
     public String paymentMngPage(@PathVariable("page") Optional<Integer> page,
             PaymentSearchDto paymentSearchDto,
@@ -80,7 +84,7 @@ public class AdminController {
         }
     }
 
-    //
+    // Q&A 관리 페이지
     @GetMapping({ "/admin/qnas", "/admin/qnas/{page}" })
     public String qnaMngPage(@PathVariable("page") Optional<Integer> page, Model model) {
         try {
@@ -94,6 +98,13 @@ public class AdminController {
             e.printStackTrace();
             return "error/error";
         }
+    }
+
+    // 통계 조회 페이지
+    @GetMapping("/admin/statistics")
+    public String statistics(Model model) {
+        log.info("통계 페이지 접근");
+        return "admin/statistics";
     }
 
     // 액셀 다운로드
@@ -116,44 +127,6 @@ public class AdminController {
     // }
     // }
 
-    // 대시보드
-    // @GetMapping("/admin/dashboard")
-    // public String dashboard(Model model) {
-    // model.addAttribute("totalVisitors", visitorService.getTotalVisitorCount());
-    // model.addAttribute("monthlyVisitors", visitorService.getMonthlyStats());
-    // model.addAttribute("dailyVisitors", visitorService.getDailyStats());
-    // model.addAttribute("todayVisitors", visitorService.getTodayVisitorCount());
-    // model.addAttribute("recentDailyStats", visitorService.getRecentDailyStats());
-    // model.addAttribute("monthlyTrending", tmdbService.getMonthlyTrending());
-    // model.addAttribute("weeklyTrending", tmdbService.getWeeklyTrending());
-    // // Payment 데이터를 이용한 주간 매출 데이터
-    // Map<String, Long> weeklyRevenue = subscribeService.calculateWeeklyRevenue();
-    // model.addAttribute("weeklyRevenue", weeklyRevenue);
-    // // 총 매출 데이터 추가
-    // Long totalRevenue = subscribeService.calculateTotalRevenue();
-    // model.addAttribute("totalRevenue", totalRevenue);
-    // // 주간 총 매출 계산
-    // Long weeklyTotalRevenue =
-    // weeklyRevenue.values().stream().mapToLong(Long::longValue).sum();
-    // model.addAttribute("weeklyTotalRevenue", weeklyTotalRevenue);
-    //
-    // // 일일 매출 데이터
-    // Map<String, Long> dailyRevenue = subscribeService.calculateDailyRevenue();
-    // model.addAttribute("dailyRevenue", dailyRevenue);
-    //
-    // return "admin/dashboard";
-    // }
-
-    // 배너 등록
-
-    // 상품 조회(예약자 정보, 상품 정보)
-
-    // 결제 기록 조회(아이디, 날짜, 결제수단?, 환불여부, 항공권수수료/여행상품)
-    // 예약(3시간 후 자동 취소)
-    // 이용자의 환불 요청 => 관리자 환불 승인
-
-    // 통계 조회
-
     @ModelAttribute("unansweredCount")
     public Long getUnansweredCount() {
         return qnAService.getUnansweredCount();
@@ -172,10 +145,5 @@ public class AdminController {
     @GetMapping("/payments")
     public String paymentsPage() {
         return "admin/payments";
-    }
-
-    @GetMapping("/statistics")
-    public String statisticsPage() {
-        return "admin/statistics";
     }
 }

@@ -14,19 +14,134 @@
             width: 100%;
             margin-bottom: 30px;
         }
+
+        /* 통계 필터 스타일 */
+        .filter-container {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .filter-header h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .filter-item {
+            position: relative;
+        }
+
+        .filter-item label {
+            display: block;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .filter-item .form-control {
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-item .form-control:focus {
+            background-color: #fff;
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+        }
+
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-range span {
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .auto-update-container {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            gap: 10px;
+        }
+
+        .auto-update-container label {
+            margin: 0;
+            color: #34495e;
+        }
+
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.25em;
+            cursor: pointer;
+        }
+
+        .form-check-input:checked {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+
+        .apply-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .apply-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+        }
+
+        /* 차트 카드 스타일 */
         .statistics-card {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
+
         .statistics-title {
-            color: #333;
-            font-size: 1.5em;
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 600;
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #3498db;
         }
     </style>
 </head>
@@ -35,6 +150,45 @@
     <div layout:fragment="content">
         <div class="admin-container">
             <h1 class="admin-title">통계 대시보드</h1>
+            
+            <div class="filter-container">
+                <div class="filter-header">
+                    <h2>통계 필터</h2>
+                </div>
+                <div class="filter-grid">
+                    <div class="filter-item">
+                        <label>조회 기간</label>
+                        <div class="date-range">
+                            <input type="date" id="startDate" class="form-control">
+                            <span>~</span>
+                            <input type="date" id="endDate" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="filter-item">
+                        <label>데이터 단위</label>
+                        <select id="timeUnit" class="form-control">
+                            <option value="day">일별</option>
+                            <option value="week">주별</option>
+                            <option value="month">월별</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-item">
+                        <label>실시간 업데이트</label>
+                        <div class="auto-update-container">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="autoUpdate">
+                                <label class="form-check-label" for="autoUpdate">자동 갱신</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-item">
+                        <button onclick="updateCharts()" class="apply-btn">적용하기</button>
+                    </div>
+                </div>
+            </div>
             
             <div class="row">
                 <!-- 예약 통계 -->
@@ -82,103 +236,398 @@
 
     <th:block layout:fragment="script">
         <script>
-            // 예약 통계 차트
-            fetch('/admin/api/statistics/reservations')
-                .then(response => response.json())
-                .then(data => {
-                    const ctx = document.getElementById('reservationChart').getContext('2d');
-                    new Chart(ctx, {
+            let charts = {};
+            let updateInterval;
+
+            // 페이지 로드 시 초기화
+            document.addEventListener('DOMContentLoaded', function() {
+                // 날짜 초기값 설정
+                setInitialDates();
+                initializeCharts();
+                setupAutoUpdate();
+                
+                // 필터 변경 이벤트 리스너
+                document.getElementById('timeUnit').addEventListener('change', updateCharts);
+                document.getElementById('startDate').addEventListener('change', updateCharts);
+                document.getElementById('endDate').addEventListener('change', updateCharts);
+
+                // 초기 데이터 로드
+                updateCharts();
+            });
+
+            function setInitialDates() {
+                const today = new Date();
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(today.getMonth() - 6);
+
+                document.getElementById('startDate').value = formatDate(sixMonthsAgo);
+                document.getElementById('endDate').value = formatDate(today);
+            }
+
+            function formatDate(date) {
+                return date.toISOString().split('T')[0];
+            }
+
+            function setupAutoUpdate() {
+                const autoUpdateCheckbox = document.getElementById('autoUpdate');
+                autoUpdateCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        updateInterval = setInterval(updateCharts, 60000);
+                    } else {
+                        clearInterval(updateInterval);
+                    }
+                });
+            }
+
+            function initializeCharts() {
+                try {
+                    console.log('차트 초기화 시작');
+                    
+                    const chartConfigs = {
+                        reservationChart: {
                         type: 'line',
-                        data: {
-                            labels: Object.keys(data.monthlyReservations),
-                            datasets: [{
-                                label: '월별 예약 수',
-                                data: Object.values(data.monthlyReservations),
-                                borderColor: 'rgb(75, 192, 192)',
-                                tension: 0.1
-                            }]
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
                         },
+                        salesChart: {
+                            type: 'bar',
+                            options: {
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        },
+                        ageChart: {
+                            type: 'pie',
                         options: {
                             responsive: true,
-                            maintainAspectRatio: false
+                                plugins: {
+                                    legend: {
+                                        position: 'top'
+                                    }
+                                }
+                            }
+                        },
+                        genderChart: {
+                            type: 'doughnut',
+                        options: {
+                            responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'top'
+                                    }
+                                }
+                            }
                         }
-                    });
-                });
+                    };
 
-            // 매출 통계 차트
-            fetch('/admin/api/statistics/sales')
-                .then(response => response.json())
-                .then(data => {
-                    const ctx = document.getElementById('salesChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: Object.keys(data.monthlySales),
-                            datasets: [{
-                                label: '월별 매출',
-                                data: Object.values(data.monthlySales),
-                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                                borderColor: 'rgb(54, 162, 235)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
+                    Object.keys(chartConfigs).forEach(chartId => {
+                        const canvas = document.getElementById(chartId);
+                        if (!canvas) {
+                            console.error(`Canvas element not found for ${chartId}`);
+                            return;
                         }
-                    });
-                });
 
-            // 연령대별 통계 차트
-            fetch('/admin/api/statistics/participants')
-                .then(response => response.json())
-                .then(data => {
-                    const ctx = document.getElementById('ageChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels: Object.keys(data.ageDistribution),
-                            datasets: [{
-                                data: Object.values(data.ageDistribution),
-                                backgroundColor: [
-                                    'rgba(255, 99, 132, 0.5)',
-                                    'rgba(54, 162, 235, 0.5)',
-                                    'rgba(255, 206, 86, 0.5)',
-                                    'rgba(75, 192, 192, 0.5)',
-                                    'rgba(153, 102, 255, 0.5)'
-                                ]
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
-                    });
-                });
+                        const ctx = canvas.getContext('2d');
+                        const config = chartConfigs[chartId];
 
-            // 성별 통계 차트
-            fetch('/admin/api/statistics/participants')
-                .then(response => response.json())
-                .then(data => {
-                    const ctx = document.getElementById('genderChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'doughnut',
+                        charts[chartId] = new Chart(ctx, {
+                            type: config.type,
                         data: {
-                            labels: Object.keys(data.genderDistribution),
+                                labels: [],
                             datasets: [{
-                                data: Object.values(data.genderDistribution),
-                                backgroundColor: [
-                                    'rgba(54, 162, 235, 0.5)',
-                                    'rgba(255, 99, 132, 0.5)'
-                                ]
+                                    label: getChartLabel(chartId),
+                                    data: [],
+                                    backgroundColor: getChartColors(chartId),
+                                    borderColor: config.type === 'line' ? getChartColors(chartId) : undefined,
+                                    borderWidth: config.type === 'line' ? 2 : 1
                             }]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: false
-                        }
+                                ...config.options,
+                                maintainAspectRatio: false,
+                                responsive: true
+                            }
+                        });
+                        
+                        console.log(`${chartId} 초기화 완료`);
                     });
-                });
+                } catch (error) {
+                    console.error('차트 초기화 중 오류 발생:', error);
+                }
+            }
+
+            async function updateCharts() {
+                try {
+                    const startDate = document.getElementById('startDate').value;
+                    const endDate = document.getElementById('endDate').value;
+                    const timeUnit = document.getElementById('timeUnit').value;
+
+                    if (!startDate || !endDate) {
+                        console.warn('날짜가 선택되지 않았습니다.');
+                        return;
+                    }
+
+                    const params = new URLSearchParams({
+                        startDate: `${startDate}T00:00:00`,
+                        endDate: `${endDate}T23:59:59`,
+                        timeUnit: timeUnit
+                    });
+
+                    await updateReservationChart(params);
+                    await updateSalesChart(params);
+                    await updateAgeChart(params);
+                    await updateGenderChart(params);
+
+                } catch (error) {
+                    console.error('차트 업데이트 중 오류 발생:', error);
+                    alert('통계 데이터를 불러오는 중 오류가 발생했습니다.');
+                }
+            }
+
+            function initializeEmptyChart(chartId) {
+                const emptyData = {
+                    labels: [],
+                    data: []
+                };
+
+                switch(chartId) {
+                    case 'reservationChart':
+                        emptyData.labels = ['데이터 없음'];
+                        emptyData.data = [0];
+                        break;
+                    case 'salesChart':
+                        emptyData.labels = ['데이터 없음'];
+                        emptyData.data = [0];
+                        break;
+                    case 'ageChart':
+                        emptyData.labels = ['데이터 없음'];
+                        emptyData.data = [1];
+                        break;
+                    case 'genderChart':
+                        emptyData.labels = ['데이터 없음'];
+                        emptyData.data = [1];
+                        break;
+                }
+                
+                updateChartData(chartId, emptyData.labels.reduce((obj, key, index) => {
+                    obj[key] = emptyData.data[index];
+                    return obj;
+                }, {}));
+            }
+
+            async function updateReservationChart(params) {
+                try {
+                    console.log('예약 차트 업데이트 시작');
+                    const response = await fetch(`/admin/api/statistics/reservations?${params}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('예약 데이터 수신:', data);
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    if (!data.reservations || Object.keys(data.reservations).length === 0) {
+                        console.warn('예약 데이터가 비어있습니다.');
+                        initializeEmptyChart('reservationChart');
+                        return;
+                    }
+
+                    updateChartData('reservationChart', data.reservations);
+                    
+                } catch (error) {
+                    console.error('예약 차트 업데이트 실패:', error);
+                    initializeEmptyChart('reservationChart');
+                }
+            }
+
+            async function updateSalesChart(params) {
+                try {
+                    console.log('매출 차트 업데이트 시작');
+                    const response = await fetch(`/admin/api/statistics/sales?${params}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('매출 데이터 수신:', data);
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    if (!data.monthlySales || Object.keys(data.monthlySales).length === 0) {
+                        console.warn('매출 데이터가 비어있습니다.');
+                        initializeEmptyChart('salesChart');
+                        return;
+                    }
+
+                    updateChartData('salesChart', data.monthlySales);
+                    
+                } catch (error) {
+                    console.error('매출 차트 업데이트 실패:', error);
+                    initializeEmptyChart('salesChart');
+                }
+            }
+
+            async function updateAgeChart(params) {
+                try {
+                    console.log('연령대별 차트 업데이트 시작');
+                    const response = await fetch(`/admin/api/statistics/participants?${params}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('연령대별 데이터 수신:', data);
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    if (!data.ageDistribution || Object.keys(data.ageDistribution).length === 0) {
+                        console.warn('연령대별 데이터가 비어있습니다.');
+                        initializeEmptyChart('ageChart');
+                        return;
+                    }
+
+                    updateChartData('ageChart', data.ageDistribution);
+                    
+                } catch (error) {
+                    console.error('연령대별 차트 업데이트 실패:', error);
+                    initializeEmptyChart('ageChart');
+                }
+            }
+
+            async function updateGenderChart(params) {
+                try {
+                    console.log('성별 차트 업데이트 시작');
+                    const response = await fetch(`/admin/api/statistics/participants?${params}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('성별 데이터 수신:', data);
+
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    if (!data.genderDistribution || Object.keys(data.genderDistribution).length === 0) {
+                        console.warn('성별 데이터가 비어있습니다.');
+                        initializeEmptyChart('genderChart');
+                        return;
+                    }
+
+                    updateChartData('genderChart', data.genderDistribution);
+                    
+                } catch (error) {
+                    console.error('성별 차트 업데이트 실패:', error);
+                    initializeEmptyChart('genderChart');
+                }
+            }
+
+            function updateChartData(chartId, data) {
+                try {
+                    console.log(`${chartId} 데이터 업데이트:`, data);
+                    const chart = charts[chartId];
+                    if (!chart) {
+                        console.error(`${chartId}에 대한 차트 객체를 찾을 수 없습니다.`);
+                        return;
+                    }
+
+                    const labels = Object.keys(data);
+                    const values = Object.values(data);
+
+                    // 원형 차트(pie, doughnut)인 경우 색상 배열 사용
+                    const isCircularChart = ['pie', 'doughnut'].includes(chart.config.type);
+                    if (isCircularChart) {
+                        chart.data.datasets[0].backgroundColor = labels[0] === '데이터 없음' ? 
+                            ['rgba(200, 200, 200, 0.5)'] : 
+                            getChartColors(chartId);
+                    }
+
+                    chart.data.labels = labels;
+                    chart.data.datasets[0].data = values;
+                    
+                    // 매출 차트의 경우 금액 포맷팅
+                    if (chartId === 'salesChart') {
+                        chart.options.plugins.tooltip = {
+                            callbacks: {
+                                label: function(context) {
+                                    return `매출: ${context.parsed.y.toLocaleString()}원`;
+                                }
+                            }
+                        };
+                    }
+
+                    // 데이터가 없는 경우 메시지 표시
+                    if (labels[0] === '데이터 없음') {
+                        chart.options.plugins.title = {
+                            display: true,
+                            text: '선택한 기간에 데이터가 없습니다',
+                            padding: {
+                                top: 10,
+                                bottom: 30
+                            }
+                        };
+                    } else {
+                        chart.options.plugins.title = {
+                            display: false
+                        };
+                    }
+
+                    chart.update();
+                    console.log(`${chartId} 업데이트 완료`);
+                } catch (error) {
+                    console.error(`${chartId} 업데이트 중 오류 발생:`, error);
+                }
+            }
+
+            function getChartLabel(chartId) {
+                const labels = {
+                    reservationChart: '예약 수',
+                    salesChart: '매출',
+                    ageChart: '연령대별 분포',
+                    genderChart: '성별 분포'
+                };
+                return labels[chartId] || '';
+            }
+
+            function getChartColors(chartId) {
+                const colors = {
+                    reservationChart: 'rgb(75, 192, 192)',
+                    salesChart: 'rgba(54, 162, 235, 0.5)',
+                    ageChart: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    genderChart: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ]
+                };
+                return colors[chartId] || 'rgb(200, 200, 200)';
+            }
         </script>
     </th:block>
 </body>

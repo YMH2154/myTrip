@@ -83,7 +83,7 @@
 
 <div layout:fragment="content">
     <div class="qna-form-container">
-        <form action="/mypage/qna/new" method="post" th:object="${qnaDto}">
+        <form action="/myPage/qna/new" method="post" th:object="${qnaDto}">
             <div class="form-group">
                 <label class="form-label">문의 유형</label>
                 <select class="form-select" th:field="*{questionType}">
@@ -106,7 +106,7 @@
 
             <div class="btn-container">
                 <button type="submit" class="btn btn-submit">등록하기</button>
-                <a href="/mypage/qna" class="btn btn-cancel">취소</a>
+                <a href="/myPage/qna" class="btn btn-cancel">취소</a>
             </div>
         </form>
     </div>

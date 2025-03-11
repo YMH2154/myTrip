@@ -163,10 +163,10 @@
                         class="btn btn-edit" 
                         onclick="toggleEdit()">수정</button>
                 <a th:if="${qnaDto.isAnswered}" 
-                   href="/mypage/qna"
+                   href="/myPage/qna"
                    class="btn btn-back">확인</a>
                 <a th:unless="${qnaDto.isAnswered}" 
-                   href="/mypage/qna"
+                   href="/myPage/qna"
                    class="btn btn-back">목록으로</a>
             </div>
         </div>
@@ -177,7 +177,7 @@
     <script th:inline="javascript">
         function toggleEdit() {
             const qnaId = [[${qnaDto.id}]];
-            window.location.href = `/mypage/qna/${qnaId}/edit`;
+            window.location.href = `/myPage/qna/${qnaId}/edit`;
         }
     </script>
 </th:block>

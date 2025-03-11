@@ -1,51 +1,50 @@
 package com.soloProject.myTrip.controller;
 
 import com.soloProject.myTrip.dto.MemberFormDto;
-import com.soloProject.myTrip.dto.MemberUpdateFormDto;
 import com.soloProject.myTrip.dto.QnADto;
+import com.soloProject.myTrip.dto.MemberTelUpdateDto;
+import com.soloProject.myTrip.entity.Coupon;
 import com.soloProject.myTrip.entity.Member;
+import com.soloProject.myTrip.service.CouponService;
 import com.soloProject.myTrip.service.MemberService;
 import com.soloProject.myTrip.service.QnAService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import lombok.RequiredArgsConstructor;
 
 import java.security.Principal;
 import java.util.List;
 
 @Controller
-@RequestMapping("/mypage")
+@RequestMapping("/myPage")
 @RequiredArgsConstructor
 public class MyPageController {
 
     private final QnAService qnAService;
     private final MemberService memberService;
+    private final CouponService couponService;
 
     @GetMapping({ "", "/" })
     public String myPage() {
         return "myPage/myPage";
     }
 
-    @GetMapping("/info")
+    @GetMapping("/myInfo")
     public String myInfo(Principal principal, Model model) {
         String email = principal.getName();
+        Member member = memberService.getMember(email);
+        List<Coupon> coupons = couponService.getCouponsByMember(email);
 
-        if (email == null) {
-            throw new IllegalStateException("로그인된 사용자의 이메일 정보를 가져올 수 없습니다.");
-        }
-
-        Member member = memberService.getMember(principal.getName());
-
-        System.out.println("Member found: " + member.getId());
-
-        MemberUpdateFormDto memberUpdateFormDto = new MemberUpdateFormDto();
-        memberUpdateFormDto.setTel(member.getTel());
+        MemberTelUpdateDto memberTelUpdateDto = new MemberTelUpdateDto();
+        memberTelUpdateDto.setTel(member.getTel());
 
         model.addAttribute("member", member);
-        model.addAttribute("memberUpdateFormDto", memberUpdateFormDto);
+        model.addAttribute("memberTelUpdateDto", memberTelUpdateDto);
+        model.addAttribute("coupons", coupons);
+
         return "myPage/myInfo";
     }
 
@@ -75,4 +74,5 @@ public class MyPageController {
     public String points() {
         return "myPage/points";
     }
+
 }

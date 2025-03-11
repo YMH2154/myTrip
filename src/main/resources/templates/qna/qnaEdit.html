@@ -65,6 +65,11 @@
             color: white;
         }
 
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
         .btn-cancel {
             background-color: #e0e0e0;
             color: #333;
@@ -101,6 +106,7 @@
 
             <div class="btn-container">
                 <button type="button" class="btn btn-save" onclick="saveChanges()">수정완료</button>
+                <button type="button" class="btn btn-delete" onclick="deleteQnA()">삭제</button>
                 <button type="button" class="btn btn-cancel" onclick="cancelEdit()">취소</button>
             </div>
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
@@ -110,6 +116,9 @@
 
 <th:block layout:fragment="script">
     <script th:inline="javascript">
+        const token = $("meta[name='_csrf']").attr("content");
+        const header = $("meta[name='_csrf_header']").attr("content");
+
         function saveChanges() {
             const formData = {
                 id: document.querySelector('#qnaId').value,
@@ -118,10 +127,7 @@
                 content: document.querySelector('#content').value
             };
 
-            const token = $("meta[name='_csrf']").attr("content");
-            const header = $("meta[name='_csrf_header']").attr("content");
-
-            fetch(`/mypage/qna/${formData.id}/edit`, {
+            fetch(`/myPage/qna/${formData.id}/edit`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -131,7 +137,7 @@
             })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = `/mypage/qna/${formData.id}`;
+                    window.location.href = `/myPage/qna/${formData.id}`;
                 } else {
                     throw new Error('수정 실패');
                 }
@@ -142,9 +148,36 @@
             });
         }
 
+        async function deleteQnA(){
+            const qnaId = document.querySelector('#qnaId').value;
+
+            if(!confirm('질문을 삭제하시겠습니까?')){
+                return;
+            }
+
+            try{
+                const response = await fetch(`/myPage/qna/${qnaId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        [header]: token
+                    }
+                });
+
+                if(response.ok){
+                    alert('삭제가 완료되었습니다');
+                    window.location.href = '/myPage/qna';
+                }
+                else{
+                    console.error('삭제 실패:', response.status);
+                }
+            } catch (error) {
+                console.error('요청 중 에러 발생:', error);
+            }
+        }
+
         function cancelEdit() {
             const qnaId = document.querySelector('#qnaId').value;
-            window.location.href = `/mypage/qna/${qnaId}`;
+            window.location.href = `/myPage/qna/${qnaId}`;
         }
     </script>
 </th:block>

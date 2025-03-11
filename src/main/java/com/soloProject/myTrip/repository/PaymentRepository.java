@@ -14,15 +14,23 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentRepository
-                extends JpaRepository<Payment, Long>, QuerydslPredicateExecutor<Payment>, PaymentRepositoryCustom {
-        Optional<Payment> findByMerchantUid(String merchantUid);
+        extends JpaRepository<Payment, Long>, QuerydslPredicateExecutor<Payment>, PaymentRepositoryCustom {
+    Optional<Payment> findByMerchantUid(String merchantUid);
 
-        Payment findByMemberReservationIdAndPaymentType(Long memberReservationId, PaymentType paymentType);
+    Payment findByMemberReservationIdAndPaymentType(Long memberReservationId, PaymentType paymentType);
 
-        boolean existsByMemberReservationIdAndPaymentType(Long memberReservationId, PaymentType paymentType);
+    boolean existsByMemberReservationIdAndPaymentType(Long memberReservationId, PaymentType paymentType);
 
-        List<Payment> findByRegTimeAfter(LocalDateTime dateTime);
-        
-        @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.regTime >= :startDate")
-        Integer sumAmountAfter(@Param("startDate") LocalDateTime startDate);
+    // 기간별 매출 통계를 위한 JPQL 쿼리
+    @Query("SELECT DATE_FORMAT(p.regTime, :pattern) as date, SUM(p.amount) " +
+            "FROM Payment p " +
+            "JOIN p.memberReservation mr " +
+            "WHERE p.regTime BETWEEN :startDate AND :endDate " +
+            "AND mr.reservationStatus != 'REFUNDED' " +
+            "GROUP BY DATE_FORMAT(p.regTime, :pattern)")
+    List<Object[]> getSalesStatistics(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("pattern") String pattern);
+
 }

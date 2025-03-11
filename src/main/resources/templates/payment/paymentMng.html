@@ -78,6 +78,72 @@
                 justify-content: center;
             }
         }
+
+        .content-table tr {
+            transition: background-color 0.3s ease; /* 부드러운 전환 효과 */
+        }
+
+        /* 검색 필터 스타일 추가 */
+        .search-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-group {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-title {
+            color: #005f99;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .radio-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option label {
+            padding: 0.5rem 1rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background-color: #00aaff;
+            color: white;
+            border-color: #00aaff;
+        }
+
+        @media (max-width: 768px) {
+            .radio-options {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
     </style>
 </th:block>
 
@@ -87,29 +153,95 @@
     </div>
 
     <div class="search-section">
-        <form th:action="@{/admin/payments}" method="get" th:object="${paymentSearchDto}">
-            <div class="search-form-container">
-                <div class="search-group">
-                    <label for="searchBy">검색 조건</label>
-                    <select th:field="*{searchBy}" class="form-control" id="searchBy">
-                        <option value="email">고객 ID</option>
-                        <option value="itemName">상품명</option>
-                        <option value="merchantUid">주문번호</option>
-                    </select>
+        <form id="searchForm" th:action="@{/admin/payments}" method="get" th:object="${paymentSearchDto}">
+            <div class="search-filters">
+                <!-- 결제 수단 필터 -->
+                <div class="filter-group">
+                    <h5 class="filter-title">결제 수단</h5>
+                    <div class="radio-options">
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{paymentMethod}" id="method-all" value="" checked>
+                            <label for="method-all">전체</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{paymentMethod}" id="method-card" value="CARD">
+                            <label for="method-card">카드</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{paymentMethod}" id="method-kakao" value="KAKAO">
+                            <label for="method-kakao">카카오페이</label>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="search-group">
-                    <label for="searchQuery">검색어</label>
-                    <input th:field="*{searchQuery}" type="text" class="form-control search-input" id="searchQuery" 
-                           placeholder="검색어를 입력하세요">
+                <!-- 결제 상태 필터 -->
+                <div class="filter-group">
+                    <h5 class="filter-title">결제 상태</h5>
+                    <div class="radio-options">
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{reservationStatus}" id="status-all" value="" checked>
+                            <label for="status-all">전체</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{reservationStatus}" id="status-deposit" value="DEPOSIT_PAID">
+                            <label for="status-deposit">예약금 결제완료</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{reservationStatus}" id="status-balance" value="BALANCE_PAID">
+                            <label for="status-balance">잔금 결제완료</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{reservationStatus}" id="status-refunded" value="REFUNDED">
+                            <label for="status-refunded">결제 취소</label>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="search-buttons">
-                <button type="submit" class="search-btn">
-                    <i class="fas fa-search"></i>
-                    검색
-                </button>
+                <!-- 결제 종류 필터 -->
+                <div class="filter-group">
+                    <h5 class="filter-title">결제 종류</h5>
+                    <div class="radio-options">
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{paymentType}" id="type-all" value="" checked>
+                            <label for="type-all">전체</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{paymentType}" id="type-deposit" value="DEPOSIT">
+                            <label for="type-deposit">예약금</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" th:field="*{paymentType}" id="type-balance" value="BALANCE">
+                            <label for="type-balance">잔금</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 검색 버튼 부분 복원 -->
+                <div class="filter-group">
+                    <div class="search-form-container">
+                        <div class="search-group">
+                            <label for="searchBy">검색 조건</label>
+                            <select th:field="*{searchBy}" class="form-control" id="searchBy">
+                                <option value="email">고객 ID</option>
+                                <option value="itemName">상품명</option>
+                                <option value="merchantUid">주문번호</option>
+                            </select>
+                        </div>
+
+                        <div class="search-group">
+                            <label for="searchQuery">검색어</label>
+                            <input th:field="*{searchQuery}" type="text" class="form-control search-input" id="searchQuery" 
+                                   placeholder="검색어를 입력하세요">
+                        </div>
+
+                        <div class="search-group" style="justify-content: flex-end;">
+                            <button type="button" onclick="searchByQuery()" class="search-btn">
+                                <i class="fas fa-search"></i>
+                                검색
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -134,7 +266,8 @@
                         검색 조건에 맞는 결제 내역이 없습니다.
                     </td>
                 </tr>
-                <tr th:unless="${#lists.isEmpty(payments)}" th:each="payment : ${payments}">
+                <tr th:unless="${#lists.isEmpty(payments)}" 
+                    th:each="payment : ${payments}">
                     <td th:text="${payment.id}"></td>
                     <td th:text="${payment.itemName}"></td>
                     <td th:text="${payment.merchantUid}"></td>
@@ -149,24 +282,109 @@
     </div>
 
     <div th:with="start=${(payments.number/maxPage)*maxPage + 1},
-                  end=(${(payments.totalPages == 0) ? 1 : (start + (maxPage - 1) < payments.totalPages ? start + (maxPage - 1) : payments.totalPages)})">
+                  end=(${(payments.totalPages == 0) ? 1 : (start + (maxPage-1) < payments.totalPages ? start + (maxPage-1) : payments.totalPages)})">
         <ul class="pagination">
             <li class="page-item" th:classappend="${payments.first}?'disabled'">
-                <a class="page-link" th:href="@{'/admin/payments/' + ${payments.number - 1} + '?searchBy=' + ${paymentSearchDto?.searchBy} + '&searchQuery=' + ${paymentSearchDto?.searchQuery}}">
+                <a th:onclick="'page(' + ${payments.number - 1} + ')'" aria-label="Previous" class="page-link">
                     <img src="/images/left_btn.png" alt="이전">
                 </a>
             </li>
             <li class="page-item" th:each="page: ${#numbers.sequence(start, end)}"
                 th:classappend="${payments.number + 1 == page}?'active'">
-                <a class="page-link" th:href="@{'/admin/payments/' + ${page - 1} + '?searchBy=' + ${paymentSearchDto?.searchBy} + '&searchQuery=' + ${paymentSearchDto?.searchQuery}}" th:inline="text">[[${page}]]</a>
+                <a th:onclick="'page(' + ${page-1} + ')'" th:inline="text" class="page-link">[[${page}]]</a>
             </li>
             <li class="page-item" th:classappend="${payments.last}?'disabled'">
-                <a class="page-link" th:href="@{'/admin/payments/' + ${payments.number + 1} + '?searchBy=' + ${paymentSearchDto?.searchBy} + '&searchQuery=' + ${paymentSearchDto?.searchQuery}}">
+                <a th:onclick="'page(' + ${payments.number + 1} + ')'" aria-label="Next" class="page-link">
                     <img src="/images/right_btn.png" alt="다음">
                 </a>
             </li>
         </ul>
     </div>
 </div>
+
+<!-- JavaScript 수정 -->
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // 폼 제출 이벤트 방지
+            const searchForm = document.getElementById('searchForm');
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+
+            // 모든 라디오 버튼에 대한 이벤트 리스너
+            const radioInputs = document.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    updateSearch();
+                });
+            });
+
+            // 검색 조건 선택에 대한 이벤트 리스너
+            document.getElementById('searchBy').addEventListener('change', function() {
+                updateSearch();
+            });
+
+            // Enter 키 입력 시 검색 실행
+            document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchByQuery();
+                }
+            });
+        });
+
+        // 검색어로 검색하는 함수
+        function searchByQuery() {
+            page(0);
+        }
+
+        // 필터 변경 시 검색하는 함수 (검색어 제외)
+        function updateSearch() {
+            const currentSearchQuery = document.getElementById('searchQuery').value;
+            const currentSearchBy = document.getElementById('searchBy').value;
+            
+            try {
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || '';
+                const reservationStatus = document.querySelector('input[name="reservationStatus"]:checked')?.value || '';
+                const paymentType = document.querySelector('input[name="paymentType"]:checked')?.value || '';
+
+                // URL 생성 및 이동 (현재 검색어 유지)
+                const url = `/admin/payments/0`
+                    + `?searchBy=${encodeURIComponent(currentSearchBy)}`
+                    + `&searchQuery=${encodeURIComponent(currentSearchQuery)}`
+                    + `&paymentMethod=${encodeURIComponent(paymentMethod)}`
+                    + `&reservationStatus=${encodeURIComponent(reservationStatus)}`
+                    + `&paymentType=${encodeURIComponent(paymentType)}`;
+
+                location.href = url;
+            } catch (error) {
+                console.error('검색 처리 중 오류 발생:', error);
+            }
+        }
+
+        // 페이지 이동 함수
+        function page(page) {
+            try {
+                const searchBy = document.getElementById('searchBy').value;
+                const searchQuery = document.getElementById('searchQuery').value;
+                const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || '';
+                const reservationStatus = document.querySelector('input[name="reservationStatus"]:checked')?.value || '';
+                const paymentType = document.querySelector('input[name="paymentType"]:checked')?.value || '';
+
+                const url = `/admin/payments/${page}`
+                    + `?searchBy=${encodeURIComponent(searchBy)}`
+                    + `&searchQuery=${encodeURIComponent(searchQuery)}`
+                    + `&paymentMethod=${encodeURIComponent(paymentMethod)}`
+                    + `&reservationStatus=${encodeURIComponent(reservationStatus)}`
+                    + `&paymentType=${encodeURIComponent(paymentType)}`;
+
+                location.href = url;
+            } catch (error) {
+                console.error('검색 처리 중 오류 발생:', error);
+            }
+        }
+    </script>
+</th:block>
 
 </html>
