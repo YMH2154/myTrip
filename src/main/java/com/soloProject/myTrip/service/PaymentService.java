@@ -51,6 +51,7 @@ public class PaymentService {
   private final CouponRepository couponRepository;
   private final ItemReservationRepository itemReservationRepository;
   private final ReservationService reservationService;
+  private final MemberRepository memberRepository;
 
   // 결제 준비 정보를 저장할 Map
   private final Map<String, Object> paymentInfoMap = new HashMap<>();
@@ -462,5 +463,12 @@ public class PaymentService {
       SessionUtils.addAttribute("earnedMileage", earnedMileage);
     }
     reservationService.updateReservation(itemReservation.getId());
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Payment> getPaymentsByEmail(String email, Pageable pageable) {
+    Member member = memberRepository.findByEmail(email)
+        .orElseThrow(EntityNotFoundException::new);
+    return paymentRepository.findByMemberReservationMemberOrderByRegTimeDesc(member, pageable);
   }
 }

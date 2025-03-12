@@ -14,12 +14,16 @@ import com.soloProject.myTrip.service.PaymentService;
 import com.soloProject.myTrip.service.QnAService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.web.PageableDefault;
 
 import java.security.Principal;
 import java.util.List;
@@ -164,5 +168,4 @@ public class PaymentController {
     log.info("결제 취소 페이지 호출");
     return "payment/cancel";
   }
-
 }

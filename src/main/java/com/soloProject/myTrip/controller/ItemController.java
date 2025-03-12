@@ -3,6 +3,7 @@ package com.soloProject.myTrip.controller;
 import com.soloProject.myTrip.dto.ItemFormDto;
 import com.soloProject.myTrip.dto.ItemReservationDto;
 import com.soloProject.myTrip.dto.ScheduleDto;
+import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.ItemReservation;
 import com.soloProject.myTrip.service.*;
 import jakarta.servlet.http.HttpSession;
@@ -235,7 +236,7 @@ public class ItemController {
             recentViewService.addRecentView(request, response, itemId);
 
             // 최근 본 다른 상품들 조회 (쿠키 사용)
-            List<ItemFormDto> recentItems = recentViewService.getRecentItems(request, itemId);
+            List<Item> recentItems = recentViewService.getRecentItems(request, itemId);
 
             model.addAttribute("item", item);
             model.addAttribute("reservation", reservation);

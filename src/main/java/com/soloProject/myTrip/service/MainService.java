@@ -112,7 +112,7 @@ public class MainService {
         return itemList;
     }
 
-    private void setItemInfo(List<Item> items) {
+    public void setItemInfo(List<Item> items) {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         LocalDate endDate = tomorrow.plusDays(6);
 

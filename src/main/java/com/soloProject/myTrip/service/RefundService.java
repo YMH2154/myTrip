@@ -40,6 +40,7 @@ public class RefundService {
     private final ParticipantRepository participantRepository;
     private final CouponRepository couponRepository;
     private final MemberReservationRepository memberReservationRepository;
+    private final ItemRepository itemRepository;
 
     // 동기화를 위한 락 객체
     private final Object refundLock = new Object();
@@ -214,6 +215,8 @@ public class RefundService {
                     .findById(reservation.getItemReservation().getId())
                     .orElseThrow(EntityNotFoundException::new);
 
+            Item item = itemRepository.findById(itemReservation.getItem().getId()).orElseThrow(EntityNotFoundException::new);
+
             reservation.setReservationStatus(ReservationStatus.REFUNDED);
 
             // ItemReservation 좌석 상태 업데이트
@@ -243,7 +246,10 @@ public class RefundService {
                 itemReservation.setDepartureConfirmed(false);
                 log.info("예약 출발 확정 취소 - 예약 ID : {}, 예약 날짜 : {}",
                         itemReservation.getId(), itemReservation.getDepartureDateTime());
+
             }
+
+            item.minusReservationCount();
 
             return;
         }

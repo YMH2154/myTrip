@@ -1,10 +1,239 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/myPage-layout}">
 
-</body>
+<th:block layout:fragment="css">
+    <style>
+        .payments-container {
+            padding: 20px;
+        }
+
+        .payments-title {
+            color: #1a73e8;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e8f5;
+        }
+
+        .payments-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .payments-table th {
+            background-color: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            font-weight: 600;
+            border-bottom: 2px solid #e1e8f5;
+        }
+
+        .payments-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e1e8f5;
+            color: #333;
+        }
+
+        .payments-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .payment-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-completed {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-cancelled {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        .payment-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background-color: #f5f5f5;
+            color: #666;
+        }
+
+        .payment-amount {
+            font-weight: 600;
+            color: #e74c3c;
+        }
+
+        .no-payments {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .no-payments i {
+            font-size: 3rem;
+            color: #1a73e8;
+            margin-bottom: 15px;
+        }
+
+        .no-payments p {
+            font-size: 1.1rem;
+            margin: 10px 0;
+        }
+
+        .merchant-uid {
+            font-family: monospace;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .pagination-container {
+            margin-top: 30px;
+        }
+
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .page-link {
+            color: #1a73e8;
+            border-color: #e1e8f5;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .page-item.active .page-link {
+            background-color: #1a73e8;
+            border-color: #1a73e8;
+            color: white;
+        }
+
+        .page-item.disabled .page-link {
+            color: #6c757d;
+            pointer-events: none;
+            background-color: #fff;
+            border-color: #e1e8f5;
+        }
+
+        .page-link:hover {
+            color: #1557b0;
+            background-color: #e9ecef;
+            border-color: #e1e8f5;
+        }
+
+        .page-item.active .page-link:hover {
+            background-color: #1a73e8;
+            border-color: #1a73e8;
+            color: white;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="payments-container">
+        <h2 class="payments-title">결제 내역</h2>
+        
+        <div th:if="${#lists.isEmpty(payments)}" class="no-payments">
+            <i class="fas fa-receipt"></i>
+            <p>결제 내역이 없습니다.</p>
+        </div>
+
+        <table th:unless="${#lists.isEmpty(payments)}" class="payments-table">
+            <thead>
+                <tr>
+                    <th>상품명</th>
+                    <th>주문번호</th>
+                    <th>결제 금액</th>
+                    <th>결제 종류</th>
+                    <th>결제 상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="payment : ${payments}">
+                    <td th:text="${payment.itemName}">상품명</td>
+                    <td>
+                        <span class="merchant-uid" th:text="${payment.memberReservation.reservationNumber}">예약 번호</span>
+                    </td>
+                    <td>
+                        <span class="payment-amount" 
+                              th:text="${#numbers.formatInteger(payment.amount, 0, 'COMMA') + '원'}">
+                            0원
+                        </span>
+                    </td>
+                    <td>
+                        <span class="payment-type" 
+                              th:text="${payment.paymentType.name() == 'DEPOSIT' ? '계약금' : '잔금'}">
+                            결제 종류
+                        </span>
+                    </td>
+                    <td>
+                        <span class="payment-status"
+                              th:classappend="${payment.cancelReason == null ? 'status-completed' : 'status-cancelled'}"
+                              th:text="${payment.cancelReason == null ? '결제 완료' : '결제 취소'}">
+                            결제 상태
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${!#lists.isEmpty(payments)}" class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <!-- 첫 페이지 버튼 -->
+                    <li class="page-item" th:classappend="${payments.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/myPage/payments(page=0)}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- 이전 페이지 버튼 -->
+                    <li class="page-item" th:classappend="${payments.first} ? 'disabled'">
+                        <a class="page-link" th:href="@{/myPage/payments(page=${payments.number - 1})}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- 페이지 번호 -->
+                    <li class="page-item" 
+                        th:each="page : ${#numbers.sequence(0, payments.totalPages - 1)}"
+                        th:if="${page >= payments.number - 2 and page <= payments.number + 2}"
+                        th:classappend="${page == payments.number} ? 'active'">
+                        <a class="page-link" th:href="@{/myPage/payments(page=${page})}" th:text="${page + 1}"></a>
+                    </li>
+
+                    <!-- 다음 페이지 버튼 -->
+                    <li class="page-item" th:classappend="${payments.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/myPage/payments(page=${payments.number + 1})}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+
+                    <!-- 마지막 페이지 버튼 -->
+                    <li class="page-item" th:classappend="${payments.last} ? 'disabled'">
+                        <a class="page-link" th:href="@{/myPage/payments(page=${payments.totalPages - 1})}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
 </html>

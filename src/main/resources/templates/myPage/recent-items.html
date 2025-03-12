@@ -1,10 +1,177 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/myPage-layout}">
 
-</body>
+<th:block layout:fragment="css">
+    <style>
+        .recent-items-container {
+            padding: 20px;
+        }
+
+        .recent-items-title {
+            color: #1a73e8;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e8f5;
+        }
+
+        .item-card {
+            display: flex;
+            width: 100%;
+            height: 250px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .item-image {
+            width: 350px;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .item-card:hover .item-image {
+            transform: scale(1.05);
+        }
+
+        .item-info {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: linear-gradient(to right, #ffffff, #f8f9fa);
+        }
+
+        .item-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .travel-info {
+            margin-top: auto;
+        }
+
+        .duration {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .departure-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+
+        .departure-date {
+            font-size: 1rem;
+            color: #495057;
+        }
+
+        .airline-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .price-info {
+            text-align: right;
+            margin-top: 15px;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+
+        .price small {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-left: 5px;
+        }
+
+        .no-items {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .no-items i {
+            font-size: 3rem;
+            color: #1a73e8;
+            margin-bottom: 15px;
+        }
+
+        .no-items p {
+            font-size: 1.1rem;
+            margin: 10px 0;
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="recent-items-container">
+        <h2 class="recent-items-title">최근 본 상품</h2>
+        <div th:if="${#lists.isEmpty(recentItems)}" class="no-items">
+            <i class="fas fa-search"></i>
+            <p>최근 본 상품이 없습니다.</p>
+        </div>
+        <div th:unless="${#lists.isEmpty(recentItems)}">
+            <a th:each="item : ${recentItems}" 
+               th:href="@{'/item/' + ${item.id} + '/calendar'}" 
+               class="item-card">
+                <img th:src="${item.thumbnailImageUrls[0]}" 
+                     class="item-image" 
+                     th:alt="${item.itemName}">
+                <div class="item-info">
+                    <h3 class="item-title" th:text="${item.itemName}">상품명</h3>
+                    <div class="travel-info">
+                        <div class="duration" 
+                             th:text="${item.night + '박 ' + item.duration + '일'}">
+                            여행 기간
+                        </div>
+                        <div class="departure-info">
+                            <span class="departure-date" 
+                                  th:text="${'출발: ' + #temporals.format(item.earliestDepartureDate, 'yyyy.MM.dd')} + ' ~'">
+                                출발일
+                            </span>
+                            <span class="airline-badge" th:text="${item.airline}">항공사</span>
+                        </div>
+                        <div class="price-info">
+                            <span class="price">
+                                <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원 ~
+                                <small>(항공권 포함)</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
 </html>

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soloProject.myTrip.dto.ItemFormDto;
+import com.soloProject.myTrip.entity.Item;
+import com.soloProject.myTrip.repository.ItemRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,10 +21,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class RecentViewService {
 
-  private final ItemService itemService;
+  private final MainService mainService;
+  private final ItemRepository itemRepository;
   private final ObjectMapper objectMapper;
   private static final String COOKIE_NAME = "recentItems";
-  private static final int MAX_ITEMS = 5;
+  private static final int MAX_ITEMS = 10;
   private static final int COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7일
 
   public void addRecentView(HttpServletRequest request, HttpServletResponse response, Long itemId) {
@@ -31,7 +35,7 @@ public class RecentViewService {
     recentItems.remove(itemId);
 
     // 최근 본 상품 목록 앞에 추가
-    recentItems.add(0, itemId);
+    recentItems.addFirst(itemId);
 
     // 최대 개수 유지
     if (recentItems.size() > MAX_ITEMS) {
@@ -42,9 +46,9 @@ public class RecentViewService {
     saveRecentItemsCookie(response, recentItems);
   }
 
-  public List<ItemFormDto> getRecentItems(HttpServletRequest request, Long currentItemId) {
+  public List<Item> getRecentItems(HttpServletRequest request, Long currentItemId) {
     List<Long> recentItemIds = getRecentItemIds(request);
-    List<ItemFormDto> recentItems = new ArrayList<>();
+    List<Item> recentItems = new ArrayList<>();
 
     // 현재 보고 있는 상품 제외
     recentItemIds.remove(currentItemId);
@@ -52,13 +56,14 @@ public class RecentViewService {
     // 최근 본 상품 정보 조회
     for (Long itemId : recentItemIds) {
       try {
-        ItemFormDto item = itemService.getItem(itemId);
+        Item item = itemRepository.findById(itemId).orElseThrow(EntityNotFoundException::new);
         recentItems.add(item);
       } catch (Exception e) {
         // 상품이 삭제되었거나 조회할 수 없는 경우 무시
-        continue;
       }
     }
+
+    mainService.setItemInfo(recentItems);
 
     return recentItems;
   }
