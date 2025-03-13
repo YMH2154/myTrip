@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface ItemRepositoryCustom {
     Page<Item> getAdminItemPage(ItemSearchDto itemSearchDto, Pageable pageable);
+
     Page<Item> findItemsByCategory(String request, Pageable pageable);
+
     Page<Item> findItemsBySearchQuery(String searchQuery, Pageable pageable);
 }

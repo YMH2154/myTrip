@@ -22,5 +22,5 @@ public class ItemSearchDto {
 
     private String searchBy; // 조회 유형 ( 제목 / 등록자 )
 
-    private String searchQuery = ""; //검색 단어
+    private String searchQuery = ""; // 검색 단어
 }

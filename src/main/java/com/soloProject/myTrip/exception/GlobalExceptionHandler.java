@@ -12,12 +12,12 @@ public class GlobalExceptionHandler extends RuntimeException {
   @ExceptionHandler(AccessDeniedException.class)
   public String handleAccessDeniedException(AccessDeniedException e, Model model){
     model.addAttribute("errorMessage", e.getMessage());
-    return "error/403";
+    return "error/error";
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
   public String handleEntityNotFoundException(EntityNotFoundException e, Model model){
     model.addAttribute("errorMessage", e.getMessage());
-    return "error/404";
+    return "error/error";
   }
 }

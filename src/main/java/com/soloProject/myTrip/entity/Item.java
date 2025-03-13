@@ -105,7 +105,9 @@ public class Item extends BaseEntity {
         this.reservationCount++;
     }
 
-    public void minusReservationCount(){this.reservationCount--;}
+    public void minusReservationCount() {
+        this.reservationCount--;
+    }
 
     public void updateItem(ItemFormDto itemFormDto) {
         this.setItemName(itemFormDto.getItemName());

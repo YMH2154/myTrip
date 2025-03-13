@@ -124,66 +124,94 @@ public class ItemRepositoryCustomImpl implements ItemRepositoryCustom {
     public Page<Item> findItemsByCategory(String request, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        List<OverseasCategory> asiaCategories = Arrays.stream(OverseasCategory.values())
-                .filter(category -> "아시아".equals(category.getRegion()))
-                .collect(Collectors.toList());
-
-        List<OverseasCategory> europeCategories =  Arrays.stream(OverseasCategory.values())
-                .filter(category -> "유럽".equals(category.getRegion()))
-                .collect(Collectors.toList());
-
-        List<OverseasCategory> americanCategories =  Arrays.stream(OverseasCategory.values())
-                .filter(category -> "미주".equals(category.getRegion()))
-                .collect(Collectors.toList());
-
         // 상위 카테고리별 검색 조건 추가
-        switch (request) {
-            case "국내" ->
-                    builder.and(item.travelType.eq(TravelType.DOMESTIC));
-            case "아시아" ->
-                    builder.and(item.travelType.eq(TravelType.OVERSEAS)).and(item.overseasCategory.in(asiaCategories));
-            case "유럽" ->
-                    builder.and(item.travelType.eq(TravelType.OVERSEAS)).and(item.overseasCategory.in(europeCategories));
-            case "미주" ->
-                    builder.and(item.travelType.eq(TravelType.OVERSEAS)).and(item.overseasCategory.in(americanCategories));
-            case "테마" ->
-                    builder.and(item.travelType.eq(TravelType.THEME));
-            default -> {
+        switch (request.toLowerCase()) {
+            case "domestic": {
+                builder.and(item.travelType.eq(TravelType.DOMESTIC));
+                break;
+            }
+            case "asia", "아시아": {
+                List<OverseasCategory> asiaCategories = Arrays.stream(OverseasCategory.values())
+                        .filter(category -> "아시아".equals(category.getRegion()))
+                        .collect(Collectors.toList());
+                builder.and(item.travelType.eq(TravelType.OVERSEAS))
+                        .and(item.overseasCategory.in(asiaCategories));
+                break;
+            }
+            case "europe", "유럽": {
+                List<OverseasCategory> europeCategories = Arrays.stream(OverseasCategory.values())
+                        .filter(category -> "유럽".equals(category.getRegion()))
+                        .collect(Collectors.toList());
+                builder.and(item.travelType.eq(TravelType.OVERSEAS))
+                        .and(item.overseasCategory.in(europeCategories));
+                break;
+            }
+            case "america", "미주": {
+                List<OverseasCategory> americaCategories = Arrays.stream(OverseasCategory.values())
+                        .filter(category -> "미주".equals(category.getRegion()))
+                        .collect(Collectors.toList());
+                builder.and(item.travelType.eq(TravelType.OVERSEAS))
+                        .and(item.overseasCategory.in(americaCategories));
+                break;
+            }
+            case "theme": {
+                builder.and(item.travelType.eq(TravelType.THEME));
+                break;
+            }
+            default: {
                 // 세부 카테고리 검색
+                boolean categoryFound = false;
+
                 // 국내여행 카테고리 검색
                 for (DomesticCategory category : DomesticCategory.values()) {
                     if (category.getDescription().equals(request)) {
-                        builder.or(item.domesticCategory.eq(category));
+                        builder.and(item.travelType.eq(TravelType.DOMESTIC))
+                                .and(item.domesticCategory.eq(category));
+                        categoryFound = true;
+                        break;
                     }
                 }
 
                 // 해외여행 카테고리 검색
-                for (OverseasCategory category : OverseasCategory.values()) {
-                    if (category.getDescription().equals(request)) {
-                        builder.or(item.overseasCategory.eq(category));
+                if (!categoryFound) {
+                    for (OverseasCategory category : OverseasCategory.values()) {
+                        if (category.getDescription().equals(request)) {
+                            builder.and(item.travelType.eq(TravelType.OVERSEAS))
+                                    .and(item.overseasCategory.eq(category));
+                            categoryFound = true;
+                            break;
+                        }
                     }
                 }
 
                 // 테마여행 카테고리 검색
-                for (ThemeCategory category : ThemeCategory.values()) {
-                    if (category.getDescription().equals(request)) {
-                        builder.or(item.themeCategory.eq(category));
+                if (!categoryFound) {
+                    for (ThemeCategory category : ThemeCategory.values()) {
+                        if (category.getDescription().equals(request)) {
+                            builder.and(item.travelType.eq(TravelType.THEME))
+                                    .and(item.themeCategory.eq(category));
+                            break;
+                        }
                     }
                 }
+                break;
             }
         }
 
+        // 중복 제거를 위한 distinct 추가
         List<Item> content = queryFactory
                 .selectFrom(item)
                 .where(builder)
                 .orderBy(item.regTime.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
+                .distinct()
                 .fetch();
 
         long total = queryFactory
                 .selectFrom(item)
                 .where(builder)
+                .distinct()
                 .fetchCount();
 
         return new PageImpl<>(content, pageable, total);

@@ -186,30 +186,6 @@
 
         <!-- 검색 결과 리스트 -->
         <div th:unless="${#lists.isEmpty(items)}" id="itemList" class="item-list">
-            <div th:each="item : ${items}" class="item-card" th:onclick="'window.location.href=\'/item/' + ${item.id} + '/calendar\''">
-                <img th:src="${item.thumbnailImageUrls[0]}" class="item-image" th:alt="${item.itemName}">
-                <div class="item-info">
-                    <h5 th:text="${item.itemName}">상품명</h5>
-                    <div class="schedule-list">
-                        <div class="schedule-item" th:each="schedule, stat : ${item.schedules}" th:if="${stat.index < 3}">
-                            <i class="fas fa-map-marker-alt schedule-icon"></i>
-                            <span th:text="${schedule.activity}">활동명</span>
-                        </div>
-                    </div>
-                    <div class="info-wrapper">
-                        <div class="travel-info">
-                            <div class="duration" th:text="${item.night} + '박 ' + ${item.duration} + '일'"></div>
-                            <span class="departure-date" th:text="'출발: ' + ${#temporals.format(item.earliestDepartureDate, 'yyyy.MM.dd')} + ' ~'"></span>
-                        </div>
-                        <div class="price-info">
-                            <p class="price">
-                                <span th:text="${#numbers.formatInteger(item.lowestPrice, 0, 'COMMA')}">0</span>원 ~
-                                <small>(항공권 포함)</small>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- 로딩 인디케이터 -->
@@ -229,11 +205,11 @@
         let page = 0;
         let loading = false;
         let noMoreItems = false;
-        const pageSize = 5;
         const isSearch = /*[[${isSearch}]]*/ false;
         const searchQuery = /*[[${searchQuery}]]*/ '';
         const categoryLink = /*[[${categoryLink}]]*/ '';
         const hasNext = /*[[${hasNext}]]*/ false;
+        const loadedItems = new Set();
 
         // CSRF 토큰 가져오기
         const csrfToken = document.querySelector("meta[name='_csrf']").getAttribute("content");
@@ -242,40 +218,29 @@
         async function loadItems() {
             if (loading || noMoreItems) return;
             loading = true;
-            
-            document.getElementById('loading').style.display = 'block';
-            
+
+            $("#loading").show();
+
             try {
-                const url = new URL(isSearch ? '/search/api' : '/category/api', window.location.origin);
-                const params = {
+                const params = new URLSearchParams({
                     page: page,
-                    pageSize: pageSize
-                };
-                
-                if (isSearch) {
-                    params.searchQuery = searchQuery;
-                } else {
-                    params.category = categoryLink;
-                }
-                
-                url.search = new URLSearchParams(params).toString();
-                
-                const headers = {
-                    'Accept': 'application/json',
-                    [csrfHeader]: csrfToken
-                };
-
-                console.log('요청 URL:', url.toString());
-                console.log('요청 헤더:', headers);
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: headers,
-                    credentials: 'same-origin'
+                    pageSize: 5
                 });
 
-                console.log('응답 상태:', response.status);
-                console.log('응답 헤더:', Object.fromEntries(response.headers.entries()));
+                if (isSearch) {
+                    params.append('searchQuery', searchQuery);
+                } else {
+                    params.append('category', categoryLink);
+                }
+
+                const response = await fetch(`/search/api?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        [csrfHeader]: csrfToken
+                    },
+                    credentials: 'same-origin'
+                });
 
                 if (!response.ok) {
                     const responseText = await response.text();
@@ -283,53 +248,37 @@
                     throw new Error(`HTTP error! status: ${response.status}, response: ${responseText}`);
                 }
 
-                const responseText = await response.text();
-                console.log('응답 데이터:', responseText);
+                const data = await response.json();
 
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                } catch (e) {
-                    console.error('JSON 파싱 에러:', e);
-                    console.error('파싱 실패한 응답:', responseText);
-                    throw new Error('Invalid JSON response');
-                }
+                if (data && data.items && data.items.length > 0) {
+                    const itemList = document.getElementById('itemList');
 
-                console.log('파싱된 데이터:', data);
-                
-                const itemList = document.getElementById('itemList');
-                
-                if (data.items && data.items.length > 0) {
-                    console.log(`${data.items.length}개의 아이템 로드됨`);
                     data.items.forEach(item => {
-                        const card = createItemCard(item);
-                        itemList.appendChild(card);
+                        if (!loadedItems.has(item.id)) {
+                            loadedItems.add(item.id);
+                            const card = createItemCard(item);
+                            itemList.appendChild(card);
+                        }
                     });
-                    
-                    if (data.hasNext) {
-                        page = data.currentPage + 1;
-                        console.log('다음 페이지:', page);
-                    } else {
-                        noMoreItems = true;
-                        console.log('더 이상 아이템이 없음');
-                    }
+
+                    page++;
+                    noMoreItems = !data.hasNext;
                 } else {
                     noMoreItems = true;
-                    console.log('로드된 아이템 없음');
                 }
             } catch (error) {
-                console.error('에러 발생:', error);
-                console.error('에러 스택:', error.stack);
-                noMoreItems = true;
+                console.error("아이템 로드 에러:", error);
             } finally {
                 loading = false;
-                document.getElementById('loading').style.display = 'none';
+                $("#loading").hide();
             }
         }
 
-        function createItemCard(item) {
+
+          function createItemCard(item) {
             const card = document.createElement('div');
             card.className = 'item-card';
+
             card.innerHTML = `
                 <img src="${item.thumbnailImageUrls[0]}" class="item-image" alt="${item.itemName}">
                 <div class="item-info">
@@ -345,24 +294,31 @@
                     <div class="info-wrapper">
                         <div class="travel-info">
                             <div class="duration">${item.night}박 ${item.duration}일</div>
-                            <span class="departure-date">출발: ${item.earliestDepartureDate ? new Date(item.earliestDepartureDate).toLocaleDateString('ko-KR', {year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\. /g, '.') : '날짜 미정'} ~</span>
+                            <span class="departure-date">
+                                출발: ${item.earliestDepartureDate
+                                    ? new Date(item.earliestDepartureDate).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.')
+                                    : '날짜 미정'} ~
+                            </span>
                         </div>
                         <div class="price-info">
                             <p class="price">
-                                ${item.lowestPrice ? item.lowestPrice.toLocaleString() : item.price.toLocaleString()}원 ~
+                                ${item.lowestPrice != null
+                                    ? item.lowestPrice.toLocaleString()
+                                    : item.price.toLocaleString()}원 ~
                                 <small>(항공권 포함)</small>
                             </p>
                         </div>
                     </div>
                 </div>
             `;
+
             card.onclick = () => {
                 window.location.href = `/item/${item.id}/calendar`;
             };
+
             return card;
         }
 
-        // Intersection Observer 설정
         const observerOptions = {
             root: null,
             rootMargin: '200px',
@@ -386,11 +342,7 @@
                 observer.observe(target);
             }
 
-            // 초기 데이터가 없는 경우에만 로드
-            if (hasNext) {
-                page = 1; // 첫 페이지는 이미 로드되어 있으므로 1부터 시작
-                loadItems();
-            }
+            loadItems();
         });
 
         // 페이지 언로드 시 Observer 해제
