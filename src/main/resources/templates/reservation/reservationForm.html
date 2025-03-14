@@ -319,7 +319,7 @@
         <tr>
           <th>생년월일</th>
           <td>
-            <input type="text" class="form-control" id="bookerBirth" placeholder="생년월일(YYMMDD)">
+            <input type="text" class="form-control" id="bookerBirth" placeholder="생년월일(YYYYMMDD)">
           </td>
         </tr>
         <tr>
@@ -577,6 +577,244 @@
         const warningDiv = '<div id="seatsWarning" style="display:none; color:red;">선택하신 인원이 잔여 좌석을 초과했습니다.</div>';
         document.querySelector('.section').insertAdjacentHTML('beforeend', warningDiv);
 
+        function updateCounts(type, isPlus) {
+            let count;
+            switch(type) {
+                case 'adult':
+                    if (isPlus) {
+                        if ((adultCount + childCount + 1) <= remainingSeats) {
+                            adultCount++;
+                            count = adultCount;
+                        } else {
+                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
+                            return false;
+                        }
+                    } else if (adultCount > 1) {
+                        if (infantCount >= adultCount - 1) {
+                            infantCount = adultCount - 1;
+                            document.getElementById('infantCount').textContent = infantCount;
+                        }
+                        adultCount--;
+                        count = adultCount;
+                    }
+                    document.getElementById('adultCount').textContent = adultCount;
+                    break;
+
+                case 'child':
+                    if (isPlus) {
+                        if ((adultCount + childCount + 1) <= remainingSeats) {
+                            childCount++;
+                            count = childCount;
+                        } else {
+                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
+                            return false;
+                        }
+                    } else if (childCount > 0) {
+                        childCount--;
+                        count = childCount;
+                    }
+                    document.getElementById('childCount').textContent = childCount;
+                    break;
+
+                case 'infant':
+                    if (isPlus && infantCount < adultCount) {
+                        infantCount++;
+                        count = infantCount;
+                    } else if (!isPlus && infantCount > 0) {
+                        infantCount--;
+                        count = infantCount;
+                    }
+                    document.getElementById('infantCount').textContent = infantCount;
+                    break;
+            }
+            return true;
+        }
+
+        // 인원 수 조절 버튼 이벤트
+        document.querySelectorAll('.count-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const type = this.dataset.type;
+                const isPlus = this.classList.contains('plus-btn');
+                
+                if (updateCounts(type, isPlus)) {
+                    updatePriceDisplay();
+                    updatePersonDetailForms();
+                    checkAvailability();
+                }
+            });
+        });
+
+        function checkAvailability() {
+            const totalCount = adultCount + childCount;
+            const isExceeded = totalCount > remainingSeats;
+            
+            document.getElementById('seatsWarning').style.display = 
+                isExceeded ? 'block' : 'none';
+            document.getElementById('reserveButton').disabled = isExceeded;
+
+            // 성인, 아동 증가 버튼 비활성화
+            document.querySelectorAll('[data-type="adult"].plus-btn, [data-type="child"].plus-btn')
+                .forEach(button => {
+                    button.disabled = totalCount >= remainingSeats;
+                });
+
+            // 유아 증가 버튼 비활성화
+            document.querySelector('[data-type="infant"].plus-btn').disabled = infantCount >= adultCount;
+
+            // 감소 버튼 비활성화
+            document.querySelector('[data-type="adult"].minus-btn').disabled = adultCount <= 1;
+            document.querySelector('[data-type="child"].minus-btn').disabled = childCount <= 0;
+            document.querySelector('[data-type="infant"].minus-btn').disabled = infantCount <= 0;
+        }
+
+        // 생년월일 유효성 검사 함수 추가
+        function validateBirthDate(birth, type) {
+            if (!/^\d{8}$/.test(birth)) {
+                return { isValid: false, message: "생년월일은 YYYYMMDD 형식으로 입력해주세요." };
+            }
+
+            const year = parseInt(birth.substring(0, 4));
+            const month = parseInt(birth.substring(4, 6));
+            const day = parseInt(birth.substring(6, 8));
+
+            // 현재 날짜
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            
+            // 생년월일을 Date 객체로 변환
+            const birthDate = new Date(year, month - 1, day);
+            
+            // 날짜 유효성 검사
+            if (birthDate > today || month < 1 || month > 12 || day < 1 || day > 31) {
+                return { isValid: false, message: "유효하지 않은 생년월일입니다." };
+            }
+
+            // 만 나이 계산
+            let age = currentYear - year;
+            const birthMonth = birthDate.getMonth();
+            const currentMonth = today.getMonth();
+            
+            if (currentMonth < birthMonth || 
+                (currentMonth === birthMonth && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            // 연령대별 검증
+            switch(type) {
+                case 'ADULT':
+                    if (age < 12) {
+                        return { isValid: false, message: "성인은 만 12세 이상이어야 합니다." };
+                    }
+                    break;
+                case 'CHILD':
+                    if (age < 2 || age >= 12) {
+                        return { isValid: false, message: "아동은 만 2세 이상 12세 미만이어야 합니다." };
+                    }
+                    break;
+                case 'INFANT':
+                    if (age >= 2) {
+                        return { isValid: false, message: "유아는 만 2세 미만이어야 합니다." };
+                    }
+                    break;
+            }
+
+            return { isValid: true };
+        }
+
+        // 생년월일 입력 필드 이벤트 리스너 추가
+        function addBirthValidation(index, type) {
+            const birthInput = document.getElementById(`birth${index}`);
+            if (!birthInput) return;
+
+            birthInput.addEventListener('blur', function() {
+                const result = validateBirthDate(this.value, type);
+                const errorDiv = this.parentElement.querySelector('.birth-error');
+                
+                if (errorDiv) {
+                    errorDiv.remove();
+                }
+
+                if (!result.isValid) {
+                    const div = document.createElement('div');
+                    div.className = 'birth-error text-danger mt-1';
+                    div.style.fontSize = '0.8rem';
+                    div.textContent = result.message;
+                    this.parentElement.appendChild(div);
+                    this.value = '';
+                }
+            });
+        }
+
+        // 기존의 updatePersonDetailForms 함수 수정
+        function updatePersonDetailForms() {
+            const container = document.getElementById('personDetailSection');
+            let html = '';
+            let currentIndex = 0;
+
+            // 성인 폼 생성
+            for (let i = 0; i < adultCount; i++) {
+                html += createPersonForm('성인', i, currentIndex++, 'ADULT');
+            }
+
+            // 아동 폼
+            for (let i = 0; i < childCount; i++) {
+                html += createPersonForm('아동', i, currentIndex++, 'CHILD');
+            }
+
+            // 유아 폼
+            for (let i = 0; i < infantCount; i++) {
+                html += createPersonForm('유아', i, currentIndex++, 'INFANT');
+            }
+
+            container.innerHTML = html;
+
+            // 생년월일 유효성 검사 이벤트 리스너 추가
+            currentIndex = 0;
+            for (let i = 0; i < adultCount; i++) {
+                addBirthValidation(currentIndex++, 'ADULT');
+            }
+            for (let i = 0; i < childCount; i++) {
+                addBirthValidation(currentIndex++, 'CHILD');
+            }
+            for (let i = 0; i < infantCount; i++) {
+                addBirthValidation(currentIndex++, 'INFANT');
+            }
+        }
+
+        function createPersonForm(type, index, currentIndex, ageType) {
+            return `
+                <div class="person-detail">
+                    <h4>${type} ${index + 1}</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="name${currentIndex}" name="names" placeholder="이름" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="tel${currentIndex}" name="tels" 
+                                   placeholder="연락처" ${type === '성인' && index === 0 ? 'required' : ''}>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="birth${currentIndex}" name="births" 
+                                   placeholder="생년월일(YYYYMMDD)" maxlength="8" required
+                                   data-age-type="${ageType}">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="male${currentIndex}"
+                                       name="sex${currentIndex}" value="MALE" required>
+                                <label class="form-check-label" for="male${currentIndex}">남</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="female${currentIndex}"
+                                       name="sex${currentIndex}" value="FEMALE">
+                                <label class="form-check-label" for="female${currentIndex}">여</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function updatePriceDisplay() {
             const adultTotalPrice = adultCount * basePrice;
             const childTotalPrice = childCount * basePrice;
@@ -602,167 +840,6 @@
             // 총 합계 업데이트
             document.getElementById('totalPrice').textContent = totalPrice.toLocaleString() + '원';
             document.getElementById('totalPriceInput').value = totalPrice;
-        }
-
-        function updatePersonDetailForms() {
-            const container = document.getElementById('personDetailSection');
-            let html = '';
-            let currentIndex = 0;
-
-            // 성인 폼 생성
-            for (let i = 0; i < adultCount; i++) {
-                html += `
-                    <div class="person-detail">
-                        <h4>성인 ${i + 1}</h4>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <input type="text" class="form-control" id="name${currentIndex}" name="names" placeholder="이름" required>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control" id="tel${currentIndex}" name="tels" 
-                                       placeholder="연락처" ${i === 0 ? 'required' : ''}>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control" id="birth${currentIndex}" name="births" 
-                                       placeholder="생년월일(YYMMDD)" required>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" id="male${currentIndex}"
-                                           name="sex${currentIndex}" value="MALE" required>
-                                    <label class="form-check-label" for="male${currentIndex}">남</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" id="female${currentIndex}"
-                                           name="sex${currentIndex}" value="FEMALE">
-                                    <label class="form-check-label" for="female${currentIndex}">여</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                currentIndex++;
-            }
-
-            // 아동 폼
-            for (let i = 0; i < childCount; i++) {
-                html += createPersonForm('아동', i, currentIndex++);
-            }
-
-            // 유아 폼
-            for (let i = 0; i < infantCount; i++) {
-                html += createPersonForm('유아', i, currentIndex++);
-            }
-
-            container.innerHTML = html;
-        }
-
-        function createPersonForm(type, index, currentIndex) {
-            return `
-                <div class="person-detail">
-                    <h4>${type} ${index + 1}</h4>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" id="name${currentIndex}" name="names" placeholder="이름" required>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" id="tel${currentIndex}" name="tels" placeholder="연락처">
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" id="birth${currentIndex}" name="births" 
-                                   placeholder="생년월일(YYMMDD)" required>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="male${currentIndex}"
-                                       name="sex${currentIndex}" value="MALE" required>
-                                <label class="form-check-label" for="male${currentIndex}">남</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="female${currentIndex}"
-                                       name="sex${currentIndex}" value="FEMALE">
-                                <label class="form-check-label" for="female${currentIndex}">여</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // 인원 수 조절 버튼 이벤트
-        document.querySelectorAll('.count-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const type = this.dataset.type;
-                const isPlus = this.classList.contains('plus-btn');
-                const countElement = document.getElementById(`${type}Count`);
-                let count = parseInt(countElement.textContent);
-
-                if (isPlus) {
-                    if (type === 'adult') {
-                        if ((adultCount + childCount + 1) <= remainingSeats) {
-                            adultCount++;
-                            count = adultCount;
-                        } else {
-                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
-                            return;
-                        }
-                    } else if (type === 'child') {
-                        if ((adultCount + childCount + 1) <= remainingSeats) {
-                            childCount++;
-                            count = childCount;
-                        } else {
-                            alert('선택하신 인원이 잔여 좌석을 초과했습니다.');
-                            return;
-                        }
-                    } else if (type === 'infant' && infantCount < adultCount) {
-                        infantCount++;
-                        count = infantCount;
-                    }
-                } else {
-                    if (type === 'adult' && count > 1) {
-                        if (infantCount >= count - 1) {
-                            infantCount = count - 1;
-                            document.getElementById('infantCount').textContent = infantCount;
-                        }
-                        adultCount--;
-                        count = adultCount;
-                    } else if (type === 'child' && count > 0) {
-                        childCount--;
-                        count = childCount;
-                    } else if (type === 'infant' && count > 0) {
-                        infantCount--;
-                        count = infantCount;
-                    }
-                }
-
-                // 인원수 표시 업데이트
-                countElement.textContent = count;
-                
-                // 가격 업데이트를 먼저 실행
-                updatePriceDisplay();
-                
-                // 그 다음 폼과 가용성 체크
-                updatePersonDetailForms();
-                checkAvailability();
-            });
-        });
-
-        function checkAvailability() {
-            const totalCount = adultCount + childCount;
-            const isExceeded = totalCount > remainingSeats;
-            
-            document.getElementById('seatsWarning').style.display = 
-                isExceeded ? 'block' : 'none';
-            document.getElementById('reserveButton').disabled = isExceeded;
-
-            document.querySelectorAll('[data-type="adult"].plus-btn, [data-type="child"].plus-btn')
-                .forEach(button => {
-                    button.disabled = totalCount >= remainingSeats;
-                });
-
-            document.querySelector('[data-type="adult"].minus-btn').disabled = adultCount <= 1;
-            document.querySelector('[data-type="child"].minus-btn').disabled = childCount <= 0;
-            document.querySelector('[data-type="infant"].minus-btn').disabled = infantCount <= 0;
         }
 
         // 예약자 포함 체크박스 이벤트
@@ -804,8 +881,27 @@
             }
         });
 
-        // 예약하기 버튼 이벤트
+        // 예약하기 버튼 이벤트 수정
         document.getElementById('reserveButton').addEventListener('click', function() {
+            // 생년월일 유효성 검사
+            const birthInputs = document.querySelectorAll('input[name="births"]');
+            let isValid = true;
+
+            birthInputs.forEach((input, index) => {
+                const ageType = input.dataset.ageType;
+                const result = validateBirthDate(input.value, ageType);
+                
+                if (!result.isValid) {
+                    isValid = false;
+                    alert(`${index + 1}번째 여행자: ${result.message}`);
+                }
+            });
+
+            if (!isValid) {
+                return;
+            }
+
+            // 기존 예약 로직 실행
             // 약관 동의 확인
             const checkboxes = document.querySelectorAll('.agreement-checkbox');
             let allChecked = true;
@@ -831,27 +927,26 @@
             // 참가자 데이터 수집
             const participants = [];
             const nameInputs = document.querySelectorAll('input[name="names"]');
-            const birthInputs = document.querySelectorAll('input[name="births"]');
             const telInputs = document.querySelectorAll('input[name="tels"]');
             let currentIndex = 0;
 
             // 성인 참가자
             for (let i = 0; i < adultCount; i++) {
-                const participant = collectParticipantData(currentIndex++, 'ADULT');
+                const participant = collectParticipantData(currentIndex++, 'ADULT', nameInputs, birthInputs, telInputs);
                 if (!participant) return;
                 participants.push(participant);
             }
 
             // 아동 참가자
             for (let i = 0; i < childCount; i++) {
-                const participant = collectParticipantData(currentIndex++, 'CHILD');
+                const participant = collectParticipantData(currentIndex++, 'CHILD', nameInputs, birthInputs, telInputs);
                 if (!participant) return;
                 participants.push(participant);
             }
 
             // 유아 참가자
             for (let i = 0; i < infantCount; i++) {
-                const participant = collectParticipantData(currentIndex++, 'INFANT');
+                const participant = collectParticipantData(currentIndex++, 'INFANT', nameInputs, birthInputs, telInputs);
                 if (!participant) return;
                 participants.push(participant);
             }
@@ -860,10 +955,10 @@
             submitReservationForm(participants, bookerTel);
         });
 
-        function collectParticipantData(index, ageType) {
-            const nameInput = document.querySelectorAll('input[name="names"]')[index];
-            const birthInput = document.querySelectorAll('input[name="births"]')[index];
-            const telInput = document.querySelectorAll('input[name="tels"]')[index];
+        function collectParticipantData(index, ageType, nameInputs, birthInputs, telInputs) {
+            const nameInput = nameInputs[index];
+            const birthInput = birthInputs[index];
+            const telInput = telInputs[index];
             const sexValue = document.querySelector(`input[name="sex${index}"]:checked`)?.value;
 
             if (!nameInput.value || !birthInput.value || !sexValue || 

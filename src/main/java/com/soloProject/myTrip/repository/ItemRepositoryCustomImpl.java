@@ -1,7 +1,6 @@
 package com.soloProject.myTrip.repository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.soloProject.myTrip.constant.DomesticCategory;
@@ -11,10 +10,8 @@ import com.soloProject.myTrip.constant.TravelType;
 import com.soloProject.myTrip.dto.ItemSearchDto;
 import com.soloProject.myTrip.entity.Item;
 import com.soloProject.myTrip.entity.QItem;
-import com.soloProject.myTrip.service.MainService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;

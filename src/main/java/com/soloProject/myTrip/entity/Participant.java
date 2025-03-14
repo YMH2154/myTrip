@@ -22,7 +22,7 @@ public class Participant extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(length = 6, nullable = false)
+    @Column(length = 8, nullable = false)
     private String birth;
 
     @Column(length = 6, nullable = false)
@@ -35,11 +35,5 @@ public class Participant extends BaseTimeEntity {
 
     @Column(length = 12)
     private String tel; //전화번호는 1인 필수
-
-    //결제후 추가 정보
-
-    private String engFirstName; //영문 이름
-    private String engLastName; //영문 성
-    private String passportNumber; //여권번호
 
 }
