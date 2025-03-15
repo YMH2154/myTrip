@@ -121,7 +121,7 @@
                       class="answer-textarea" 
                       th:text="${qnaDto.answer}"
                       placeholder="답변을 입력해주세요"></textarea>
-            
+            <p th:if="${#fields.hasErrors('answer')}" th:errors="*{answer}" class="fieldError">Incorrect data</p>
             <div class="btn-container">
                 <button type="submit" class="btn btn-submit">답변 등록</button>
                 <a th:href="@{/admin/qnas}" class="btn btn-back">목록으로</a>

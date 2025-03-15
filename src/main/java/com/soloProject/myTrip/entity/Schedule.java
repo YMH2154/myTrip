@@ -31,7 +31,4 @@ public class Schedule {
     @JsonBackReference
     private Item item;
 
-    public void updateImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
 }

@@ -5,6 +5,7 @@ import com.soloProject.myTrip.dto.QnADto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 @Getter
 @Setter
@@ -18,7 +19,7 @@ public class QnA extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String title;
 
     @Enumerated(EnumType.STRING)

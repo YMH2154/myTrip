@@ -23,7 +23,7 @@ public class Item extends BaseEntity {
 
     @Id
     @Column(name = "item_id")
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 50)

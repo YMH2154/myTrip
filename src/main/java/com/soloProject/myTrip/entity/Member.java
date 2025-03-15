@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.entity;
 
+import com.soloProject.myTrip.constant.Provider;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.dto.MemberFormDto;
 import jakarta.persistence.*;
@@ -26,13 +27,17 @@ public class Member extends BaseTimeEntity {
 
     private String password;
     private String name;
+
+    @Column(length = 13)
     private String tel;
 
     @Column(length = 5)
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private String provider;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 6)
+    private Provider provider;
 
     private Integer mileage;
 
@@ -51,7 +56,7 @@ public class Member extends BaseTimeEntity {
         member.setTel(memberFormDto.getTel());
         member.setMileage(1000); // 테스트 용 마일리지
         member.setRole(Role.ADMIN);
-        member.setProvider("local"); // 로컬 가입자
+        member.setProvider(Provider.LOCAL); // 로컬 가입자
 
         return member;
     }

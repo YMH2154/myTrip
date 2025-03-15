@@ -230,7 +230,7 @@ public class RefundService {
             log.info("좌석 취소 처리 완료 - 취소 좌석 수: {}", cancelledSeat);
 
             // 취소 사유 등록
-            payment.setCancelReason(refundRequestDto.getReason());
+            payment.setRefundReason(refundRequestDto.getReason());
             log.info("취소 사유 등록 완료 - reason: {}", refundRequestDto.getReason());
 
             int paidParticipant = 0;
@@ -259,7 +259,7 @@ public class RefundService {
             log.info("잔금 결제 취소 관련 처리 시작");
 
             // 취소 사유 등록
-            payment.setCancelReason(refundRequestDto.getReason());
+            payment.setRefundReason(refundRequestDto.getReason());
             log.info("취소 사유 등록 완료 - reason: {}", refundRequestDto.getReason());
 
             // 잔금 결제에 사용된 쿠폰 및 마일리지 반환

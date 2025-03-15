@@ -97,11 +97,13 @@
             <div class="form-group">
                 <label class="form-label">제목</label>
                 <input type="text" class="form-control" th:field="*{title}" required>
+                <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="fieldError">Incorrect data</p>
             </div>
 
             <div class="form-group">
                 <label class="form-label">내용</label>
                 <textarea class="form-control" th:field="*{content}" required></textarea>
+                <p th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="fieldError">Incorrect data</p>
             </div>
 
             <div class="btn-container">

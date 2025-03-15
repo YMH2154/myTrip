@@ -1,5 +1,6 @@
 package com.soloProject.myTrip.config;
 
+import com.soloProject.myTrip.constant.Provider;
 import com.soloProject.myTrip.constant.Role;
 import com.soloProject.myTrip.entity.Member;
 import lombok.Getter;
@@ -70,8 +71,9 @@ public class OAuthAttributes {
         return Member.builder()
                 .name(name)
                 .email(email)
-                .password(passwordEncoder.encode("OAUTH_USER"))
+                .password(passwordEncoder.encode("SOCIAL_USER"))
                 .role(Role.USER)
+                .provider(Provider.SOCIAL)
                 .build();
     }
 }

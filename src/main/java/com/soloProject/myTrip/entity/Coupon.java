@@ -29,6 +29,7 @@ public class Coupon extends BaseTimeEntity {
 
     private int minPurchaseAmount; // 최소 구매 금액
 
+    @Column(length = 50)
     private String description;
 
     @Enumerated(EnumType.STRING)

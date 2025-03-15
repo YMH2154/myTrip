@@ -33,8 +33,11 @@ public class QnAController {
 
     // qna 저장 요청
     @PostMapping("/myPage/qna/new")
-    public String newQnA(@Valid QnADto qnADto,
+    public String newQnA(@Valid QnADto qnADto, BindingResult bindingResult,
             Principal principal) {
+        if(bindingResult.hasErrors()){
+            return "qna/qnaForm";
+        }
         try {
             qnAService.saveQuestion(qnADto, principal.getName());
             return "redirect:/myPage/qna";

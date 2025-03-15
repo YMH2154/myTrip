@@ -30,15 +30,23 @@ public class ItemReservation {
     private List<MemberReservation> memberReservations;
 
     // 출국편 정보
+    @Column(length = 19)
     private String departureDateTime; // 시간 포함 출발 일시
+    @Column(length = 2)
     private String departureCarrierCode;
+    @Column(length = 10)
     private String departureCarrierName;
+    @Column(length = 4)
     private String departureFlightNumber;
 
     // 귀국편 정보
+    @Column(length = 19)
     private String returnDateTime; // 시간 포함 귀국 일시
+    @Column(length = 2)
     private String returnCarrierCode;
+    @Column(length = 10)
     private String returnCarrierName;
+    @Column(length = 4)
     private String returnFlightNumber;
 
     @Enumerated(EnumType.STRING)

@@ -7,6 +7,7 @@ import com.soloProject.myTrip.entity.Coupon;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 
@@ -21,6 +22,7 @@ public class CouponDto {
     private int discountAmount;
     @NotNull(message = "할인 비율을 입력해주세요")
     private int discountPercentage;
+    @Length(max = 50, message = "50자 이하로 입력해주세요")
     private String description;
     @NotNull(message = "사용 가능 금액을 입력해주세요")
     private Integer minPurchaseAmount;

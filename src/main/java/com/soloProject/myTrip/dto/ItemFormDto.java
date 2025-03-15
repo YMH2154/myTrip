@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.validator.constraints.Length;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class ItemFormDto {
     private Long id;
 
     @NotEmpty(message = "상품명은 필수 입력 값입니다.")
+    @Length(max = 50, message = "50자 이하로 입력해주세요")
     private String itemName;
 
     @NotNull(message = "여행 타입은 필수 선택 값입니다.")

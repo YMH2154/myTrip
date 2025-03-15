@@ -27,7 +27,7 @@ public class Payment extends BaseTimeEntity {
 
     private String itemName;
 
-    @Column(name = "merchant_uid", nullable = false)
+    @Column(name = "merchant_uid", nullable = false, unique = true)
     private String merchantUid;
 
     @Column(name = "amount", nullable = false)
@@ -42,7 +42,7 @@ public class Payment extends BaseTimeEntity {
     @JoinColumn(name = "member_reservation_id")
     private MemberReservation memberReservation;
 
-    private String cancelReason;
+    private String refundReason;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "used_coupon_id")
